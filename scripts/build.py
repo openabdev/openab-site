@@ -16,6 +16,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = os.environ.get("SITE", "https://openab.dev").rstrip("/")
 ORDER = ["en", "zh", "ja", "ko"]
+SWITCH_ORDER = ["zh", "ja", "ko", "en"]
 DISCORD = "https://openab.dev/discord"
 GITHUB_ORG = "https://github.com/openabdev"
 
@@ -159,14 +160,14 @@ T["zh"] = dict(
              "進到 agent 工作的同一個 image 和 workspace，直接看它留下了什麼。"),
         connect=("Mac App",
                  "OpenAB PTY 的原生 Mac 客戶端。所有頂尖廠商的 Agent，各自沙箱，"
-                 "運行在你的私有基礎架構；分割窗格、語音輸入，關掉 app 後 session 繼續運行。",
-                 "在一台 Mac 上同時運行、觀看多個 coding agent。"),
+                 "執行在你的私有基礎架構；分割窗格、語音輸入，關掉 app 後 session 繼續執行。",
+                 "在一台 Mac 上同時執行、觀看多個 coding agent。"),
         remote=("iPhone App",
                 "把 iPhone 變成 OpenAB Connect 的私人按住說話遙控器。語音只在手機上轉成文字，"
-                "只有終端安全的文字會送到選定的 Mac session。",
+                "只有可以安全送進終端機的文字會送到選定的 Mac session。",
                 "不用打字，在房間另一頭就能跟 agent 說話。"),
         computer=("把你的電腦變成 MCP 工具",
-                  "一個跑在你自己的 Mac 或 Linux 機器上的輕薄常駐程式，把這台機器以 MCP server 的形式"
+                  "一個跑在你自己的 Mac 或 Linux 機器上的輕量常駐程式，把這台機器以 MCP server 的形式"
                   "提供給別處的 agent：shell、截圖、滑鼠、鍵盤、AppleScript 和瀏覽器。"
                   "每次呼叫都要同時通過 Tailscale 身分與 bearer token。",
                   "讓沙箱裡的 agent 在你自己的機器上用 Xcode 編譯、操作 Simulator、檢查畫面。"),
@@ -223,7 +224,7 @@ T["ja"] = dict(
                 "キーボードを打たずに、部屋の向こうからエージェントに話しかける。"),
         computer=("自分のコンピューターを MCP ツールに",
                   "自分の Mac や Linux マシンで動く薄いデーモン。そのマシンを、別の場所にいるエージェントに"
-                  "MCP サーバーとして公開します。シェル、スクリーンショット、マウス、キーボード、AppleScript、ブラウザー。"
+                  " MCP サーバーとして公開します。シェル、スクリーンショット、マウス、キーボード、AppleScript、ブラウザー。"
                   "呼び出しには Tailscale の ID と bearer トークンの両方が必要です。",
                   "サンドボックスのエージェントに、自分のマシンで Xcode のビルド、シミュレーター操作、画面確認をさせる。"),
         sb=("スイッチボード",
@@ -389,12 +390,13 @@ def head(code):
 def switcher(code):
     u = up(code)
     out = []
-    for c in ORDER:
+    # Same order and "|" separators as connect.openab.dev: 中文|日本語|한국어|EN.
+    for c in SWITCH_ORDER:
         href = u + (f"{LANG[c]['dir']}/" if LANG[c]["dir"] else "")
         href = href or "./"
         cls = ' class="active" aria-current="page"' if c == code else ""
         out.append(f'<a{cls} href="{href}" data-lang="{c}" hreflang="{LANG[c]["htmllang"]}">{LANG[c]["label"]}</a>')
-    return "\n    ".join(out)
+    return "|".join(out)
 
 
 def icon(code, p):
@@ -430,7 +432,7 @@ def cards(code):
 def page(code):
     t = T[code]
     u = up(code)
-    home = u or "./"
+    home = "./"  # brand stays in the current language, like connect.openab.dev
     logo = f'{u}assets/logo-512.png?v={rev("assets/logo-512.png")}'
     return f"""<!DOCTYPE html>
 <html lang="{LANG[code]['htmllang']}" data-lang="{code}">

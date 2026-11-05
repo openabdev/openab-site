@@ -23,7 +23,7 @@
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=422dd2a6">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2d37f10a">
-<link rel="stylesheet" href="../style.css?v=e20c9ae6">
+<link rel="stylesheet" href="../style.css?v=73acd052">
 <link rel="alternate" hreflang="en" href="https://openab.dev/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/">
@@ -32,16 +32,13 @@
 </head>
 <body>
 <nav class="top">
-  <a class="brand" href="../"><img src="../assets/logo-512.png?v=7c2f585f" alt="" width="28" height="28">OpenAB</a>
+  <a class="brand" href="./"><img src="../assets/logo-512.png?v=7c2f585f" alt="" width="28" height="28">OpenAB</a>
   <div class="links">
     <a href="#products">產品</a>
     <a href="#community">社群</a>
     <a href="https://github.com/openabdev">GitHub</a>
     <span class="lang" aria-label="Language">
-    <a href="../" data-lang="en" hreflang="en">EN</a>
-    <a class="active" aria-current="page" href="../zh/" data-lang="zh" hreflang="zh-Hant">中文</a>
-    <a href="../ja/" data-lang="ja" hreflang="ja">日本語</a>
-    <a href="../ko/" data-lang="ko" hreflang="ko">한국어</a>
+    <a class="active" aria-current="page" href="../zh/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../ja/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../ko/" data-lang="ko" hreflang="ko">한국어</a>|<a href="../" data-lang="en" hreflang="en">EN</a>
     </span>
   </div>
 </nav>
@@ -102,8 +99,8 @@ document.addEventListener("click", function (e) {
         <span class="card-role">Mac App</span>
       </div>
     </div>
-    <p class="card-desc">OpenAB PTY 的原生 Mac 客戶端。所有頂尖廠商的 Agent，各自沙箱，運行在你的私有基礎架構；分割窗格、語音輸入，關掉 app 後 session 繼續運行。</p>
-    <p class="card-for"><strong>用途</strong> 在一台 Mac 上同時運行、觀看多個 coding agent。</p>
+    <p class="card-desc">OpenAB PTY 的原生 Mac 客戶端。所有頂尖廠商的 Agent，各自沙箱，執行在你的私有基礎架構；分割窗格、語音輸入，關掉 app 後 session 繼續執行。</p>
+    <p class="card-for"><strong>用途</strong> 在一台 Mac 上同時執行、觀看多個 coding agent。</p>
     <p class="card-tags">macOS · Mac App Store</p>
     <span class="card-link">connect.openab.dev</span>
   </a>
@@ -115,7 +112,7 @@ document.addEventListener("click", function (e) {
         <span class="card-role">iPhone App</span>
       </div>
     </div>
-    <p class="card-desc">把 iPhone 變成 OpenAB Connect 的私人按住說話遙控器。語音只在手機上轉成文字，只有終端安全的文字會送到選定的 Mac session。</p>
+    <p class="card-desc">把 iPhone 變成 OpenAB Connect 的私人按住說話遙控器。語音只在手機上轉成文字，只有可以安全送進終端機的文字會送到選定的 Mac session。</p>
     <p class="card-for"><strong>用途</strong> 不用打字，在房間另一頭就能跟 agent 說話。</p>
     <p class="card-tags">iPhone · App Store</p>
     <span class="card-link">connect.openab.dev</span>
@@ -128,7 +125,7 @@ document.addEventListener("click", function (e) {
         <span class="card-role">把你的電腦變成 MCP 工具</span>
       </div>
     </div>
-    <p class="card-desc">一個跑在你自己的 Mac 或 Linux 機器上的輕薄常駐程式，把這台機器以 MCP server 的形式提供給別處的 agent：shell、截圖、滑鼠、鍵盤、AppleScript 和瀏覽器。每次呼叫都要同時通過 Tailscale 身分與 bearer token。</p>
+    <p class="card-desc">一個跑在你自己的 Mac 或 Linux 機器上的輕量常駐程式，把這台機器以 MCP server 的形式提供給別處的 agent：shell、截圖、滑鼠、鍵盤、AppleScript 和瀏覽器。每次呼叫都要同時通過 Tailscale 身分與 bearer token。</p>
     <p class="card-for"><strong>用途</strong> 讓沙箱裡的 agent 在你自己的機器上用 Xcode 編譯、操作 Simulator、檢查畫面。</p>
     <p class="card-tags">Swift on macOS · Rust on Linux</p>
     <span class="card-link">github.com/openabdev/openab-computer</span>
