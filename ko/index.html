@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko" data-lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB — 오픈 Agent Broker 생태계</title>
+<meta name="description" content="OpenAB는 코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱 모음입니다. 채팅으로 지시하고, 터미널을 이어받고, 컴퓨터를 빌려주고, GitHub 접근을 중개합니다. 모두 내 인프라에서.">
+<link rel="canonical" href="https://openab.dev/ko/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="OpenAB — 오픈 Agent Broker 생태계">
+<meta property="og:description" content="OpenAB는 코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱 모음입니다. 채팅으로 지시하고, 터미널을 이어받고, 컴퓨터를 빌려주고, GitHub 접근을 중개합니다. 모두 내 인프라에서.">
+<meta property="og:url" content="https://openab.dev/ko/">
+<meta property="og:image" content="https://openab.dev/og-ko.png?v=26a3765e">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB — 코딩 에이전트를 내 인프라에서">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB — 오픈 Agent Broker 생태계">
+<meta name="twitter:description" content="OpenAB는 코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱 모음입니다. 채팅으로 지시하고, 터미널을 이어받고, 컴퓨터를 빌려주고, GitHub 접근을 중개합니다. 모두 내 인프라에서.">
+<meta name="twitter:image" content="https://openab.dev/og-ko.png?v=26a3765e">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=422dd2a6">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=2d37f10a">
+<link rel="stylesheet" href="../style.css?v=e20c9ae6">
+<link rel="alternate" hreflang="en" href="https://openab.dev/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../"><img src="../assets/logo-512.png?v=7c2f585f" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="#products">제품</a>
+    <a href="#community">커뮤니티</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../" data-lang="en" hreflang="en">EN</a>
+    <a href="../zh/" data-lang="zh" hreflang="zh-Hant">中文</a>
+    <a href="../ja/" data-lang="ja" hreflang="ja">日本語</a>
+    <a class="active" aria-current="page" href="../ko/" data-lang="ko" hreflang="ko">한국어</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<header class="hero">
+  <img class="logo" src="../assets/logo-512.png?v=7c2f585f" alt="OpenAB jellyfish mascot" width="144" height="144">
+  <p class="kicker">Open Agent Broker</p>
+  <h1>코딩 에이전트를,<br><span class="mark">내 인프라</span>에서.</h1>
+  <p class="tag">코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱. 채팅으로 지시하고, 터미널을 이어받고, 컴퓨터를 빌려주고, GitHub 접근을 중개합니다.</p>
+  <div class="cta">
+    <a class="btn primary" href="#products">제품 보기</a>
+    <a class="btn" href="https://openab.dev/discord">Discord 참여</a>
+  </div>
+</header>
+
+<section class="products" id="products">
+  <h2>생태계</h2>
+  <p class="intro">각각 따로 쓸 수 있습니다. 함께 쓰면 하나의 루프가 됩니다. 에이전트는 샌드박스에, 내 손은 그 터미널에, 에이전트의 손은 내 컴퓨터에.</p>
+  <div class="grid">
+  <a class="card" href="https://github.com/openabdev/openab" style="--accent:#5B3FA8">
+    <div class="card-head">
+      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14.5h4.5"/></svg></span>
+      <div>
+        <h3 class="card-name">OpenAB Classic</h3>
+        <span class="card-role">ACP 브로커</span>
+      </div>
+    </div>
+    <p class="card-desc">최초의 Open Agent Broker. Discord나 Slack에서 bot을 멘션하면(Telegram, LINE, Feishu/Lark, Google Chat, WeCom, Teams는 gateway 어댑터로) stdio JSON-RPC로 Kiro, Claude Code, Codex, Gemini, Copilot 같은 ACP 코딩 CLI를 구동합니다.</p>
+    <p class="card-for"><strong>용도</strong> 팀 채팅에서 코딩 에이전트에게 지시하기. 작업마다 스레드 하나.</p>
+    <p class="card-tags">Rust · Discord · Slack · Gateway</p>
+    <span class="card-link">github.com/openabdev/openab</span>
+  </a>
+  <a class="card" href="https://github.com/openabdev/openab-pty" style="--accent:#2F6E8F">
+    <div class="card-head">
+      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M12.5 15H17"/></svg></span>
+      <div>
+        <h3 class="card-name">OpenAB PTY</h3>
+        <span class="card-role">샌드박스 원격 터미널</span>
+      </div>
+    </div>
+    <p class="card-desc">잠긴 컨테이너 안의 셸을 내주는 작은 런타임. uid 1000, sudo 없음, 읽기 전용 루트 파일시스템, 호스트 자격 증명 없음. WireGuard tailnet을 통해 세션별 토큰으로 접속합니다.</p>
+    <p class="card-for"><strong>용도</strong> 에이전트가 일하는 바로 그 이미지와 워크스페이스에 들어가, 남긴 것을 그 자리에서 보기.</p>
+    <p class="card-tags">Rust · Kubernetes · ECS</p>
+    <span class="card-link">github.com/openabdev/openab-pty</span>
+  </a>
+  <a class="card" href="https://connect.openab.dev/ko/" style="--accent:#304E68">
+    <div class="card-head">
+      <img class="card-icon" src="../assets/openab-connect.png?v=ddb54a5a" alt="" width="56" height="56">
+      <div>
+        <h3 class="card-name">OpenAB Connect</h3>
+        <span class="card-role">Mac 앱</span>
+      </div>
+    </div>
+    <p class="card-desc">OpenAB PTY의 네이티브 Mac 클라이언트. 주요 벤더의 모든 에이전트를 각자의 샌드박스에서, 내 인프라 위에서. 분할 창, 음성 입력, 앱을 종료해도 계속 실행되는 세션.</p>
+    <p class="card-for"><strong>용도</strong> Mac 한 대에서 여러 코딩 에이전트를 실행하고 지켜보기.</p>
+    <p class="card-tags">macOS · Mac App Store</p>
+    <span class="card-link">connect.openab.dev</span>
+  </a>
+  <a class="card" href="https://connect.openab.dev/ko/" style="--accent:#C96842">
+    <div class="card-head">
+      <img class="card-icon" src="../assets/openab-remote.png?v=db071824" alt="" width="56" height="56">
+      <div>
+        <h3 class="card-name">OpenAB Remote</h3>
+        <span class="card-role">iPhone 앱</span>
+      </div>
+    </div>
+    <p class="card-desc">iPhone을 OpenAB Connect용 개인 푸시 투 토크 리모컨으로 바꿉니다. 음성은 기기에서 텍스트로 바뀌고, 터미널에 안전한 텍스트만 선택한 Mac 세션으로 전송됩니다.</p>
+    <p class="card-for"><strong>용도</strong> 타이핑 대신 방 건너편에서 에이전트에게 말하기.</p>
+    <p class="card-tags">iPhone · App Store</p>
+    <span class="card-link">connect.openab.dev</span>
+  </a>
+  <a class="card" href="https://github.com/openabdev/openab-computer" style="--accent:#3F7F5F">
+    <div class="card-head">
+      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8.5 4 1.6-1.7.7-.7 1.7z"/></svg></span>
+      <div>
+        <h3 class="card-name">OpenAB Computer</h3>
+        <span class="card-role">내 컴퓨터를 MCP 도구로</span>
+      </div>
+    </div>
+    <p class="card-desc">내가 소유한 Mac이나 Linux 기기에서 도는 얇은 데몬. 그 기기를 다른 곳의 에이전트에게 MCP 서버로 제공합니다. 셸, 스크린샷, 마우스, 키보드, AppleScript, 브라우저. 모든 호출에 Tailscale 신원과 bearer 토큰이 둘 다 필요합니다.</p>
+    <p class="card-for"><strong>용도</strong> 샌드박스의 에이전트가 내 기기에서 Xcode 빌드, 시뮬레이터 조작, 화면 확인을 하게 하기.</p>
+    <p class="card-tags">Swift on macOS · Rust on Linux</p>
+    <span class="card-link">github.com/openabdev/openab-computer</span>
+  </a>
+  <a class="card" href="https://github.com/openabdev/openab-sb" style="--accent:#8A5A2B">
+    <div class="card-head">
+      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h3a3 3 0 0 1 3 3v0a3 3 0 0 0 3 3h1M7 18h3a3 3 0 0 0 3-3v0a3 3 0 0 1 3-3"/></svg></span>
+      <div>
+        <h3 class="card-name">openab-sb</h3>
+        <span class="card-role">스위치보드</span>
+      </div>
+    </div>
+    <p class="card-desc">바깥으로만 연결할 수 있는 컴퓨터의 도구를 에이전트가 쓸 수 있게 합니다. 각 컴퓨터가 WebSocket 하나로 스위치보드에 접속하고, 스위치보드는 호출자별 기본 거부 허용 목록에 따라 MCP 호출을 중계합니다. 도구를 실행하지 않고 아무것도 저장하지 않습니다.</p>
+    <p class="card-for"><strong>용도</strong> 인바운드 포트를 열지 않고 내 네트워크 안 기기의 브라우저를 클라우드 에이전트에게 빌려주기.</p>
+    <p class="card-tags">Rust · MCP · WebSocket</p>
+    <span class="card-link">github.com/openabdev/openab-sb</span>
+  </a>
+  <a class="card" href="https://github.com/openabdev/octobroker" style="--accent:#7A3E6E">
+    <div class="card-head">
+      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/></svg></span>
+      <div>
+        <h3 class="card-name">octobroker</h3>
+        <span class="card-role">GitHub 자격 증명 브로커</span>
+      </div>
+    </div>
+    <p class="card-desc">에이전트는 GitHub 자격 증명을 전혀 갖지 않고도 GitHub의 MCP 도구, REST와 GraphQL 읽기, git push까지 씁니다. octobroker는 취소 가능한 키로 에이전트를 확인하고 기본 거부 도구·저장소 정책을 적용한 뒤, 수명이 짧고 저장소로 범위가 제한된 GitHub App 토큰을 발급합니다.</p>
+    <p class="card-for"><strong>용도</strong> 여러 에이전트에게 범위를 좁히고, 감사하고, 취소할 수 있는 GitHub 접근 주기.</p>
+    <p class="card-tags">Rust · Kubernetes · ECS</p>
+    <span class="card-link">github.com/openabdev/octobroker</span>
+  </a>
+  </div>
+</section>
+
+<section class="community" id="community">
+  <h2>인사 나눠요</h2>
+  <p>질문, 버그 제보, 만든 것 자랑은 OpenAB Discord에서.</p>
+  <a class="btn primary" href="https://openab.dev/discord">OpenAB Discord 참여</a>
+</section>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>
