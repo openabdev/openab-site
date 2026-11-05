@@ -14,3 +14,8 @@ Run `og_cards.py` before `build.py` when the cards change, because the pages sta
 each asset with a content hash (`?v=…`). Links and asset paths are relative, so the
 same files work at the Pages preview URL and at the custom domain. Absolute URLs
 (canonical, hreflang, `og:image`) use `SITE`, default `https://openab.dev`.
+
+Two files are hand-maintained and not generated: `CNAME` (the Pages custom domain,
+`openab.dev`) and `discord/index.html`, which redirects https://openab.dev/discord to
+the Discord invite. The apex DNS is not proxied through Cloudflare, so that page
+replaces the old Cloudflare redirect rule.
