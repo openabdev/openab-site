@@ -6,7 +6,7 @@ Chinese, Japanese and Korean. Static HTML/CSS served by GitHub Pages from `main`
 Do not edit the HTML by hand. Every page is generated:
 
 ```sh
-python3 scripts/make_icons.py [banner.jpg]  # logo-512, apple-touch-icon, favicon-64 from openab/images/banner.jpg
+python3 scripts/make_icons.py [SRC_DIR]   # icons, hero, card stickers from the mascot sources (not committed)
 python3 scripts/og_cards.py   # og-{en,zh,ja,ko}.png sharing cards (1200×630, needs Pillow + macOS fonts)
 python3 scripts/build.py      # index.html, zh/, ja/, ko/
 ```

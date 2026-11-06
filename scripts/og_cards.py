@@ -3,7 +3,9 @@
 
 Ported from connect.openab.dev's generator (layout measured from deepsrt.com): margin
 x=75, icon 78px at (75, 63), headline at y=250/326, subtitle y=424, domain y=557,
-text boundary x=820 with the watermark past it. Hue is the OpenAB banner's violet.
+text boundary x=780 (connect uses 820; narrower here for the art). Light field matching openab.dev; the art is
+the jellyfish mascot with its edges faded to transparent (scripts/og-mascot.webp, made by
+make_icons.py), so it blends into the field with no box edge.
 
     python3 scripts/og_cards.py
 """
@@ -15,15 +17,16 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 W, H = 1200, 630
 MARGIN = 75
-TEXT_R = 820
+TEXT_R = 780
 ICON_XY, ICON_PX = (75, 63), 78
 HEAD_Y1, HEAD_Y2 = 250, 326
 SUB_Y, DOMAIN_Y = 424, 557
 
-GRAD_TOP, GRAD_BOTTOM = (0x35, 0x22, 0x66), (0x10, 0x0A, 0x22)
-INK = (0xFF, 0xFF, 0xFF)
-MUTED = (0xC9, 0xC0, 0xE0)
-ACCENT = (0xC6, 0xB1, 0xF0)
+GRAD_LEFT, GRAD_RIGHT = (0xF7, 0xF4, 0xFC), (0xFC, 0xFB, 0xFE)   # site --bg family
+INK = (0x22, 0x16, 0x40)
+MUTED = (0x61, 0x5A, 0x78)
+ACCENT = (0x7B, 0x62, 0xC9)
+ART_PX, ART_X = 500, 730
 
 LATIN = "/System/Library/Fonts/HelveticaNeue.ttc"
 MONO = "/System/Library/Fonts/SFNSMono.ttf"
@@ -45,47 +48,8 @@ TEXT = {
 }
 DOMAIN = "openab.dev"
 WORDMARK = "OpenAB"
-ICON = ROOT / "assets/logo-512.png"
-WATERMARK = ROOT / "assets/watermark.png"
-
-
-def derive_watermark():
-    """Jellyfish cut out of the logo by saturation, edges feathered with a linear ramp.
-
-    The logo's field is a near-neutral lavender and the jellyfish is pastel but
-    saturated, so max-min > 34 separates them; a distance-from-edge ramp is zero at
-    the border by construction, so there is no seam at the paste column.
-    """
-    im = Image.open(ICON).convert("RGBA")
-    px = im.load()
-    w0, h0 = im.size
-    xs, ys = [], []
-    for x in range(0, w0, 2):
-        for y in range(0, h0, 2):
-            r, g, b, a = px[x, y]
-            if a > 200 and max(r, g, b) - min(r, g, b) > 34:
-                xs.append(x)
-                ys.append(y)
-    pad = 20
-    crop = im.crop((max(0, min(xs) - pad), max(0, min(ys) - pad),
-                    min(w0, max(xs) + pad), min(h0, max(ys) + pad)))
-    w, h = crop.size
-    # Alpha by saturation as well, so the pale field inside the crop drops out.
-    cp = crop.load()
-    alpha = Image.new("L", (w, h))
-    ap = alpha.load()
-    feather = int(min(w, h) * 0.22)
-    for x in range(w):
-        dx = min(x, w - 1 - x)
-        for y in range(h):
-            r, g, b, a = cp[x, y]
-            sat = max(r, g, b) - min(r, g, b)
-            base = 0 if sat < 20 else min(255, (sat - 20) * 255 // 30)
-            d = min(dx, y, h - 1 - y)
-            ap[x, y] = base * min(255, d * 255 // feather) // 255
-    crop.putalpha(alpha)
-    crop.save(WATERMARK)
-    print(f"  derived {WATERMARK.relative_to(ROOT)} {crop.size}, feather {feather}px")
+ICON = ROOT / "assets/brand-128.png"
+ART = ROOT / "scripts/og-mascot.webp"
 
 
 def font(path, size, bold=False):
@@ -111,30 +75,22 @@ def fit(draw, lines, path, start, floor, limit):
 def gradient():
     im = Image.new("RGB", (W, H))
     d = ImageDraw.Draw(im)
-    for y in range(H):
-        t = y / (H - 1)
-        d.line([(0, y), (W, y)],
-               fill=tuple(round(GRAD_TOP[i] + (GRAD_BOTTOM[i] - GRAD_TOP[i]) * t) for i in range(3)))
-    return im
-
-
-def rounded(im, radius):
-    mask = Image.new("L", im.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, im.size[0] - 1, im.size[1] - 1), radius, fill=255)
-    im.putalpha(mask)
+    for x in range(W):
+        t = x / (W - 1)
+        d.line([(x, 0), (x, H)],
+               fill=tuple(round(GRAD_LEFT[i] + (GRAD_RIGHT[i] - GRAD_LEFT[i]) * t) for i in range(3)))
     return im
 
 
 def build(lang):
     im = gradient()
-    wm = Image.open(WATERMARK).convert("RGBA")
-    wm_h = 520
-    wm = wm.resize((round(wm.width * wm_h / wm.height), wm_h), Image.LANCZOS)
-    wm.putalpha(wm.split()[3].point(lambda a: int(a * 0.22)))
-    im.paste(wm, (W - wm.width + 150, (H - wm_h) // 2), wm)
+    im = im.convert("RGBA")
+    art = Image.open(ART).convert("RGBA").resize((ART_PX, ART_PX), Image.LANCZOS)
+    im.alpha_composite(art, (ART_X, (H - ART_PX) // 2))
+    im = im.convert("RGB")
 
     d = ImageDraw.Draw(im)
-    mark = rounded(Image.open(ICON).convert("RGBA").resize((ICON_PX, ICON_PX), Image.LANCZOS), 18)
+    mark = Image.open(ICON).convert("RGBA").resize((ICON_PX, ICON_PX), Image.LANCZOS)
     im.paste(mark, ICON_XY, mark)
     wf = font(LATIN, 31, bold=True)
     wy = ICON_XY[1] + ICON_PX // 2 - d.textbbox((0, 0), WORDMARK, font=wf)[3] // 2 - 3
@@ -163,7 +119,6 @@ def build(lang):
 
 
 if __name__ == "__main__":
-    derive_watermark()
     for lang in ("en", "zh", "ja", "ko"):
         dest, hs, ss, name, over = build(lang)
         im = Image.open(dest)

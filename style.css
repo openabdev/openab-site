@@ -68,7 +68,7 @@ nav .brand {
   letter-spacing: -0.015em;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
-nav .brand img { width: 26px; height: 26px; border-radius: 7px; }
+nav .brand img { width: 28px; height: 28px; }
 nav .links { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; font-size: 0.95rem; }
 nav .links a { text-decoration: none; color: var(--muted); }
 nav .links a:hover { color: var(--ink); }
@@ -78,9 +78,9 @@ nav .lang a.active { color: var(--ink); font-weight: 700; }
 
 /* ── Hero ────────────────────────────── */
 header.hero { max-width: 900px; margin: 0 auto; padding: 40px 24px 8px; text-align: center; }
+.hero picture { display: block; line-height: 0; }
 .hero .logo {
-  width: 144px; height: 144px; border-radius: 34px;
-  box-shadow: var(--shadow);
+  width: 224px; height: 224px;
   animation: bob 5s ease-in-out infinite;
 }
 @keyframes bob {
@@ -150,19 +150,11 @@ html[data-lang="ko"] section h2 { font-size: 1.6rem; }
   border-color: var(--accent); outline: none;
 }
 .card-head { display: flex; align-items: center; gap: 14px; }
-.card-icon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; }
-img.card-icon { box-shadow: 0 2px 8px rgba(61, 31, 121, 0.14); }
-.card-icon.tile {
-  display: flex; align-items: center; justify-content: center;
-  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+.card-icon { width: 56px; height: 56px; flex-shrink: 0; }   /* art carries its own shape */
+.card-icon.placeholder {
+  border-radius: 14px; background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
-.card-icon.tile svg {
-  width: 28px; height: 28px; fill: none; stroke: var(--accent);
-  stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
-}
-@media (prefers-color-scheme: dark) {
-  .card-icon.tile svg { stroke: color-mix(in srgb, var(--accent) 45%, #fff); }
-}
+.card.static:hover { transform: none; box-shadow: var(--shadow); border-color: var(--border); }
 .card-name {
   margin: 0; font-size: 1.22rem; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -211,7 +203,7 @@ footer a { color: var(--muted); }
   nav .links { justify-content: center; gap: 0.85rem; font-size: 0.9rem; }
   nav .lang { margin-left: 0; }
   header.hero { padding: 24px 18px 4px; }
-  .hero .logo { width: 112px; height: 112px; border-radius: 27px; }
+  .hero .logo { width: 176px; height: 176px; }
   .tag { font-size: 1.02rem; }
   section.products { padding: 2.6rem 16px 0; }
   .grid { grid-template-columns: 1fr; }

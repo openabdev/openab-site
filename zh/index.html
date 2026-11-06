@@ -12,18 +12,20 @@
 <meta property="og:title" content="OpenAB — 開源 Agent Broker 生態系">
 <meta property="og:description" content="OpenAB 是一組給 coding agent 用的開源執行環境與原生 App：在聊天室下指令、接手它的終端機、借它一台電腦、代管它的 GitHub 權限，全部跑在你自己的基礎架構。">
 <meta property="og:url" content="https://openab.dev/zh/">
-<meta property="og:image" content="https://openab.dev/og-zh.png?v=bf201d7f">
+<meta property="og:image" content="https://openab.dev/og-zh.png?v=0e10c158">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="OpenAB — coding agent 跑在你自己的基礎架構">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OpenAB — 開源 Agent Broker 生態系">
 <meta name="twitter:description" content="OpenAB 是一組給 coding agent 用的開源執行環境與原生 App：在聊天室下指令、接手它的終端機、借它一台電腦、代管它的 GitHub 權限，全部跑在你自己的基礎架構。">
-<meta name="twitter:image" content="https://openab.dev/og-zh.png?v=bf201d7f">
+<meta name="twitter:image" content="https://openab.dev/og-zh.png?v=0e10c158">
 <meta name="theme-color" content="#F7F4FC">
-<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=dc8935a7">
-<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=5f86db9f">
-<link rel="stylesheet" href="../style.css?v=73acd052">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../style.css?v=6d6defeb">
 <link rel="alternate" hreflang="en" href="https://openab.dev/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/">
@@ -32,7 +34,7 @@
 </head>
 <body>
 <nav class="top">
-  <a class="brand" href="./"><img src="../assets/logo-512.png?v=b225d1a4" alt="" width="28" height="28">OpenAB</a>
+  <a class="brand" href="./"><img src="../assets/brand-64.png?v=99caab3e" srcset="../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
   <div class="links">
     <a href="#products">產品</a>
     <a href="#community">社群</a>
@@ -51,7 +53,10 @@ document.addEventListener("click", function (e) {
 </script>
 
 <header class="hero">
-  <img class="logo" src="../assets/logo-512.png?v=b225d1a4" alt="OpenAB jellyfish mascot" width="144" height="144">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/hero-dark-224.webp?v=3e262c48, ../assets/hero-dark-448.webp?v=9bb57897 2x">
+    <img class="logo" src="../assets/hero-224.webp?v=87ad4fa3" srcset="../assets/hero-448.webp?v=7f4421af 2x" alt="OpenAB jellyfish mascot" width="224" height="224">
+  </picture>
   <p class="kicker">Open Agent Broker</p>
   <h1>你的 Coding Agent，<br>跑在<span class="mark">你自己的基礎架構</span>。</h1>
   <p class="tag">給 coding agent 用的開源執行環境與原生 App。在聊天室下指令、接手它的終端機、借它一台電腦，再幫它代管 GitHub 權限。</p>
@@ -67,7 +72,7 @@ document.addEventListener("click", function (e) {
   <div class="grid">
   <a class="card" href="https://github.com/openabdev/openab" style="--accent:#5B3FA8">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14.5h4.5"/></svg></span>
+      <img class="card-icon" src="../assets/oab-classic-56.png?v=06aba396" srcset="../assets/oab-classic-112.png?v=9ab5664e 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Classic</h3>
         <span class="card-role">ACP broker</span>
@@ -76,11 +81,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">最初的 Open Agent Broker。在 Discord 或 Slack 提及 bot（Telegram、LINE、飛書/Lark、Google Chat、企業微信與 Teams 走 gateway adapter），它就透過 stdio JSON-RPC 驅動 Kiro、Claude Code、Codex、Gemini、Copilot 等 ACP coding CLI。</p>
     <p class="card-for"><strong>用途</strong> 在團隊聊天室指揮 coding agent，一個任務一個討論串。</p>
     <p class="card-tags">Rust · Discord · Slack · Gateway</p>
+
     <span class="card-link">github.com/openabdev/openab</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-pty" style="--accent:#2F6E8F">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M12.5 15H17"/></svg></span>
+      <img class="card-icon" src="../assets/oab-pty-56.png?v=57afec02" srcset="../assets/oab-pty-112.png?v=2a39a52d 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB PTY</h3>
         <span class="card-role">沙箱遠端終端機</span>
@@ -89,11 +95,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">一個小型 runtime，在鎖死的容器裡交給你一個 shell：uid 1000、沒有 sudo、唯讀的根檔案系統、沒有主機憑證。透過 WireGuard tailnet 連線，每個 session 各自一組 token。</p>
     <p class="card-for"><strong>用途</strong> 進到 agent 工作的同一個 image 和 workspace，直接看它留下了什麼。</p>
     <p class="card-tags">Rust · Kubernetes · ECS</p>
+
     <span class="card-link">github.com/openabdev/openab-pty</span>
   </a>
   <a class="card" href="https://connect.openab.dev/zh/" style="--accent:#304E68">
     <div class="card-head">
-      <img class="card-icon" src="../assets/openab-connect.png?v=ddb54a5a" alt="" width="56" height="56">
+      <img class="card-icon" src="../assets/openab-connect-56.png?v=ffce8d04" srcset="../assets/openab-connect-112.png?v=6f9a304b 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Connect</h3>
         <span class="card-role">Mac App</span>
@@ -102,11 +109,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">OpenAB PTY 的原生 Mac 客戶端。所有頂尖廠商的 Agent，各自沙箱，執行在你的私有基礎架構；分割窗格、語音輸入，關掉 app 後 session 繼續執行。</p>
     <p class="card-for"><strong>用途</strong> 在一台 Mac 上同時執行、觀看多個 coding agent。</p>
     <p class="card-tags">macOS · Mac App Store</p>
+
     <span class="card-link">connect.openab.dev</span>
   </a>
   <a class="card" href="https://connect.openab.dev/zh/" style="--accent:#C96842">
     <div class="card-head">
-      <img class="card-icon" src="../assets/openab-remote.png?v=db071824" alt="" width="56" height="56">
+      <img class="card-icon" src="../assets/openab-remote-56.png?v=1b41566b" srcset="../assets/openab-remote-112.png?v=fe5cc759 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Remote</h3>
         <span class="card-role">iPhone App</span>
@@ -115,11 +123,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">把 iPhone 變成 OpenAB Connect 的私人按住說話遙控器。語音只在手機上轉成文字，只有可以安全送進終端機的文字會送到選定的 Mac session。</p>
     <p class="card-for"><strong>用途</strong> 不用打字，在房間另一頭就能跟 agent 說話。</p>
     <p class="card-tags">iPhone · App Store</p>
+
     <span class="card-link">connect.openab.dev</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-computer" style="--accent:#3F7F5F">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8.5 4 1.6-1.7.7-.7 1.7z"/></svg></span>
+      <img class="card-icon" src="../assets/oab-computer-56.png?v=0ad848bd" srcset="../assets/oab-computer-112.png?v=eb21b2b3 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Computer</h3>
         <span class="card-role">把你的電腦變成 MCP 工具</span>
@@ -128,11 +137,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">一個跑在你自己的 Mac 或 Linux 機器上的輕量常駐程式，把這台機器以 MCP server 的形式提供給別處的 agent：shell、截圖、滑鼠、鍵盤、AppleScript 和瀏覽器。每次呼叫都要同時通過 Tailscale 身分與 bearer token。</p>
     <p class="card-for"><strong>用途</strong> 讓沙箱裡的 agent 在你自己的機器上用 Xcode 編譯、操作 Simulator、檢查畫面。</p>
     <p class="card-tags">Swift on macOS · Rust on Linux</p>
+
     <span class="card-link">github.com/openabdev/openab-computer</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-sb" style="--accent:#8A5A2B">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h3a3 3 0 0 1 3 3v0a3 3 0 0 0 3 3h1M7 18h3a3 3 0 0 0 3-3v0a3 3 0 0 1 3-3"/></svg></span>
+      <img class="card-icon" src="../assets/oab-sb-56.png?v=35e7f2f0" srcset="../assets/oab-sb-112.png?v=94da25b3 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">openab-sb</h3>
         <span class="card-role">交換機（Switchboard）</span>
@@ -141,11 +151,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">讓 agent 使用只能主動往外連的電腦上的工具。每台電腦用一條 WebSocket 連上交換機，交換機再依每個呼叫者「預設拒絕」的允許清單轉送 MCP 呼叫。它不執行工具，也不儲存任何東西。</p>
     <p class="card-for"><strong>用途</strong> 不開任何對內 port，就把你自家網路裡那台機器的瀏覽器借給雲端 agent。</p>
     <p class="card-tags">Rust · MCP · WebSocket</p>
+
     <span class="card-link">github.com/openabdev/openab-sb</span>
   </a>
   <a class="card" href="https://github.com/openabdev/octobroker" style="--accent:#7A3E6E">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/></svg></span>
+      <img class="card-icon" src="../assets/octobroker-56.png?v=ceb46ae0" srcset="../assets/octobroker-112.png?v=a5aedffa 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">octobroker</h3>
         <span class="card-role">GitHub 憑證代管</span>
@@ -154,8 +165,22 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">agent 不用持有任何 GitHub 憑證，也能使用 GitHub 的 MCP 工具、REST 與 GraphQL 讀取，甚至 git push。octobroker 以可撤銷的金鑰比對每個 agent「預設拒絕」的工具與 repo 政策，再發放短效、限定 repo 的 GitHub App token。</p>
     <p class="card-for"><strong>用途</strong> 給一整批 agent 可限縮、可稽核、可撤銷的 GitHub 權限。</p>
     <p class="card-tags">Rust · Kubernetes · ECS</p>
+
     <span class="card-link">github.com/openabdev/octobroker</span>
   </a>
+  <div class="card static" style="--accent:#3E6A9E">
+    <div class="card-head">
+      <span class="card-icon placeholder" aria-hidden="true"></span>
+      <div>
+        <h3 class="card-name">oab-nearpush</h3>
+        <span class="card-role">Agent 狀態桌面顯示器</span>
+      </div>
+    </div>
+    <p class="card-desc">把 iPhone 變成桌上專門顯示 coding agent 狀態的螢幕，一次只顯示一張大卡片：需要權限時是「allow.」，等你回答時是「your turn.」，任務完成時是「all set.」。由一個小型 Mac App 與常駐程式在你的私有網路上從 agent hooks 推送狀態：目前支援 Kiro，其他 CLI 的 adapter 規劃中。</p>
+    <p class="card-for"><strong>用途</strong> 不用盯著終端機，瞄一眼就知道 agent 是不是在等你。</p>
+    <p class="card-tags">iPhone · macOS · Kiro hooks</p>
+
+  </div>
   </div>
 </section>
 

@@ -12,18 +12,20 @@
 <meta property="og:title" content="OpenAB — オープンな Agent Broker エコシステム">
 <meta property="og:description" content="OpenAB は、コーディングエージェントのためのオープンソースのランタイムとネイティブアプリの集まりです。チャットで指示し、ターミナルを引き継ぎ、コンピューターを貸し、GitHub へのアクセスを仲介します。すべて自分のインフラで。">
 <meta property="og:url" content="https://openab.dev/ja/">
-<meta property="og:image" content="https://openab.dev/og-ja.png?v=c7f68cc7">
+<meta property="og:image" content="https://openab.dev/og-ja.png?v=c773433a">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="OpenAB — コーディングエージェントを自分のインフラで">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OpenAB — オープンな Agent Broker エコシステム">
 <meta name="twitter:description" content="OpenAB は、コーディングエージェントのためのオープンソースのランタイムとネイティブアプリの集まりです。チャットで指示し、ターミナルを引き継ぎ、コンピューターを貸し、GitHub へのアクセスを仲介します。すべて自分のインフラで。">
-<meta name="twitter:image" content="https://openab.dev/og-ja.png?v=c7f68cc7">
+<meta name="twitter:image" content="https://openab.dev/og-ja.png?v=c773433a">
 <meta name="theme-color" content="#F7F4FC">
-<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=dc8935a7">
-<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=5f86db9f">
-<link rel="stylesheet" href="../style.css?v=73acd052">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../style.css?v=6d6defeb">
 <link rel="alternate" hreflang="en" href="https://openab.dev/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/">
@@ -32,7 +34,7 @@
 </head>
 <body>
 <nav class="top">
-  <a class="brand" href="./"><img src="../assets/logo-512.png?v=b225d1a4" alt="" width="28" height="28">OpenAB</a>
+  <a class="brand" href="./"><img src="../assets/brand-64.png?v=99caab3e" srcset="../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
   <div class="links">
     <a href="#products">プロダクト</a>
     <a href="#community">コミュニティ</a>
@@ -51,7 +53,10 @@ document.addEventListener("click", function (e) {
 </script>
 
 <header class="hero">
-  <img class="logo" src="../assets/logo-512.png?v=b225d1a4" alt="OpenAB jellyfish mascot" width="144" height="144">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/hero-dark-224.webp?v=3e262c48, ../assets/hero-dark-448.webp?v=9bb57897 2x">
+    <img class="logo" src="../assets/hero-224.webp?v=87ad4fa3" srcset="../assets/hero-448.webp?v=7f4421af 2x" alt="OpenAB jellyfish mascot" width="224" height="224">
+  </picture>
   <p class="kicker">Open Agent Broker</p>
   <h1>コーディングエージェントを、<br><span class="mark">自分のインフラ</span>で。</h1>
   <p class="tag">コーディングエージェントのためのオープンソースのランタイムとネイティブアプリ。チャットで指示し、ターミナルを引き継ぎ、コンピューターを貸し、GitHub へのアクセスを仲介します。</p>
@@ -67,7 +72,7 @@ document.addEventListener("click", function (e) {
   <div class="grid">
   <a class="card" href="https://github.com/openabdev/openab" style="--accent:#5B3FA8">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14.5h4.5"/></svg></span>
+      <img class="card-icon" src="../assets/oab-classic-56.png?v=06aba396" srcset="../assets/oab-classic-112.png?v=9ab5664e 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Classic</h3>
         <span class="card-role">ACP ブローカー</span>
@@ -76,11 +81,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">最初の Open Agent Broker。Discord や Slack で bot をメンションすると（Telegram、LINE、Feishu/Lark、Google Chat、WeCom、Teams は gateway アダプター経由）、stdio JSON-RPC で Kiro、Claude Code、Codex、Gemini、Copilot などの ACP コーディング CLI を動かします。</p>
     <p class="card-for"><strong>用途</strong> チームのチャットからコーディングエージェントに指示する。タスクごとに一スレッド。</p>
     <p class="card-tags">Rust · Discord · Slack · Gateway</p>
+
     <span class="card-link">github.com/openabdev/openab</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-pty" style="--accent:#2F6E8F">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M12.5 15H17"/></svg></span>
+      <img class="card-icon" src="../assets/oab-pty-56.png?v=57afec02" srcset="../assets/oab-pty-112.png?v=2a39a52d 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB PTY</h3>
         <span class="card-role">サンドボックスのリモートターミナル</span>
@@ -89,11 +95,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">ロックダウンされたコンテナ内のシェルを渡す小さなランタイム。uid 1000、sudo なし、読み取り専用のルートファイルシステム、ホストの認証情報なし。WireGuard の tailnet 越しに、セッションごとのトークンで接続します。</p>
     <p class="card-for"><strong>用途</strong> エージェントが作業しているのと同じイメージとワークスペースに入り、残したものをその場で見る。</p>
     <p class="card-tags">Rust · Kubernetes · ECS</p>
+
     <span class="card-link">github.com/openabdev/openab-pty</span>
   </a>
   <a class="card" href="https://connect.openab.dev/ja/" style="--accent:#304E68">
     <div class="card-head">
-      <img class="card-icon" src="../assets/openab-connect.png?v=ddb54a5a" alt="" width="56" height="56">
+      <img class="card-icon" src="../assets/openab-connect-56.png?v=ffce8d04" srcset="../assets/openab-connect-112.png?v=6f9a304b 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Connect</h3>
         <span class="card-role">Mac アプリ</span>
@@ -102,11 +109,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">OpenAB PTY のネイティブ Mac クライアント。主要ベンダーのエージェントを、それぞれ自分のインフラ上のサンドボックスで。分割ペイン、音声入力、アプリを終了しても動き続けるセッション。</p>
     <p class="card-for"><strong>用途</strong> 一台の Mac で多くのコーディングエージェントを動かし、見守る。</p>
     <p class="card-tags">macOS · Mac App Store</p>
+
     <span class="card-link">connect.openab.dev</span>
   </a>
   <a class="card" href="https://connect.openab.dev/ja/" style="--accent:#C96842">
     <div class="card-head">
-      <img class="card-icon" src="../assets/openab-remote.png?v=db071824" alt="" width="56" height="56">
+      <img class="card-icon" src="../assets/openab-remote-56.png?v=1b41566b" srcset="../assets/openab-remote-112.png?v=fe5cc759 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Remote</h3>
         <span class="card-role">iPhone アプリ</span>
@@ -115,11 +123,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">iPhone を OpenAB Connect 用のプライベートなプッシュ・トゥ・トークのリモコンにします。音声は端末上で文字になり、ターミナルに安全なテキストだけが選んだ Mac のセッションに送られます。</p>
     <p class="card-for"><strong>用途</strong> キーボードを打たずに、部屋の向こうからエージェントに話しかける。</p>
     <p class="card-tags">iPhone · App Store</p>
+
     <span class="card-link">connect.openab.dev</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-computer" style="--accent:#3F7F5F">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8.5 4 1.6-1.7.7-.7 1.7z"/></svg></span>
+      <img class="card-icon" src="../assets/oab-computer-56.png?v=0ad848bd" srcset="../assets/oab-computer-112.png?v=eb21b2b3 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">OpenAB Computer</h3>
         <span class="card-role">自分のコンピューターを MCP ツールに</span>
@@ -128,11 +137,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">自分の Mac や Linux マシンで動く薄いデーモン。そのマシンを、別の場所にいるエージェントに MCP サーバーとして公開します。シェル、スクリーンショット、マウス、キーボード、AppleScript、ブラウザー。呼び出しには Tailscale の ID と bearer トークンの両方が必要です。</p>
     <p class="card-for"><strong>用途</strong> サンドボックスのエージェントに、自分のマシンで Xcode のビルド、シミュレーター操作、画面確認をさせる。</p>
     <p class="card-tags">Swift on macOS · Rust on Linux</p>
+
     <span class="card-link">github.com/openabdev/openab-computer</span>
   </a>
   <a class="card" href="https://github.com/openabdev/openab-sb" style="--accent:#8A5A2B">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h3a3 3 0 0 1 3 3v0a3 3 0 0 0 3 3h1M7 18h3a3 3 0 0 0 3-3v0a3 3 0 0 1 3-3"/></svg></span>
+      <img class="card-icon" src="../assets/oab-sb-56.png?v=35e7f2f0" srcset="../assets/oab-sb-112.png?v=94da25b3 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">openab-sb</h3>
         <span class="card-role">スイッチボード</span>
@@ -141,11 +151,12 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">外向きにしか接続できないコンピューター上のツールを、エージェントが使えるようにします。各コンピューターが WebSocket 一本でスイッチボードに接続し、スイッチボードは呼び出し元ごとのデフォルト拒否の許可リストに従って MCP 呼び出しを中継します。ツールは実行せず、何も保存しません。</p>
     <p class="card-for"><strong>用途</strong> 受信ポートを開けずに、自分のネットワーク内のマシンのブラウザーをクラウドのエージェントに貸す。</p>
     <p class="card-tags">Rust · MCP · WebSocket</p>
+
     <span class="card-link">github.com/openabdev/openab-sb</span>
   </a>
   <a class="card" href="https://github.com/openabdev/octobroker" style="--accent:#7A3E6E">
     <div class="card-head">
-      <span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/></svg></span>
+      <img class="card-icon" src="../assets/octobroker-56.png?v=ceb46ae0" srcset="../assets/octobroker-112.png?v=a5aedffa 2x" alt="" width="56" height="56">
       <div>
         <h3 class="card-name">octobroker</h3>
         <span class="card-role">GitHub 認証情報ブローカー</span>
@@ -154,8 +165,22 @@ document.addEventListener("click", function (e) {
     <p class="card-desc">エージェントは GitHub の認証情報を一切持たずに、GitHub の MCP ツール、REST と GraphQL の読み取り、さらに git push まで使えます。octobroker は失効可能なキーでエージェントを確認し、デフォルト拒否のツール・リポジトリポリシーを適用したうえで、短命でリポジトリ限定の GitHub App トークンを発行します。</p>
     <p class="card-for"><strong>用途</strong> 多数のエージェントに、範囲を絞れて、監査でき、取り消せる GitHub アクセスを与える。</p>
     <p class="card-tags">Rust · Kubernetes · ECS</p>
+
     <span class="card-link">github.com/openabdev/octobroker</span>
   </a>
+  <div class="card static" style="--accent:#3E6A9E">
+    <div class="card-head">
+      <span class="card-icon placeholder" aria-hidden="true"></span>
+      <div>
+        <h3 class="card-name">oab-nearpush</h3>
+        <span class="card-role">エージェント状態のデスクディスプレイ</span>
+      </div>
+    </div>
+    <p class="card-desc">iPhone を、コーディングエージェントの状態を映す専用のデスクディスプレイにします。表示は一度に大きなカード一枚。許可が必要なら「allow.」、あなたの返事を待っているなら「your turn.」、タスクが終わったら「all set.」。小さな Mac アプリとデーモンが、プライベートネットワーク上でエージェントのフックから状態を送ります。現在は Kiro に対応し、ほかの CLI 向けアダプターも予定しています。</p>
+    <p class="card-for"><strong>用途</strong> ターミナルを見張らなくても、エージェントが自分を待っているかを一目で知る。</p>
+    <p class="card-tags">iPhone · macOS · Kiro hooks</p>
+
+  </div>
   </div>
 </section>
 

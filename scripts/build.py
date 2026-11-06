@@ -27,40 +27,34 @@ LANG = {
     "ko": dict(dir="ko", htmllang="ko", label="한국어", og_locale="ko_KR"),
 }
 
-# Inline SVG icons (stroke only, inherit the accent colour).
-SVG = {
-    "chat": '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14.5h4.5"/>',
-    "term": '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M12.5 15H17"/>',
-    "screen": '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m10 8.5 4 1.6-1.7.7-.7 1.7z"/>',
-    "switch": '<circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h3a3 3 0 0 1 3 3v0a3 3 0 0 0 3 3h1M7 18h3a3 3 0 0 0 3-3v0a3 3 0 0 1 3-3"/>',
-    "key": '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/>',
-}
-
 # Product order and the language-independent parts of each card. `link` is the only
 # destination of the card. The Connect and Remote app source is not public, so those
 # two cards point at connect.openab.dev instead of a repository.
 PRODUCTS = [
-    dict(key="classic", name="OpenAB Classic", icon=("svg", "chat"), accent="#5B3FA8",
+    dict(key="classic", name="OpenAB Classic", icon=("art", "oab-classic"), accent="#5B3FA8",
          tags="Rust · Discord · Slack · Gateway", link="https://github.com/openabdev/openab",
          link_label="github.com/openabdev/openab"),
-    dict(key="pty", name="OpenAB PTY", icon=("svg", "term"), accent="#2F6E8F",
+    dict(key="pty", name="OpenAB PTY", icon=("art", "oab-pty"), accent="#2F6E8F",
          tags="Rust · Kubernetes · ECS", link="https://github.com/openabdev/openab-pty",
          link_label="github.com/openabdev/openab-pty"),
-    dict(key="connect", name="OpenAB Connect", icon=("img", "openab-connect.png"), accent="#304E68",
+    dict(key="connect", name="OpenAB Connect", icon=("art", "openab-connect"), accent="#304E68",
          tags="macOS · Mac App Store", link="https://connect.openab.dev/{lp}",
          link_label="connect.openab.dev"),
-    dict(key="remote", name="OpenAB Remote", icon=("img", "openab-remote.png"), accent="#C96842",
+    dict(key="remote", name="OpenAB Remote", icon=("art", "openab-remote"), accent="#C96842",
          tags="iPhone · App Store", link="https://connect.openab.dev/{lp}",
          link_label="connect.openab.dev"),
-    dict(key="computer", name="OpenAB Computer", icon=("svg", "screen"), accent="#3F7F5F",
+    dict(key="computer", name="OpenAB Computer", icon=("art", "oab-computer"), accent="#3F7F5F",
          tags="Swift on macOS · Rust on Linux", link="https://github.com/openabdev/openab-computer",
          link_label="github.com/openabdev/openab-computer"),
-    dict(key="sb", name="openab-sb", icon=("svg", "switch"), accent="#8A5A2B",
+    dict(key="sb", name="openab-sb", icon=("art", "oab-sb"), accent="#8A5A2B",
          tags="Rust · MCP · WebSocket", link="https://github.com/openabdev/openab-sb",
          link_label="github.com/openabdev/openab-sb"),
-    dict(key="octobroker", name="octobroker", icon=("svg", "key"), accent="#7A3E6E",
+    dict(key="octobroker", name="octobroker", icon=("art", "octobroker"), accent="#7A3E6E",
          tags="Rust · Kubernetes · ECS", link="https://github.com/openabdev/octobroker",
          link_label="github.com/openabdev/octobroker"),
+    # Private repo, to be renamed: no link and no icon until both exist.
+    dict(key="nearpush", name="oab-nearpush", icon=("none", None), accent="#3E6A9E",
+         tags="iPhone · macOS · Kiro hooks", link=None, link_label=None),
 ]
 
 T = {}
@@ -126,6 +120,13 @@ T["en"] = dict(
                     "key against a default-deny tool and repo policy, then mints short-lived, "
                     "repo-scoped GitHub App tokens.",
                     "giving a fleet of agents GitHub access you can scope, audit and revoke."),
+        nearpush=("Desk display for agent status",
+                  "Turns an iPhone into a dedicated desk display for your coding agent, one large "
+                  "card at a time: \u201callow.\u201d when it needs permission, \u201cyour turn.\u201d when it is "
+                  "waiting for your answer, \u201call set.\u201d when the task is done. A small Mac app and "
+                  "daemon feed it from agent hooks on your private network: Kiro today, adapters "
+                  "for other CLIs planned.",
+                  "knowing at a glance whether your agent needs you, without watching the terminal."),
     ),
 )
 
@@ -180,6 +181,12 @@ T["zh"] = dict(
                     "甚至 git push。octobroker 以可撤銷的金鑰比對每個 agent「預設拒絕」的工具與 repo 政策，"
                     "再發放短效、限定 repo 的 GitHub App token。",
                     "給一整批 agent 可限縮、可稽核、可撤銷的 GitHub 權限。"),
+        nearpush=("Agent 狀態桌面顯示器",
+                  "把 iPhone 變成桌上專門顯示 coding agent 狀態的螢幕，一次只顯示一張大卡片："
+                  "需要權限時是「allow.」，等你回答時是「your turn.」，任務完成時是「all set.」。"
+                  "由一個小型 Mac App 與常駐程式在你的私有網路上從 agent hooks 推送狀態："
+                  "目前支援 Kiro，其他 CLI 的 adapter 規劃中。",
+                  "不用盯著終端機，瞄一眼就知道 agent 是不是在等你。"),
     ),
 )
 
@@ -237,6 +244,13 @@ T["ja"] = dict(
                     "さらに git push まで使えます。octobroker は失効可能なキーでエージェントを確認し、"
                     "デフォルト拒否のツール・リポジトリポリシーを適用したうえで、短命でリポジトリ限定の GitHub App トークンを発行します。",
                     "多数のエージェントに、範囲を絞れて、監査でき、取り消せる GitHub アクセスを与える。"),
+        nearpush=("エージェント状態のデスクディスプレイ",
+                  "iPhone を、コーディングエージェントの状態を映す専用のデスクディスプレイにします。"
+                  "表示は一度に大きなカード一枚。許可が必要なら「allow.」、あなたの返事を待っているなら"
+                  "「your turn.」、タスクが終わったら「all set.」。小さな Mac アプリとデーモンが、"
+                  "プライベートネットワーク上でエージェントのフックから状態を送ります。"
+                  "現在は Kiro に対応し、ほかの CLI 向けアダプターも予定しています。",
+                  "ターミナルを見張らなくても、エージェントが自分を待っているかを一目で知る。"),
     ),
 )
 
@@ -292,6 +306,12 @@ T["ko"] = dict(
                     "git push까지 씁니다. octobroker는 취소 가능한 키로 에이전트를 확인하고 기본 거부 도구·저장소 정책을 "
                     "적용한 뒤, 수명이 짧고 저장소로 범위가 제한된 GitHub App 토큰을 발급합니다.",
                     "여러 에이전트에게 범위를 좁히고, 감사하고, 취소할 수 있는 GitHub 접근 주기."),
+        nearpush=("에이전트 상태 데스크 디스플레이",
+                  "iPhone을 코딩 에이전트 상태 전용 데스크 디스플레이로 바꿉니다. 한 번에 큰 카드 한 장: "
+                  "권한이 필요하면 \u201callow.\u201d, 내 답을 기다리면 \u201cyour turn.\u201d, 작업이 끝나면 "
+                  "\u201call set.\u201d. 작은 Mac 앱과 데몬이 내 사설 네트워크에서 에이전트 hook으로 상태를 보냅니다. "
+                  "지금은 Kiro를 지원하고, 다른 CLI용 어댑터를 계획하고 있습니다.",
+                  "터미널을 지켜보지 않아도 에이전트가 나를 기다리는지 한눈에 알기."),
     ),
 )
 
@@ -379,7 +399,8 @@ def head(code):
         f'<meta name="twitter:description" content="{esc(t["desc"])}">',
         f'<meta name="twitter:image" content="{og}">',
         '<meta name="theme-color" content="#F7F4FC">',
-        f'<link rel="icon" type="image/png" sizes="64x64" href="{u}assets/favicon-64.png?v={rev("assets/favicon-64.png")}">',
+        *[f'<link rel="icon" type="image/png" sizes="{s}x{s}" href="{u}assets/favicon-{s}.png?v={rev(f"assets/favicon-{s}.png")}">'
+          for s in (16, 32, 64)],
         f'<link rel="apple-touch-icon" href="{u}assets/apple-touch-icon.png?v={rev("assets/apple-touch-icon.png")}">',
         f'<link rel="stylesheet" href="{u}style.css?v={rev("style.css")}">',
         *alts,
@@ -401,9 +422,14 @@ def switcher(code):
 
 def icon(code, p):
     kind, val = p["icon"]
-    if kind == "img":
-        return f'<img class="card-icon" src="{up(code)}assets/{val}?v={rev("assets/" + val)}" alt="" width="56" height="56">'
-    return (f'<span class="card-icon tile" aria-hidden="true"><svg viewBox="0 0 24 24">{SVG[val]}</svg></span>')
+    # Every card: transparent art with its own shape (sticker outline or app-icon
+    # squircle), 56px with a 2x source; no tile, radius or box shadow added.
+    if kind == "none":      # neutral slot until the art exists; keeps the head aligned
+        return '<span class="card-icon placeholder" aria-hidden="true"></span>'
+    assert kind == "art", kind
+    a = f"{up(code)}assets/{val}"
+    return (f'<img class="card-icon" src="{a}-56.png?v={rev(f"assets/{val}-56.png")}" '
+            f'srcset="{a}-112.png?v={rev(f"assets/{val}-112.png")} 2x" alt="" width="56" height="56">')
 
 
 def cards(code):
@@ -412,8 +438,12 @@ def cards(code):
     out = []
     for p in PRODUCTS:
         role, desc, use = t["cards"][p["key"]]
-        href = p["link"].format(lp=lp)
-        out.append(f"""  <a class="card" href="{href}" style="--accent:{p['accent']}">
+        if p["link"]:
+            tag = f'a class="card" href="{p["link"].format(lp=lp)}"'
+            link = f'\n    <span class="card-link">{p["link_label"]}</span>'
+        else:               # no public destination yet: a plain card, no link
+            tag, link = 'div class="card static"', ""
+        out.append(f"""  <{tag} style="--accent:{p['accent']}">
     <div class="card-head">
       {icon(code, p)}
       <div>
@@ -424,8 +454,8 @@ def cards(code):
     <p class="card-desc">{esc(desc)}</p>
     <p class="card-for"><strong>{t['for_label']}</strong> {esc(use)}</p>
     <p class="card-tags">{p['tags']}</p>
-    <span class="card-link">{p['link_label']}</span>
-  </a>""")
+{link}
+  </{tag.split()[0]}>""")
     return "\n".join(out)
 
 
@@ -433,7 +463,14 @@ def page(code):
     t = T[code]
     u = up(code)
     home = "./"  # brand stays in the current language, like connect.openab.dev
-    logo = f'{u}assets/logo-512.png?v={rev("assets/logo-512.png")}'
+    brand = (f'src="{u}assets/brand-64.png?v={rev("assets/brand-64.png")}" '
+             f'srcset="{u}assets/brand-128.png?v={rev("assets/brand-128.png")} 2x"')
+    hero = (f'src="{u}assets/hero-224.webp?v={rev("assets/hero-224.webp")}" '
+            f'srcset="{u}assets/hero-448.webp?v={rev("assets/hero-448.webp")} 2x"')
+    # The hero mascot is un-blended against white, so on the dark theme it would read
+    # as faint; there the sticker (own outline) takes its place.
+    hero_dark = (f'{u}assets/hero-dark-224.webp?v={rev("assets/hero-dark-224.webp")}, '
+                 f'{u}assets/hero-dark-448.webp?v={rev("assets/hero-dark-448.webp")} 2x')
     return f"""<!DOCTYPE html>
 <html lang="{LANG[code]['htmllang']}" data-lang="{code}">
 <head>
@@ -441,7 +478,7 @@ def page(code):
 </head>
 <body>
 <nav class="top">
-  <a class="brand" href="{home}"><img src="{logo}" alt="" width="28" height="28">OpenAB</a>
+  <a class="brand" href="{home}"><img {brand} alt="" width="28" height="28">OpenAB</a>
   <div class="links">
     <a href="#products">{t['nav'][0]}</a>
     <a href="#community">{t['nav'][1]}</a>
@@ -454,7 +491,10 @@ def page(code):
 {REMEMBER}
 
 <header class="hero">
-  <img class="logo" src="{logo}" alt="OpenAB jellyfish mascot" width="144" height="144">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="{hero_dark}">
+    <img class="logo" {hero} alt="OpenAB jellyfish mascot" width="224" height="224">
+  </picture>
   <p class="kicker">{t['kicker']}</p>
   <h1>{t['h1']}</h1>
   <p class="tag">{esc(t['tag'])}</p>
