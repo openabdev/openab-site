@@ -31,53 +31,63 @@ LANG = {
 # destination of the card. The Connect and Remote app source is not public, so those
 # two cards point at connect.openab.dev instead of a repository.
 PRODUCTS = [
-    dict(key="classic", name="OpenAB Classic", icon=("art", "oab-classic"), accent="#5B3FA8",
+    dict(key="classic", badge="oss", name="OpenAB Classic", icon=("art", "oab-classic"), accent="#5B3FA8",
          tags="Rust · Discord · Slack · Gateway", link="https://github.com/openabdev/openab",
          link_label="github.com/openabdev/openab"),
-    dict(key="pty", name="OpenAB PTY", icon=("art", "oab-pty"), accent="#2F6E8F",
+    dict(key="pty", badge="oss", name="OpenAB PTY", icon=("art", "oab-pty"), accent="#2F6E8F",
          tags="Rust · Kubernetes · ECS", link="https://github.com/openabdev/openab-pty",
          link_label="github.com/openabdev/openab-pty"),
-    dict(key="connect", name="OpenAB Connect", icon=("art", "openab-connect"), accent="#304E68",
+    dict(key="connect", badge="store", name="OpenAB Connect", icon=("art", "openab-connect"), accent="#304E68",
          tags="macOS · Mac App Store", link="https://connect.openab.dev/{lp}",
          link_label="connect.openab.dev"),
-    dict(key="remote", name="OpenAB Remote", icon=("art", "openab-remote"), accent="#C96842",
+    dict(key="remote", badge="store", name="OpenAB Remote", icon=("art", "openab-remote"), accent="#C96842",
          tags="iPhone · App Store", link="https://connect.openab.dev/{lp}",
          link_label="connect.openab.dev"),
-    dict(key="computer", name="OpenAB Computer", icon=("art", "oab-computer"), accent="#3F7F5F",
+    dict(key="computer", badge="oss", name="oab-computer", icon=("art", "oab-computer"), accent="#3F7F5F",
          tags="Swift on macOS · Rust on Linux", link="https://github.com/openabdev/openab-computer",
          link_label="github.com/openabdev/openab-computer"),
-    dict(key="sb", name="openab-sb", icon=("art", "oab-sb"), accent="#8A5A2B",
+    dict(key="sb", badge="oss", name="oab-sb", icon=("art", "oab-sb"), accent="#8A5A2B",
          tags="Rust · MCP · WebSocket", link="https://github.com/openabdev/openab-sb",
          link_label="github.com/openabdev/openab-sb"),
-    dict(key="octobroker", name="octobroker", icon=("art", "octobroker"), accent="#7A3E6E",
+    dict(key="octobroker", badge="oss", name="octobroker", icon=("art", "octobroker"), accent="#7A3E6E",
          tags="Rust · Kubernetes · ECS", link="https://github.com/openabdev/octobroker",
          link_label="github.com/openabdev/octobroker"),
-    # Private repo, to be renamed: no link and no icon until both exist.
-    dict(key="nearpush", name="oab-nearpush", icon=("none", None), accent="#3E6A9E",
+    # Private repo, to be renamed: no link until it is public. Badged as a private
+    # preview; the Connect and Remote cards are App Store apps, not open source.
+    dict(key="nearpush", badge="preview", name="oab-nearpush", icon=("art", "oab-nearpush"), accent="#3E6A9E",
          tags="iPhone · macOS · Kiro hooks", link=None, link_label=None),
 ]
 
 T = {}
 
 T["en"] = dict(
-    title="OpenAB — open agent broker ecosystem",
-    desc="OpenAB is a family of open-source runtimes and native apps for coding agents: "
-         "instruct them from chat, take over their terminal, lend them a computer, and broker "
-         "their GitHub access, all on infrastructure you own.",
-    og_alt="OpenAB — coding agents on infrastructure you own",
-    nav=("Products", "Community"),
+    title="OpenAB — an open-source community",
+    desc="OpenAB is an open-source community that loves freedom and openness. We build a secure, "
+         "private, reliable runtime for coding agents, using the subscriptions you already have, "
+         "on your own computers and servers.",
+    og_alt="OpenAB — an open-source community that loves freedom and openness",
+    nav=("Projects", "Participate"),
     kicker="Open Agent Broker",
-    h1='Coding agents,<br>on <span class="mark">infrastructure you own</span>.',
-    tag="Open-source runtimes and native apps for coding agents. Instruct them from chat, "
-        "take over their terminal, lend them a computer, and broker their GitHub access.",
-    cta_products="See the products", cta_discord="Join us on Discord",
-    products_h2="The ecosystem",
+    h1='OpenAB is an <span class="nb">open-source</span> community<br class="wide"> '
+       'that loves <span class="mark">freedom and openness</span>.',
+    tag="We build a secure, private, reliable runtime for coding agents, using the subscriptions "
+        "you already have, on your own computers and servers.",
+    cta_discord="Join Discord", cta_github="GitHub",
+    products_h2="Community projects",
     products_intro="Each piece works on its own. Together they make one loop: "
                    "an agent in a sandbox, your hands in its terminal, its hands on your computer.",
     for_label="For",
-    community_h2="Come say hi",
-    community_p="Questions, bug reports and show-and-tell happen in the OpenAB Discord.",
-    community_cta="Join the OpenAB Discord",
+    badges=dict(oss="Open source", store="App Store", preview="Private preview"),
+    join_h2="How to participate",
+    join=(
+        ("Join Discord",
+         "Ask questions, report bugs and talk with other people who run OpenAB.", "discord"),
+        ("Open an issue or PR",
+         "The open-source projects live in the openabdev organization on GitHub. Bug reports, "
+         "ideas and pull requests are welcome.", "github"),
+        ("Share your setup",
+         "Post your deployment or setup in Discord so others can learn from it.", "discord"),
+    ),
     foot=("GitHub", "Discord"),
     cards=dict(
         classic=("ACP broker",
@@ -131,23 +141,30 @@ T["en"] = dict(
 )
 
 T["zh"] = dict(
-    title="OpenAB — 開源 Agent Broker 生態系",
-    desc="OpenAB 是一組給 coding agent 用的開源執行環境與原生 App：在聊天室下指令、接手它的終端機、"
-         "借它一台電腦、代管它的 GitHub 權限，全部跑在你自己的基礎架構。",
-    og_alt="OpenAB — coding agent 跑在你自己的基礎架構",
-    nav=("產品", "社群"),
+    title="OpenAB — 開源社群",
+    desc="OpenAB 是一個熱愛自由與開放的開源社群。我們打造安全、注重隱私、可靠的 coding agent "
+         "運行環境：用你已經有的訂閱，在你自己的電腦和伺服器上。",
+    og_alt="OpenAB — 熱愛自由與開放的開源社群",
+    nav=("專案", "參與"),
     kicker="Open Agent Broker",
-    h1='你的 Coding Agent，<br>跑在<span class="mark">你自己的基礎架構</span>。',
-    tag="給 coding agent 用的開源執行環境與原生 App。在聊天室下指令、接手它的終端機、"
-        "借它一台電腦，再幫它代管 GitHub 權限。",
-    cta_products="看看產品", cta_discord="加入 Discord",
-    products_h2="生態系",
+    h1='OpenAB 是一個熱愛<br><span class="mark">自由與開放</span>的開源社群。',
+    tag="我們打造安全、注重隱私、可靠的 coding agent 運行環境：用你已經有的訂閱，"
+        "在你自己的電腦和伺服器上。",
+    cta_discord="加入 Discord", cta_github="GitHub",
+    products_h2="社群專案",
     products_intro="每一塊都能單獨使用。放在一起就是一個完整迴圈：agent 在沙箱裡，"
                    "你的手在它的終端機，它的手在你的電腦上。",
     for_label="用途",
-    community_h2="來打個招呼",
-    community_p="問題、bug 回報和作品分享，都在 OpenAB 的 Discord。",
-    community_cta="加入 OpenAB Discord",
+    badges=dict(oss="開源", store="App Store", preview="私有預覽"),
+    join_h2="參與方式",
+    join=(
+        ("加入 Discord",
+         "在 OpenAB 的 Discord 提問、回報 bug，和其他使用 OpenAB 的人交流。", "discord"),
+        ("在 GitHub 開 issue 或 PR",
+         "開源專案都在 GitHub 的 openabdev 組織。歡迎回報問題、提出想法、送 pull request。", "github"),
+        ("分享你的部署",
+         "在 Discord 分享你的部署方式或設定，讓其他人參考。", "discord"),
+    ),
     foot=("GitHub", "Discord"),
     cards=dict(
         classic=("ACP broker",
@@ -191,23 +208,33 @@ T["zh"] = dict(
 )
 
 T["ja"] = dict(
-    title="OpenAB — オープンな Agent Broker エコシステム",
-    desc="OpenAB は、コーディングエージェントのためのオープンソースのランタイムとネイティブアプリの集まりです。"
-         "チャットで指示し、ターミナルを引き継ぎ、コンピューターを貸し、GitHub へのアクセスを仲介します。すべて自分のインフラで。",
-    og_alt="OpenAB — コーディングエージェントを自分のインフラで",
-    nav=("プロダクト", "コミュニティ"),
+    title="OpenAB — オープンソースコミュニティ",
+    desc="OpenAB は、自由とオープンさを愛するオープンソースコミュニティです。安全でプライバシーを守り、"
+         "信頼できるコーディングエージェントの実行環境をつくっています。"
+         "すでにお持ちのサブスクリプションで、自分のコンピューターとサーバーの上で。",
+    og_alt="OpenAB — 自由とオープンさを愛するオープンソースコミュニティ",
+    nav=("プロジェクト", "参加する"),
     kicker="Open Agent Broker",
-    h1='コーディングエージェントを、<br><span class="mark">自分のインフラ</span>で。',
-    tag="コーディングエージェントのためのオープンソースのランタイムとネイティブアプリ。"
-        "チャットで指示し、ターミナルを引き継ぎ、コンピューターを貸し、GitHub へのアクセスを仲介します。",
-    cta_products="プロダクトを見る", cta_discord="Discord に参加",
-    products_h2="エコシステム",
+    h1='<span class="nb">OpenAB は、</span><span class="nb"><span class="mark">自由とオープンさ</span>を愛する</span>'
+       '<br><span class="nb">オープンソースコミュニティです。</span>',
+    tag="安全でプライバシーを守り、信頼できるコーディングエージェントの実行環境をつくっています。"
+        "すでにお持ちのサブスクリプションで、自分のコンピューターとサーバーの上で。",
+    cta_discord="Discord に参加", cta_github="GitHub",
+    products_h2="コミュニティのプロジェクト",
     products_intro="どれも単体で使えます。組み合わせると一つのループになります。"
                    "エージェントはサンドボックスに、あなたの手はそのターミナルに、エージェントの手はあなたのコンピューターに。",
     for_label="用途",
-    community_h2="気軽にどうぞ",
-    community_p="質問、バグ報告、作ったものの紹介は OpenAB の Discord で。",
-    community_cta="OpenAB Discord に参加",
+    badges=dict(oss="オープンソース", store="App Store", preview="プライベートプレビュー"),
+    join_h2="参加方法",
+    join=(
+        ("Discord に参加",
+         "OpenAB の Discord で質問やバグ報告をしたり、OpenAB を使っているほかの人と話したりできます。", "discord"),
+        ("GitHub で issue や PR を",
+         "オープンソースのプロジェクトは GitHub の openabdev organization にあります。"
+         "バグ報告、アイデア、プルリクエストを歓迎します。", "github"),
+        ("自分の構成を共有",
+         "デプロイや設定を Discord で共有して、ほかの人の参考にしてください。", "discord"),
+    ),
     foot=("GitHub", "Discord"),
     cards=dict(
         classic=("ACP ブローカー",
@@ -255,23 +282,31 @@ T["ja"] = dict(
 )
 
 T["ko"] = dict(
-    title="OpenAB — 오픈 Agent Broker 생태계",
-    desc="OpenAB는 코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱 모음입니다. 채팅으로 지시하고, "
-         "터미널을 이어받고, 컴퓨터를 빌려주고, GitHub 접근을 중개합니다. 모두 내 인프라에서.",
-    og_alt="OpenAB — 코딩 에이전트를 내 인프라에서",
-    nav=("제품", "커뮤니티"),
+    title="OpenAB — 오픈소스 커뮤니티",
+    desc="OpenAB는 자유와 개방을 사랑하는 오픈소스 커뮤니티입니다. 안전하고, 프라이버시를 지키고, "
+         "믿을 수 있는 코딩 에이전트 실행 환경을 만듭니다. 이미 가진 구독으로, 내 컴퓨터와 서버에서.",
+    og_alt="OpenAB — 자유와 개방을 사랑하는 오픈소스 커뮤니티",
+    nav=("프로젝트", "참여하기"),
     kicker="Open Agent Broker",
-    h1='코딩 에이전트를,<br><span class="mark">내 인프라</span>에서.',
-    tag="코딩 에이전트를 위한 오픈소스 런타임과 네이티브 앱. 채팅으로 지시하고, 터미널을 이어받고, "
-        "컴퓨터를 빌려주고, GitHub 접근을 중개합니다.",
-    cta_products="제품 보기", cta_discord="Discord 참여",
-    products_h2="생태계",
+    h1='OpenAB는 <span class="mark">자유와 개방</span>을 사랑하는<br>오픈소스 커뮤니티입니다.',
+    tag="안전하고, 프라이버시를 지키고, 믿을 수 있는 코딩 에이전트 실행 환경을 만듭니다. "
+        "이미 가진 구독으로, 내 컴퓨터와 서버에서.",
+    cta_discord="Discord 참여", cta_github="GitHub",
+    products_h2="커뮤니티 프로젝트",
     products_intro="각각 따로 쓸 수 있습니다. 함께 쓰면 하나의 루프가 됩니다. "
                    "에이전트는 샌드박스에, 내 손은 그 터미널에, 에이전트의 손은 내 컴퓨터에.",
     for_label="용도",
-    community_h2="인사 나눠요",
-    community_p="질문, 버그 제보, 만든 것 자랑은 OpenAB Discord에서.",
-    community_cta="OpenAB Discord 참여",
+    badges=dict(oss="오픈소스", store="App Store", preview="비공개 프리뷰"),
+    join_h2="참여 방법",
+    join=(
+        ("Discord 참여",
+         "OpenAB Discord에서 질문하고, 버그를 제보하고, OpenAB를 쓰는 다른 사람들과 이야기하세요.", "discord"),
+        ("GitHub에서 issue나 PR 열기",
+         "오픈소스 프로젝트는 GitHub의 openabdev 조직에 있습니다. 버그 제보, 아이디어, "
+         "pull request를 환영합니다.", "github"),
+        ("내 구성 공유하기",
+         "배포 방식이나 설정을 Discord에 공유해 다른 사람들이 참고할 수 있게 해 주세요.", "discord"),
+    ),
     foot=("GitHub", "Discord"),
     cards=dict(
         classic=("ACP 브로커",
@@ -449,6 +484,7 @@ def cards(code):
       <div>
         <h3 class="card-name">{p['name']}</h3>
         <span class="card-role">{esc(role)}</span>
+        <span class="card-badge {p['badge']}">{esc(t['badges'][p['badge']])}</span>
       </div>
     </div>
     <p class="card-desc">{esc(desc)}</p>
@@ -456,6 +492,21 @@ def cards(code):
     <p class="card-tags">{p['tags']}</p>
 {link}
   </{tag.split()[0]}>""")
+    return "\n".join(out)
+
+
+JOIN_LINKS = {"discord": (DISCORD, "openab.dev/discord"), "github": (GITHUB_ORG, "github.com/openabdev")}
+
+
+def steps(code):
+    out = []
+    for name, text, dest in T[code]["join"]:
+        href, label = JOIN_LINKS[dest]
+        out.append(f"""  <a class="card step" href="{href}">
+    <h3 class="step-name">{esc(name)}</h3>
+    <p class="card-desc">{esc(text)}</p>
+    <span class="card-link">{label}</span>
+  </a>""")
     return "\n".join(out)
 
 
@@ -480,8 +531,8 @@ def page(code):
 <nav class="top">
   <a class="brand" href="{home}"><img {brand} alt="" width="28" height="28">OpenAB</a>
   <div class="links">
-    <a href="#products">{t['nav'][0]}</a>
-    <a href="#community">{t['nav'][1]}</a>
+    <a href="#projects">{t['nav'][0]}</a>
+    <a href="#participate">{t['nav'][1]}</a>
     <a href="{GITHUB_ORG}">GitHub</a>
     <span class="lang" aria-label="Language">
     {switcher(code)}
@@ -499,12 +550,12 @@ def page(code):
   <h1>{t['h1']}</h1>
   <p class="tag">{esc(t['tag'])}</p>
   <div class="cta">
-    <a class="btn primary" href="#products">{t['cta_products']}</a>
-    <a class="btn" href="{DISCORD}">{t['cta_discord']}</a>
+    <a class="btn primary" href="{DISCORD}">{t['cta_discord']}</a>
+    <a class="btn" href="{GITHUB_ORG}">{t['cta_github']}</a>
   </div>
 </header>
 
-<section class="products" id="products">
+<section class="products" id="projects">
   <h2>{t['products_h2']}</h2>
   <p class="intro">{esc(t['products_intro'])}</p>
   <div class="grid">
@@ -512,10 +563,11 @@ def page(code):
   </div>
 </section>
 
-<section class="community" id="community">
-  <h2>{t['community_h2']}</h2>
-  <p>{esc(t['community_p'])}</p>
-  <a class="btn primary" href="{DISCORD}">{t['community_cta']}</a>
+<section class="participate" id="participate">
+  <h2>{t['join_h2']}</h2>
+  <div class="steps">
+{steps(code)}
+  </div>
 </section>
 
 <footer>

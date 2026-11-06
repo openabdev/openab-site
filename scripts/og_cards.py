@@ -37,14 +37,14 @@ BOLD = {LATIN: 1, GB: 2, KO: 6}
 HEAD_FACE = {"ja": GB}   # no bold Hiragino Sans cut installed; GB W6 agrees on kana
 
 TEXT = {
-    "en": (["Coding agents,", "on infrastructure you own."],
-           "Chat broker, sandboxed terminal, Mac and iPhone apps, GitHub broker"),
-    "zh": (["你的 Coding Agent，", "跑在你自己的基礎架構。"],
-           "聊天室 broker、沙箱終端機、Mac 與 iPhone App、GitHub 憑證代管"),
-    "ja": (["コーディングエージェントを、", "自分のインフラで。"],
-           "チャットブローカー、サンドボックス端末、Mac と iPhone のアプリ"),
-    "ko": (["코딩 에이전트를,", "내 인프라에서."],
-           "채팅 브로커, 샌드박스 터미널, Mac·iPhone 앱, GitHub 브로커"),
+    "en": (["An open-source community", "that loves freedom and openness."],
+           "A secure, private, reliable runtime for coding agents"),
+    "zh": (["OpenAB 是一個熱愛", "自由與開放的開源社群。"],
+           "安全、注重隱私、可靠的 coding agent 運行環境"),
+    "ja": (["自由とオープンさを愛する", "オープンソースコミュニティ。"],
+           "安全でプライバシーを守る、信頼できるエージェントの実行環境"),
+    "ko": (["자유와 개방을 사랑하는", "오픈소스 커뮤니티."],
+           "안전하고 프라이버시를 지키는, 믿을 수 있는 에이전트 실행 환경"),
 }
 DOMAIN = "openab.dev"
 WORDMARK = "OpenAB"

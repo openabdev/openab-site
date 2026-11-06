@@ -1,6 +1,6 @@
 # openab-site
 
-Source of the OpenAB ecosystem landing page (openab.dev), in English, Traditional
+Source of the OpenAB community landing page (openab.dev), in English, Traditional
 Chinese, Japanese and Korean. Static HTML/CSS served by GitHub Pages from `main` `/`.
 
 Do not edit the HTML by hand. Every page is generated:

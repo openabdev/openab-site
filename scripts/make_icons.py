@@ -6,8 +6,9 @@
 Sources, by file name in SRC_DIR:
   STICKER  "Glossy Pastel Jellyfish Sticker.png"  1230x1278 RGBA, die-cut outline + shadow
   MASCOT   "Kawaii Pastel Jellyfish Mascot.png"   1254x1254 RGB, lavender-white field
-  CARDS    "Kawaii Purple Octopus Sticker.png", "oab-{classic,pty,computer,sb}.png"
-           RGBA stickers for the octobroker, OpenAB Classic/PTY/Computer, openab-sb cards
+  CARDS    "Kawaii Purple Octopus Sticker.png", "oab-{classic,pty,computer,sb,nearpush}.png"
+           RGBA stickers for the octobroker, OpenAB Classic/PTY, oab-computer, oab-sb,
+           oab-nearpush cards
 
 Outputs in assets/:
   brand-{64,128}.png        sticker padded to a transparent square (header, 1x/2x)
@@ -38,6 +39,7 @@ CARDS = {                        # product-card stickers, all RGBA on transparen
     "oab-pty": SRC / "oab-pty.png",                            # 1254x1254
     "oab-computer": SRC / "oab-computer.png",                  # 1290x1219
     "oab-sb": SRC / "oab-sb.png",                              # 1278x1230
+    "oab-nearpush": SRC / "oab-nearpush.png",                  # 1254x1254, art left of centre
 }
 APPS = {                         # app icons as served on connect.openab.dev (squircle, RGBA)
     "openab-connect": pathlib.Path.home() / "repo/connect-site/icon.png",
