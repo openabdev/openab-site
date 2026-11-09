@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=a955ab81">
+<link rel="stylesheet" href="../../../style.css?v=be0e490a">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -61,6 +61,57 @@ document.addEventListener("click", function (e) {
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
 <p class="lede">OpenAB Computer 0.9.0 で、MCP ツール <code>ui_snapshot</code> が加わりました。Mac
 アプリのアクセシビリティツリーを読み、JSON で返します。エージェントは、ウィンドウの中のボタンや入力欄やラベルを、画面上の位置とあわせてテキストで受け取れます。スクリーンショットから読み解く必要はもうありません。</p>
+
+<h2>エージェントはどうやって正しいボタンを押すのか</h2>
+<p>computer use とは、エージェントにコンピューターを操作させることです。画面を見て、マウスを動かし、クリックし、文字を入力します。クリックすること自体は簡単です。難しいのは、正しいものをクリックすることです。画面に「保存」ボタンがあるとき、エージェントはそれがどこにあり、本当にボタンなのか、今押せる状態なのかを、どうやって知るのでしょうか。</p>
+<p>よく使われる方法は、おおまかに四つあります。</p>
+<ol class="ways">
+<li>
+<p><strong>1. スクリーンショットを見て、座標を推測する。</strong>エージェントは一手ごとにスクリーンショットを撮り、モデルが画像からボタンの位置を判断して x と y を返します。マウスをそこへ動かしてクリックし、もう一度スクリーンショットで確かめます。</p>
+<p><em>長所：</em>最も汎用的です。画面に映っていれば、ゲームや独自に描画された UI も含めて、どんなアプリでも操作できます。</p>
+<p><em>短所：</em>一手ごとに画像を一枚送るので、トークンのコストが高く、時間もかかります。座標は推測なので、ボタンが小さいときや解像度、拡大率が違うときによく外れます。モデルが見ているのはピクセルなので、ボタンとボタンに似た画像の区別がつかず、ボタンがグレーアウトしているかどうかもわかりません。クリックには本物のカーソルを動かす必要があり、エージェントが動いている間、そのコンピューターは使えません。</p>
+<p><em>例：</em>Anthropic の <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool">computer use ツール</a>はこの方式です。Claude はスクリーンショットを受け取り、<code>left_click</code> などの操作を、スクリーンショットのピクセル単位の
+[x, y] とともに返し、それを実行するのは利用者側のコードです。ドキュメントには、対象がとても小さいとクリックが近くに落ちても外れることがあると書かれ、zoom で拡大して確かめる方法が勧められています。
+OpenAI の <a href="https://developers.openai.com/api/docs/guides/tools-computer-use">computer use ツール</a>は Computer-Using Agent というモデル（<a href="https://github.com/openai/openai-cua-sample-app">CUA</a>）にもとづき、同じくスクリーンショットを見て、x と y 付きのマウスとキーボードの操作を返します。スクリーンショットは画像入力として数えられます。OpenAI は、モデルがコード（Playwright や PyAutoGUI）を書いて UI を操作する方式も用意しています。</p>
+</li>
+<li>
+<p><strong>2. スクリーンショットに番号を付けてから、モデルに選ばせる（set-of-mark とも呼ばれます）。</strong>
+まず別の視覚モデルで画面上の要素を検出し、枠で囲んで番号を振ります。エージェントは「7 番を押す」と答えます。</p>
+<p><em>長所：</em>モデルが自分で座標を計算しなくてよいので、外れることがずっと少なくなります。</p>
+<p><em>短所：</em>やはり一手ごとに画像を送り、さらに検出モデルが一つ増えます。検出が漏れたり枠を間違えたりすれば、エージェントもそのまま間違えます。押せるか、今の値は何か、といった要素の状態もわかりません。</p>
+<p><em>例：</em>この考え方は <a href="https://arxiv.org/abs/2310.11441">Set-of-Mark</a> の論文から来ています。既存のセグメンテーションモデルで画像を領域に分け、番号や枠を重ね、印の付いた画像を見てモデルに答えさせるものです。
+Microsoft の <a href="https://github.com/microsoft/OmniParser">OmniParser</a> はこれをスクリーンショットに使います。検出モデルが操作できる領域を見つけ、説明モデルが各要素の役割を書き、スクリーンショットを構造化された要素の一覧に変えます。</p>
+</li>
+<li>
+<p><strong>3. アプリ自身の API やスクリプトを使う。</strong>たとえば AppleScript で Finder にフォルダを開かせたり、コマンドラインツールを使ったりします。</p>
+<p><em>長所：</em>最も正確で、画面がいりません。</p>
+<p><em>短所：</em>アプリごとにやり方が違い、こうした仕組みを持たないアプリも多く、エージェントはアプリごとに使い方を先に知っておく必要があります。</p>
+<p><em>例：</em>Apple の <a href="https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html">AppleScript</a> は、スクリプトに対応した Mac アプリと macOS の一部を直接操作できます。スクリプトに対応していないアプリには使えません。</p>
+</li>
+<li>
+<p><strong>4. アクセシビリティツリーを読む。</strong>OS には、もともとスクリーンリーダーのための仕組みがあります。macOS の <a href="https://developer.apple.com/documentation/applicationservices/axuielement_h">Accessibility API</a>、Windows の <a href="https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32">UI Automation</a>、Linux の
+<a href="https://docs.gtk.org/atspi2/">AT-SPI</a> で、Web ページにもブラウザーの<a href="https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree">アクセシビリティツリー</a>があります。ボタン、入力欄、メニューを、ロール、ラベル、今の値、操作できるかどうか、画面上の正確な位置とともに、一本のツリーとして表します。</p>
+<p><em>長所：</em>返ってくるのはテキストなので、安くて速いです。種類、名前、状態はシステムが直接教えてくれます。位置は正確です。要素ごとに ref を付けられ、あとで「この ref を押す」と指示でき、カーソルを動かす必要すらありません。</p>
+<p><em>短所：</em>アプリがきちんと対応しているかどうかに左右されます。独自に描画された UI、canvas、ゲームは、ツリーが空のことがよくあります。「アクセシビリティ」の権限が必要です。UI が複雑だとツリーが大きくなるので、深さとノード数に上限が要ります。画面が変われば古い ref は使えなくなり、読み直す必要があります。</p>
+<p><em>例：</em>Vercel の <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> はこの方法をとっています。デスクトップアプリのアクセシビリティツリーを読んで JSON で返し、エージェントが操作できる要素ごとに
+ref を付けます。ref による操作ではポインターを動かさず、フォーカスも奪いません。macOS、Windows、
+Linux に対応しています。</p>
+</li>
+</ol>
+<div class="cmp-wrap"><table class="cmp"><caption>四つの方法の比較</caption><thead><tr><th scope="col">方法</th><th scope="col">一手ごとのコスト</th><th scope="col">正確さ</th><th scope="col">対応範囲</th><th scope="col">状態がわかるか（押せるか、今の値）</th><th scope="col">カーソルを取られるか</th><th scope="col">必要な権限</th></tr></thead><tbody><tr><th scope="row">1. スクリーンショットで座標を推測</th><td data-label="一手ごとのコスト">高い：毎回画像一枚</td><td data-label="正確さ">低い：座標は推測</td><td data-label="対応範囲">最も広い：見えれば操作できる</td><td data-label="状態がわかるか（押せるか、今の値）">✗ わからない</td><td data-label="カーソルを取られるか">✓ 取られる</td><td data-label="必要な権限">必要：画面収録と入力の操作</td></tr><tr><th scope="row">2. 番号を付けて選ぶ（set-of-mark）</th><td data-label="一手ごとのコスト">高い：画像と検出モデル</td><td data-label="正確さ">中：検出の精度しだい</td><td data-label="対応範囲">広い：検出できれば操作できる</td><td data-label="状態がわかるか（押せるか、今の値）">✗ わからない</td><td data-label="カーソルを取られるか">✓ 取られる</td><td data-label="必要な権限">必要：画面収録と入力の操作</td></tr><tr><th scope="row">3. アプリの API やスクリプト</th><td data-label="一手ごとのコスト">低い：コマンド一つ</td><td data-label="正確さ">高い</td><td data-label="対応範囲">狭い：対応アプリだけ</td><td data-label="状態がわかるか（押せるか、今の値）">アプリしだい</td><td data-label="カーソルを取られるか">✗ 取られない</td><td data-label="必要な権限">場合による（macOS：オートメーション）</td></tr><tr><th scope="row">4. アクセシビリティツリー</th><td data-label="一手ごとのコスト">低い：テキストだけ</td><td data-label="正確さ">高い：位置が正確</td><td data-label="対応範囲">中：標準的な UI。canvas やゲームは空のことが多い</td><td data-label="状態がわかるか（押せるか、今の値）">✓ システムが返す</td><td data-label="カーソルを取られるか">✗ ref で操作すれば取られない*</td><td data-label="必要な権限">必要：アクセシビリティ</td></tr></tbody></table></div><p class="cmp-note">* ref で操作し、カーソルを動かさないのは <code>ui_action</code> で、<a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a> で開発中、まだリリースしていません。今のところ OpenAB Computer のエージェントは <code>mouse</code> でクリックするので、カーソルは動きます。</p>
+<figure class="fig anim aim" data-steps="4" data-ms="1300" aria-label="アニメーション：方法 1 と方法 4 の比較。左では、エージェントがスクリーンショットを撮り、モデルが座標を推測し、クリックは小さな「保存」ボタンのすぐ下に外れるので、もう一枚撮ります。スクリーンショットのたびに画像のトークンが増えます。右では、エージェントがアクセシビリティツリーをテキストで読み、ref e3（AXButton「保存」）を選んで操作します。押す位置はボタンに正確に当たり、カーソルは動きません。ref による操作は ui_action で、PR #96 で開発中、まだリリースしていません。今の OpenAB Computer は mouse で e3 の frame の中心をクリックします。">
+<div class="panels">
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="スクリーンショットで推測"><text class="ft" x="16" y="22">スクリーンショットで推測</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">名称未設定</text><text class="fs2" x="32" y="118">変更を保存しますか？</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">キャンセル</text><g class="okbtn"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">保存</text></g><rect class="flash" data-hl="0 3" x="16" y="34" width="288" height="128" rx="10"/><g data-show="1"><circle class="aim" cx="266" cy="153" r="6"/><path class="aim" d="M256 153 h20 M266 143 v20"/><text class="fs" x="24" y="140">推測：(266, 153)</text></g><g data-show="2"><circle class="miss" cx="266" cy="153" r="10"/><text class="fmiss" x="254" y="176" text-anchor="end">わずかに外れた</text></g><g class="cur" data-hl="0 1"><path class="cursor" d="M266 153 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/></g><g data-show="0"><rect class="thumb" x="16" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="16" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="60" y="211" width="12" height="6" rx="2"/></g><g data-show="3"><rect class="thumb" x="88" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="88" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="132" y="211" width="12" height="6" rx="2"/></g><text class="fs" x="164" y="208">送ったスクリーンショット</text><text class="fs2" data-hl="0" x="16" y="254">1  スクリーンショット</text><text class="fs2" data-hl="1" x="16" y="272">2  モデルが x, y を推測</text><text class="fs2" data-hl="2" x="16" y="290">3  クリック：ボタンから少し外れる</text><text class="fs2" data-hl="3" x="16" y="308">4  もう一度撮って確認</text><text class="fs" x="16" y="328">画像のトークン</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="334" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="334" width="70" height="10" rx="5"/></svg></div>
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="アクセシビリティツリーを読む"><text class="ft" x="16" y="22">アクセシビリティツリーを読む</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">名称未設定</text><text class="fs2" x="32" y="118">変更を保存しますか？</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">キャンセル</text><g class="okbtn" data-hl="2"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">保存</text></g><rect class="frx" data-show="1" x="229" y="123" width="62" height="28" rx="8"/><g data-show="2"><circle class="hit" cx="260" cy="137" r="10"/><text class="fhit" x="304" y="176" text-anchor="end">e3 の中心</text><text class="fs" x="130" y="94">カーソルは動かない</text></g><path class="cursor" d="M116 78 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><rect class="treebg" x="16" y="184" width="288" height="50" rx="6"/><g data-show="0"><text class="mono" x="24" y="198">[e1] AXWindow &quot;名称未設定&quot;</text><text class="mono" x="36" y="212">[e2] AXButton &quot;キャンセル&quot; (168,126 56×22)</text><text class="mono" data-hl="1 2" x="36" y="226">[e3] AXButton &quot;保存&quot; (232,126 56×22)</text></g><text class="fs2" data-hl="0" x="16" y="254">1  ツリーを読む：テキスト、画像なし</text><text class="fs2" data-hl="1" x="16" y="272">2  ref e3 を選ぶ：AXButton &quot;保存&quot;</text><text class="fs2" data-hl="2" x="16" y="290">3  e3 を押す：正確に当たり、カーソルはそのまま</text><text class="fs2" data-hl="3" x="16" y="308">4  もう一度読んで確認</text><text class="fs" x="16" y="328">画像のトークン：0</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/></svg><p class="badge">ref で操作し、カーソルを動かさないのは ui_action です。開発中（PR #96）で、まだリリースしていません。</p></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="再生" data-pause="一時停止">一時停止</button></div>
+<figcaption>アニメーション：方法 1 と方法 4 の比較。左では、エージェントがスクリーンショットを撮り、モデルが座標を推測し、クリックは小さな「保存」ボタンのすぐ下に外れるので、もう一枚撮ります。スクリーンショットのたびに画像のトークンが増えます。右では、エージェントがアクセシビリティツリーをテキストで読み、ref e3（AXButton「保存」）を選んで操作します。押す位置はボタンに正確に当たり、カーソルは動きません。ref による操作は ui_action で、PR #96 で開発中、まだリリースしていません。今の OpenAB Computer は mouse で e3 の frame の中心をクリックします。</figcaption>
+</figure>
+
+<h3>アクセシビリティツリーを選んだ理由</h3>
+<p>OpenAB Computer のようにエージェントが遠くにいる場合、いちばんコストがかかるのは、スクリーンショットを何度も行き来させることです。アクセシビリティツリーを使うと、一手が「画像を一枚送って座標を一回推測する」から「テキストを読んで ref を一つ選ぶ」に変わります。位置を推測しないので、クリックが外れる問題も解消します。標準的な Mac アプリの多くは、これで十分です。ただ、どんな画面にも使えるわけではないので、スクリーンショットは残し、三つを組み合わせています。ネイティブアプリは
+<code>ui_snapshot</code> でアクセシビリティツリーを読み、Web ページは <code>browser_snapshot</code> でブラウザーのアクセシビリティツリーを読み、ツリーに現れないもの（canvas や独自に描画された UI）は
+<code>screenshot</code> と <code>mouse</code> に戻ります。</p>
 
 <div class="callout">
 <h2>この取り組みのもとになった調査</h2>

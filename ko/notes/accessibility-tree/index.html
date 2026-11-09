@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=a955ab81">
+<link rel="stylesheet" href="../../../style.css?v=be0e490a">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -62,6 +62,89 @@ document.addEventListener("click", function (e) {
 <p class="lede">OpenAB Computer 0.9.0에 MCP 도구 <code>ui_snapshot</code>이 추가됐습니다. Mac 앱의
 접근성 트리를 읽어 JSON으로 돌려줍니다. 이제 에이전트는 창 안의 버튼, 입력란, 레이블을 화면 위
 위치와 함께 텍스트로 받습니다. 스크린샷을 보고 짐작할 필요가 없습니다.</p>
+
+<h2>에이전트는 어떻게 맞는 버튼을 누를까요?</h2>
+<p>computer use는 에이전트가 컴퓨터를 다루게 하는 것입니다. 화면을 보고, 마우스를 움직이고, 클릭하고,
+타이핑합니다. 클릭 자체는 쉽습니다. 어려운 것은 맞는 대상을 클릭하는 일입니다. 화면에 "저장" 버튼이
+있을 때, 에이전트는 그것이 어디 있는지, 정말 버튼인지, 지금 누를 수 있는지를 어떻게 알까요?</p>
+<p>흔히 쓰는 방법은 크게 네 가지입니다.</p>
+<ol class="ways">
+<li>
+<p><strong>1. 스크린샷을 보고 좌표를 짐작하기.</strong> 에이전트는 단계마다 스크린샷을 찍고, 모델이
+이미지에서 버튼 위치를 판단해 x, y를 돌려줍니다. 마우스를 그 위치로 옮겨 클릭한 뒤, 다시 스크린샷을
+찍어 확인합니다.</p>
+<p><em>장점:</em> 가장 범용적입니다. 화면에 보이기만 하면 게임이나 직접 그린 UI를 포함해 어떤 앱이든
+다룰 수 있습니다.</p>
+<p><em>단점:</em> 단계마다 이미지를 한 장씩 보내므로 토큰 비용이 크고 느립니다. 좌표는 짐작이라서
+버튼이 작거나 해상도, 배율이 다르면 자주 빗나갑니다. 모델이 보는 것은 픽셀이라 버튼과 버튼처럼 생긴
+그림을 구분하지 못하고, 버튼이 비활성화되어 있는지도 모릅니다. 클릭하려면 실제 커서를 움직여야 하므로
+에이전트가 일하는 동안 그 컴퓨터를 쓸 수 없습니다.</p>
+<p><em>예:</em> Anthropic의 <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool">computer use 도구</a>가 이렇게 동작합니다. Claude는
+스크린샷을 받고 <code>left_click</code> 같은 동작을 스크린샷 픽셀 단위의 [x, y]와 함께 돌려주며, 그
+동작은 사용자 쪽 코드가 실행합니다. 문서에는 대상이 아주 작으면 클릭이 맞는 영역에 떨어져도 대상을
+놓칠 수 있다고 적혀 있고, zoom 동작으로 확대해 확인하라고 권합니다. OpenAI의
+<a href="https://developers.openai.com/api/docs/guides/tools-computer-use">computer use 도구</a>는 Computer-Using Agent 모델(<a href="https://github.com/openai/openai-cua-sample-app">CUA</a>)을 바탕으로
+하며, 마찬가지로 스크린샷을 보고 x, y가 담긴 마우스와 키보드 동작을 돌려줍니다. 스크린샷은 이미지
+입력으로 계산됩니다. OpenAI는 모델이 코드(Playwright나 PyAutoGUI)를 써서 UI를 다루는 방식도
+제공합니다.</p>
+</li>
+<li>
+<p><strong>2. 스크린샷에 먼저 번호를 붙이고 모델에게 고르게 하기(흔히 set-of-mark라고
+부릅니다).</strong> 먼저 다른 비전 모델로 화면의 요소를 탐지해 테두리를 두르고 번호를 매깁니다.
+그러면 에이전트는 "7번을 눌러"라고 답합니다.</p>
+<p><em>장점:</em> 모델이 좌표를 직접 계산하지 않아도 되므로 빗나가는 일이 훨씬 줄어듭니다.</p>
+<p><em>단점:</em> 여전히 단계마다 이미지를 보내고, 탐지 모델이 하나 더 붙습니다. 탐지가 요소를 놓치거나
+테두리를 잘못 그리면 에이전트도 그대로 틀립니다. 누를 수 있는지, 현재 값이 무엇인지 같은 요소의
+상태도 모릅니다.</p>
+<p><em>예:</em> 이 방식은 <a href="https://arxiv.org/abs/2310.11441">Set-of-Mark</a> 논문에서 나왔습니다. 기존 분할(segmentation)
+모델로 이미지를 영역으로 나누고 숫자나 테두리를 겹친 뒤, 모델이 표시된 이미지를 보고 답하게 합니다.
+Microsoft의 <a href="https://github.com/microsoft/OmniParser">OmniParser</a>는 이를 스크린샷에 적용합니다. 탐지 모델이 조작할 수 있는
+영역을 찾고, 설명 모델이 각 요소의 역할을 적어, 스크린샷을 구조화된 요소 목록으로 바꿉니다.</p>
+</li>
+<li>
+<p><strong>3. 앱 자체의 API나 스크립트 쓰기.</strong> 예를 들어 AppleScript로 Finder에게 폴더를
+열게 하거나, 명령줄 도구를 씁니다.</p>
+<p><em>장점:</em> 가장 정확하고 화면이 필요 없습니다.</p>
+<p><em>단점:</em> 앱마다 방식이 다르고, 이런 인터페이스가 없는 앱도 많으며, 에이전트가 앱마다 쓰는 법을
+먼저 알아야 합니다.</p>
+<p><em>예:</em> Apple의 <a href="https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html">AppleScript</a>는 스크립트를 지원하는 Mac 앱과 macOS 일부를
+직접 제어합니다. 스크립트를 지원하지 않는 앱에는 쓸 수 없습니다.</p>
+</li>
+<li>
+<p><strong>4. 접근성 트리 읽기.</strong> 운영체제에는 원래 화면 낭독기를 위한 인터페이스가 있습니다.
+macOS의 <a href="https://developer.apple.com/documentation/applicationservices/axuielement_h">Accessibility API</a>, Windows의 <a href="https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32">UI Automation</a>, Linux의
+<a href="https://docs.gtk.org/atspi2/">AT-SPI</a>이고, 웹 페이지에는 브라우저의 <a href="https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree">접근성 트리</a>가 있습니다. 버튼,
+입력란, 메뉴를 역할, 레이블, 현재 값, 조작할 수 있는지, 화면 위 정확한 위치와 함께 하나의 트리로
+나타냅니다.</p>
+<p><em>장점:</em> 돌려받는 것이 텍스트라 저렴하고 빠릅니다. 종류, 이름, 상태를 시스템이 직접
+알려 줍니다. 위치가 정확합니다. 요소마다 ref를 붙일 수 있어서 나중에 "이 ref를 눌러"라고 할 수 있고,
+커서를 움직일 필요도 없습니다.</p>
+<p><em>단점:</em> 앱이 얼마나 잘 지원하느냐에 달려 있습니다. 직접 그린 UI, canvas, 게임은 트리가 비어
+있는 경우가 많습니다. 손쉬운 사용 권한이 필요합니다. UI가 복잡하면 트리가 커지므로 깊이와 노드 수를
+제한해야 합니다. 화면이 바뀌면 이전 ref는 쓸 수 없게 되어 다시 읽어야 합니다.</p>
+<p><em>예:</em> Vercel의 <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a>이 이 방식을 씁니다. 데스크톱 앱의
+접근성 트리를 읽어 JSON으로 돌려주고, 에이전트가 조작할 수 있는 요소마다 ref를 붙입니다. ref로
+동작할 때는 포인터를 움직이지 않고 포커스도 가져가지 않습니다. macOS, Windows, Linux를 지원합니다.</p>
+</li>
+</ol>
+<div class="cmp-wrap"><table class="cmp"><caption>네 가지 방법 비교</caption><thead><tr><th scope="col">방법</th><th scope="col">단계당 비용</th><th scope="col">정확도</th><th scope="col">적용 범위</th><th scope="col">상태 파악(누를 수 있는지, 현재 값)</th><th scope="col">커서를 빼앗는지</th><th scope="col">필요한 권한</th></tr></thead><tbody><tr><th scope="row">1. 스크린샷 보고 좌표 짐작</th><td data-label="단계당 비용">높음: 단계마다 이미지 한 장</td><td data-label="정확도">낮음: 좌표를 짐작</td><td data-label="적용 범위">가장 넓음: 보이면 됨</td><td data-label="상태 파악(누를 수 있는지, 현재 값)">✗ 모름</td><td data-label="커서를 빼앗는지">✓ 빼앗음</td><td data-label="필요한 권한">필요: 화면 기록과 입력 제어</td></tr><tr><th scope="row">2. 번호 붙여 고르기(set-of-mark)</th><td data-label="단계당 비용">높음: 이미지와 탐지 모델</td><td data-label="정확도">중간: 탐지 정확도에 달림</td><td data-label="적용 범위">넓음: 탐지되면 됨</td><td data-label="상태 파악(누를 수 있는지, 현재 값)">✗ 모름</td><td data-label="커서를 빼앗는지">✓ 빼앗음</td><td data-label="필요한 권한">필요: 화면 기록과 입력 제어</td></tr><tr><th scope="row">3. 앱의 API나 스크립트</th><td data-label="단계당 비용">낮음: 명령 하나</td><td data-label="정확도">높음</td><td data-label="적용 범위">좁음: 지원하는 앱만</td><td data-label="상태 파악(누를 수 있는지, 현재 값)">앱에 따라 다름</td><td data-label="커서를 빼앗는지">✗ 빼앗지 않음</td><td data-label="필요한 권한">경우에 따라(macOS: 자동화)</td></tr><tr><th scope="row">4. 접근성 트리</th><td data-label="단계당 비용">낮음: 텍스트 한 덩어리</td><td data-label="정확도">높음: 위치가 정확</td><td data-label="적용 범위">중간: 표준 UI. canvas나 게임은 비어 있을 때가 많음</td><td data-label="상태 파악(누를 수 있는지, 현재 값)">✓ 시스템이 알려 줌</td><td data-label="커서를 빼앗는지">✗ ref로 조작하면 빼앗지 않음*</td><td data-label="필요한 권한">필요: 손쉬운 사용</td></tr></tbody></table></div><p class="cmp-note">* ref로 조작하고 커서를 움직이지 않는 것은 <code>ui_action</code>이며, <a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a>에서 개발 중이고 아직 출시되지 않았습니다. 지금은 OpenAB Computer의 에이전트가 여전히 <code>mouse</code>로 클릭하므로 커서가 움직입니다.</p>
+<figure class="fig anim aim" data-steps="4" data-ms="1300" aria-label="애니메이션: 방법 1과 방법 4 비교. 왼쪽에서는 에이전트가 스크린샷을 찍고, 모델이 좌표를 짐작하고, 클릭이 작은 &quot;저장&quot; 버튼 바로 아래로 빗나가서 스크린샷을 한 장 더 찍습니다. 스크린샷마다 이미지 토큰이 늘어납니다. 오른쪽에서는 에이전트가 접근성 트리를 텍스트로 읽고 ref e3(AXButton &quot;저장&quot;)을 골라 누릅니다. 누른 위치가 버튼에 정확히 맞고 커서는 움직이지 않습니다. ref로 조작하는 것은 ui_action이며 PR #96에서 개발 중이고 아직 출시되지 않았습니다. 지금의 OpenAB Computer는 mouse로 e3 frame의 중심을 클릭합니다.">
+<div class="panels">
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="스크린샷 보고 좌표 짐작"><text class="ft" x="16" y="22">스크린샷 보고 좌표 짐작</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">제목 없음</text><text class="fs2" x="32" y="118">변경 사항을 저장할까요?</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">취소</text><g class="okbtn"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">저장</text></g><rect class="flash" data-hl="0 3" x="16" y="34" width="288" height="128" rx="10"/><g data-show="1"><circle class="aim" cx="266" cy="153" r="6"/><path class="aim" d="M256 153 h20 M266 143 v20"/><text class="fs" x="24" y="140">짐작: (266, 153)</text></g><g data-show="2"><circle class="miss" cx="266" cy="153" r="10"/><text class="fmiss" x="254" y="176" text-anchor="end">살짝 빗나감</text></g><g class="cur" data-hl="0 1"><path class="cursor" d="M266 153 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/></g><g data-show="0"><rect class="thumb" x="16" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="16" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="60" y="211" width="12" height="6" rx="2"/></g><g data-show="3"><rect class="thumb" x="88" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="88" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="132" y="211" width="12" height="6" rx="2"/></g><text class="fs" x="164" y="208">보낸 스크린샷</text><text class="fs2" data-hl="0" x="16" y="254">1  스크린샷</text><text class="fs2" data-hl="1" x="16" y="272">2  모델이 x, y를 짐작</text><text class="fs2" data-hl="2" x="16" y="290">3  클릭: 버튼에서 살짝 빗나감</text><text class="fs2" data-hl="3" x="16" y="308">4  다시 찍어서 확인</text><text class="fs" x="16" y="328">이미지 토큰</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="334" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="334" width="70" height="10" rx="5"/></svg></div>
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="접근성 트리 읽기"><text class="ft" x="16" y="22">접근성 트리 읽기</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">제목 없음</text><text class="fs2" x="32" y="118">변경 사항을 저장할까요?</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">취소</text><g class="okbtn" data-hl="2"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">저장</text></g><rect class="frx" data-show="1" x="229" y="123" width="62" height="28" rx="8"/><g data-show="2"><circle class="hit" cx="260" cy="137" r="10"/><text class="fhit" x="304" y="176" text-anchor="end">e3 정중앙</text><text class="fs" x="130" y="94">커서는 그대로</text></g><path class="cursor" d="M116 78 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><rect class="treebg" x="16" y="184" width="288" height="50" rx="6"/><g data-show="0"><text class="mono" x="24" y="198">[e1] AXWindow &quot;제목 없음&quot;</text><text class="mono" x="36" y="212">[e2] AXButton &quot;취소&quot; (168,126 56×22)</text><text class="mono" data-hl="1 2" x="36" y="226">[e3] AXButton &quot;저장&quot; (232,126 56×22)</text></g><text class="fs2" data-hl="0" x="16" y="254">1  트리 읽기: 텍스트, 이미지 없음</text><text class="fs2" data-hl="1" x="16" y="272">2  ref e3 고르기: AXButton &quot;저장&quot;</text><text class="fs2" data-hl="2" x="16" y="290">3  e3 누르기: 정확히 맞고 커서는 그대로</text><text class="fs2" data-hl="3" x="16" y="308">4  다시 읽어서 확인</text><text class="fs" x="16" y="328">이미지 토큰: 0</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/></svg><p class="badge">ref로 조작하고 커서를 움직이지 않는 것은 ui_action입니다. 개발 중(PR #96)이며 아직 출시되지 않았습니다.</p></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지">일시 정지</button></div>
+<figcaption>애니메이션: 방법 1과 방법 4 비교. 왼쪽에서는 에이전트가 스크린샷을 찍고, 모델이 좌표를 짐작하고, 클릭이 작은 &quot;저장&quot; 버튼 바로 아래로 빗나가서 스크린샷을 한 장 더 찍습니다. 스크린샷마다 이미지 토큰이 늘어납니다. 오른쪽에서는 에이전트가 접근성 트리를 텍스트로 읽고 ref e3(AXButton &quot;저장&quot;)을 골라 누릅니다. 누른 위치가 버튼에 정확히 맞고 커서는 움직이지 않습니다. ref로 조작하는 것은 ui_action이며 PR #96에서 개발 중이고 아직 출시되지 않았습니다. 지금의 OpenAB Computer는 mouse로 e3 frame의 중심을 클릭합니다.</figcaption>
+</figure>
+
+<h3>접근성 트리를 고른 이유</h3>
+<p>OpenAB Computer처럼 에이전트가 멀리 있는 경우, 가장 비싼 부분은 스크린샷을 계속 주고받는
+일입니다. 접근성 트리를 쓰면 한 단계가 "이미지 한 장 보내고 좌표 한 번 짐작하기"에서 "텍스트를 읽고
+ref 하나 고르기"로 바뀝니다. 위치를 짐작하지 않으니 클릭이 빗나가는 문제도 해결됩니다. 대부분의 표준
+Mac 앱에는 이것으로 충분합니다. 다만 모든 화면을 다룰 수는 없어서 스크린샷은 그대로 두고 세 가지를
+함께 씁니다. 네이티브 앱은 <code>ui_snapshot</code>으로 접근성 트리를 읽고, 웹 페이지는
+<code>browser_snapshot</code>으로 브라우저의 접근성 트리를 읽고, 트리에 보이지 않는 것(canvas, 직접 그린
+UI)은 <code>screenshot</code>과 <code>mouse</code>로 돌아갑니다.</p>
 
 <div class="callout">
 <h2>이 작업의 바탕이 된 리서치</h2>

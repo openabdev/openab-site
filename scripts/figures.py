@@ -313,4 +313,249 @@ def fig_action(code):
 </figure>"""
 
 
-FIGS = {"fig_loop": fig_loop, "fig_tree": fig_tree, "fig_action": fig_action}
+# ── Approach 1 next to approach 4 (the "How does an agent click the right button?" section) ──
+# Same made-up dialog on both sides, in screen points. The Save button is small (56×22); on the
+# left the guessed point (266,153) lands 5 points below it, on the right the press lands on the
+# center of e3's frame. Acting by ref is ui_action (openab-computer PR #96, not released).
+AIM = {
+    "en": dict(
+        l="Screenshot, guess coordinates", r="Read the accessibility tree",
+        title="Untitled", msg="Save changes?", save="Save",
+        guess="guess: (266, 153)", miss="just missed", hit="center of e3",
+        stay="cursor did not move", sent="screenshots sent",
+        rows_l=["1  Screenshot", "2  Model guesses x, y", "3  Click: just off the button",
+                "4  Screenshot again to check"],
+        rows_r=["1  Read the tree: text, no image", '2  Pick ref e3: AXButton "{save}"',
+                "3  Act on e3: lands exactly, cursor stays", "4  Read the tree again to check"],
+        badge="Acting on a ref without moving the cursor is ui_action: in progress (PR #96), "
+              "not released yet.",
+        cap="Animation: approach 1 next to approach 4. On the left, the agent takes a screenshot, "
+            "the model guesses coordinates, and the click lands just below the small Save button, "
+            "so it takes another screenshot; each screenshot adds image tokens. On the right, the "
+            "agent reads the accessibility tree as text, picks ref e3 (AXButton \"Save\") and acts "
+            "on it: the press lands on the button and the cursor does not move. Acting by ref is "
+            "ui_action, in progress in PR #96 and not released yet; today OpenAB Computer still "
+            "clicks the center of e3's frame with mouse.",
+    ),
+    "zh": dict(
+        l="看截圖，猜座標", r="讀 accessibility tree",
+        title="未命名", msg="要儲存變更嗎？", save="儲存",
+        guess="猜：(266, 153)", miss="差一點，沒點中", hit="正中 e3",
+        stay="游標沒動", sent="送出的截圖",
+        rows_l=["1  截圖", "2  模型猜 x、y", "3  點下去：差一點沒點中", "4  再截一張圖確認"],
+        rows_r=["1  讀 tree：文字，沒有圖片", '2  選 ref e3：AXButton "{save}"',
+                "3  對 e3 按下：正中，游標不動", "4  再讀一次確認"],
+        badge="用 ref 操作、不移動游標的是 ui_action：開發中（PR #96），尚未推出。",
+        cap="動畫：第 1 種和第 4 種做法並排。左邊 agent 截圖，模型猜座標，點擊落在小小的「儲存」"
+            "按鈕下方一點點，沒點中，只好再截一張圖；每張截圖都會增加圖片 token。右邊 agent 讀 "
+            "accessibility tree 的文字，選出 ref e3（AXButton「儲存」）並對它按下：正好按在按鈕上，"
+            "游標也沒有移動。用 ref 操作的是 ui_action，還在 PR #96 開發中，尚未推出；目前 OpenAB "
+            "Computer 仍用 mouse 點 e3 的 frame 中心。",
+    ),
+    "ja": dict(
+        l="スクリーンショットで推測", r="アクセシビリティツリーを読む",
+        title="名称未設定", msg="変更を保存しますか？", save="保存",
+        guess="推測：(266, 153)", miss="わずかに外れた", hit="e3 の中心",
+        stay="カーソルは動かない", sent="送ったスクリーンショット",
+        rows_l=["1  スクリーンショット", "2  モデルが x, y を推測", "3  クリック：ボタンから少し外れる",
+                "4  もう一度撮って確認"],
+        rows_r=["1  ツリーを読む：テキスト、画像なし", '2  ref e3 を選ぶ：AXButton "{save}"',
+                "3  e3 を押す：正確に当たり、カーソルはそのまま", "4  もう一度読んで確認"],
+        badge="ref で操作し、カーソルを動かさないのは ui_action です。開発中（PR #96）で、"
+              "まだリリースしていません。",
+        cap="アニメーション：方法 1 と方法 4 の比較。左では、エージェントがスクリーンショットを撮り、"
+            "モデルが座標を推測し、クリックは小さな「保存」ボタンのすぐ下に外れるので、もう一枚撮り"
+            "ます。スクリーンショットのたびに画像のトークンが増えます。右では、エージェントが"
+            "アクセシビリティツリーをテキストで読み、ref e3（AXButton「保存」）を選んで操作します。"
+            "押す位置はボタンに正確に当たり、カーソルは動きません。ref による操作は ui_action で、"
+            "PR #96 で開発中、まだリリースしていません。今の OpenAB Computer は mouse で e3 の "
+            "frame の中心をクリックします。",
+    ),
+    "ko": dict(
+        l="스크린샷 보고 좌표 짐작", r="접근성 트리 읽기",
+        title="제목 없음", msg="변경 사항을 저장할까요?", save="저장",
+        guess="짐작: (266, 153)", miss="살짝 빗나감", hit="e3 정중앙",
+        stay="커서는 그대로", sent="보낸 스크린샷",
+        rows_l=["1  스크린샷", "2  모델이 x, y를 짐작", "3  클릭: 버튼에서 살짝 빗나감",
+                "4  다시 찍어서 확인"],
+        rows_r=["1  트리 읽기: 텍스트, 이미지 없음", '2  ref e3 고르기: AXButton "{save}"',
+                "3  e3 누르기: 정확히 맞고 커서는 그대로", "4  다시 읽어서 확인"],
+        badge="ref로 조작하고 커서를 움직이지 않는 것은 ui_action입니다. 개발 중(PR #96)이며 "
+              "아직 출시되지 않았습니다.",
+        cap="애니메이션: 방법 1과 방법 4 비교. 왼쪽에서는 에이전트가 스크린샷을 찍고, 모델이 좌표를 "
+            "짐작하고, 클릭이 작은 \"저장\" 버튼 바로 아래로 빗나가서 스크린샷을 한 장 더 찍습니다. "
+            "스크린샷마다 이미지 토큰이 늘어납니다. 오른쪽에서는 에이전트가 접근성 트리를 텍스트로 "
+            "읽고 ref e3(AXButton \"저장\")을 골라 누릅니다. 누른 위치가 버튼에 정확히 맞고 커서는 "
+            "움직이지 않습니다. ref로 조작하는 것은 ui_action이며 PR #96에서 개발 중이고 아직 "
+            "출시되지 않았습니다. 지금의 OpenAB Computer는 mouse로 e3 frame의 중심을 클릭합니다.",
+    ),
+}
+
+
+def _cursor(x, y):
+    return (f'<path class="cursor" d="M{x} {y} l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 '
+            f'l6.3 0z"/>')
+
+
+def _aim_window(t, a, ok_hl=None):
+    okg = f' data-hl="{ok_hl}"' if ok_hl is not None else ""
+    return ('<rect class="win" x="16" y="34" width="288" height="128" rx="10"/>'
+            '<path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/>'
+            '<circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/>'
+            '<circle class="dot" cx="54" cy="46" r="4"/>'
+            f'<text class="fs2" x="160" y="50" text-anchor="middle">{esc(a["title"])}</text>'
+            f'<text class="fs2" x="32" y="118">{esc(a["msg"])}</text>'
+            '<rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/>'
+            f'<text class="fbtn" x="196" y="141" text-anchor="middle">{esc(t["dlg"]["cancel"])}</text>'
+            f'<g class="okbtn"{okg}><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/>'
+            f'<text class="fok fbtn" x="260" y="141" text-anchor="middle">{esc(a["save"])}</text></g>')
+
+
+def _rows(rows, save):
+    return "".join(f'<text class="fs2" data-hl="{i}" x="16" y="{254 + i * 18}">'
+                   f'{esc(r.format(save=save))}</text>' for i, r in enumerate(rows))
+
+
+def fig_aim(code):
+    t, a = S[code], AIM[code]
+    thumb = ('<rect class="thumb" x="{x}" y="184" width="64" height="40" rx="4"/>'
+             '<rect class="thumbbar" x="{x}" y="184" width="64" height="7" rx="3"/>'
+             '<rect class="thumbbtn" x="{bx}" y="211" width="12" height="6" rx="2"/>')
+    left = [f'<svg viewBox="0 0 320 350" role="img" aria-label="{esc(a["l"])}">',
+            f'<text class="ft" x="16" y="22">{esc(a["l"])}</text>',
+            _aim_window(t, a),
+            '<rect class="flash" data-hl="0 3" x="16" y="34" width="288" height="128" rx="10"/>',
+            f'<g data-show="1"><circle class="aim" cx="266" cy="153" r="6"/>'
+            '<path class="aim" d="M256 153 h20 M266 143 v20"/>'
+            f'<text class="fs" x="24" y="140">{esc(a["guess"])}</text></g>',
+            f'<g data-show="2"><circle class="miss" cx="266" cy="153" r="10"/>'
+            f'<text class="fmiss" x="254" y="176" text-anchor="end">{esc(a["miss"])}</text></g>',
+            f'<g class="cur" data-hl="0 1">{_cursor(266, 153)}</g>',
+            f'<g data-show="0">{thumb.format(x=16, bx=60)}</g>',
+            f'<g data-show="3">{thumb.format(x=88, bx=132)}</g>',
+            f'<text class="fs" x="164" y="208">{esc(a["sent"])}</text>',
+            _rows(a["rows_l"], a["save"]),
+            f'<text class="fs" x="16" y="328">{esc(t["meter_l"])}</text>',
+            '<rect class="meter" x="16" y="334" width="288" height="10" rx="5"/>',
+            '<rect class="seg" data-show="0" x="16" y="334" width="70" height="10" rx="5"/>',
+            '<rect class="seg" data-show="3" x="88" y="334" width="70" height="10" rx="5"/>',
+            "</svg>"]
+    save, cancel = a["save"], t["dlg"]["cancel"]
+    tree = [(0, f'[e1] AXWindow "{a["title"]}"', ""),
+            (1, f'[e2] AXButton "{cancel}" (168,126 56×22)', ""),
+            (1, f'[e3] AXButton "{save}" (232,126 56×22)', ' data-hl="1 2"')]
+    lines = "".join(f'<text class="mono"{hl} x="{24 + lvl * 12}" y="{198 + i * 14}">{esc(s)}</text>'
+                    for i, (lvl, s, hl) in enumerate(tree))
+    right = [f'<svg viewBox="0 0 320 350" role="img" aria-label="{esc(a["r"])}">',
+             f'<text class="ft" x="16" y="22">{esc(a["r"])}</text>',
+             _aim_window(t, a, ok_hl=2),
+             '<rect class="frx" data-show="1" x="229" y="123" width="62" height="28" rx="8"/>',
+             f'<g data-show="2"><circle class="hit" cx="260" cy="137" r="10"/>'
+             f'<text class="fhit" x="304" y="176" text-anchor="end">{esc(a["hit"])}</text>'
+             f'<text class="fs" x="130" y="94">{esc(a["stay"])}</text></g>',
+             _cursor(116, 78),
+             '<rect class="treebg" x="16" y="184" width="288" height="50" rx="6"/>',
+             f'<g data-show="0">{lines}</g>',
+             _rows(a["rows_r"], save),
+             f'<text class="fs" x="16" y="328">{esc(t["meter_r"])}</text>',
+             '<rect class="meter" x="16" y="334" width="288" height="10" rx="5"/>',
+             "</svg>"]
+    return f"""<figure class="fig anim aim" data-steps="4" data-ms="1300" aria-label="{esc(a['cap'])}">
+<div class="panels">
+<div class="panel">{"".join(left)}</div>
+<div class="panel">{"".join(right)}<p class="badge">{esc(a['badge'])}</p></div>
+</div>
+{controls(t)}
+<figcaption>{esc(a['cap'])}</figcaption>
+</figure>"""
+
+
+# ── Comparison table for the four approaches. On narrow screens style.css turns each row
+# into a card and shows the column name from data-label next to each value.
+CMP = {
+    "en": dict(
+        cap="The four approaches side by side",
+        cols=["Approach", "Cost per step", "Accuracy", "Coverage", "Knows state (enabled, value)",
+              "Takes over the cursor", "Needs permission"],
+        rows=[["1. Screenshot, guess coordinates", "High: an image every step", "Low: coordinates are guessed",
+               "Widest: anything visible", "✗ No", "✓ Yes", "Yes: screen capture and input"],
+              ["2. Numbered marks (set-of-mark)", "High: image plus a detection model",
+               "Medium: depends on detection", "Wide: what the detector finds", "✗ No", "✓ Yes",
+               "Yes: screen capture and input"],
+              ["3. App API or script", "Low: one command", "High", "Narrow: only apps that support it",
+               "Depends on the app", "✗ No", "Depends (macOS: Automation)"],
+              ["4. Accessibility tree", "Low: a block of text", "High: exact positions",
+               "Medium: standard UI; canvas and games often empty", "✓ Yes, from the system",
+               "✗ No, when acting by ref*", "Yes: Accessibility"]],
+        note="* Acting by ref without moving the cursor is <code>ui_action</code>, in progress in "
+             "{pr96} and not released yet. Today an agent on OpenAB Computer still clicks with "
+             "<code>mouse</code>, which moves the cursor.",
+    ),
+    "zh": dict(
+        cap="四種做法對照",
+        cols=["做法", "每步成本", "準確度", "涵蓋範圍", "知道狀態（能不能按、目前的值）", "搶走游標", "需要權限"],
+        rows=[["1. 看截圖，猜座標", "高：每步一張圖", "低：座標用猜的", "最廣：看得到就行", "✗ 不知道",
+               "✓ 會", "要：截圖和操控輸入"],
+              ["2. 標號再選（set-of-mark）", "高：圖片加偵測模型", "中：看偵測準不準", "廣：偵測得到就行",
+               "✗ 不知道", "✓ 會", "要：截圖和操控輸入"],
+              ["3. app 的 API 或腳本", "低：一個指令", "高", "窄：要 app 有支援", "看 app", "✗ 不會",
+               "看情況（macOS：自動化）"],
+              ["4. accessibility tree", "低：一段文字", "高：位置是確切的", "中：標準介面；canvas、遊戲常是空的",
+               "✓ 系統直接給", "✗ 用 ref 操作時不會*", "要：輔助使用"]],
+        note="* 用 ref 操作、不移動游標的是 <code>ui_action</code>，還在 {pr96} 開發中，尚未推出。"
+             "目前 agent 透過 OpenAB Computer 還是用 <code>mouse</code> 點擊，游標會動。",
+    ),
+    "ja": dict(
+        cap="四つの方法の比較",
+        cols=["方法", "一手ごとのコスト", "正確さ", "対応範囲", "状態がわかるか（押せるか、今の値）",
+              "カーソルを取られるか", "必要な権限"],
+        rows=[["1. スクリーンショットで座標を推測", "高い：毎回画像一枚", "低い：座標は推測",
+               "最も広い：見えれば操作できる", "✗ わからない", "✓ 取られる", "必要：画面収録と入力の操作"],
+              ["2. 番号を付けて選ぶ（set-of-mark）", "高い：画像と検出モデル", "中：検出の精度しだい",
+               "広い：検出できれば操作できる", "✗ わからない", "✓ 取られる", "必要：画面収録と入力の操作"],
+              ["3. アプリの API やスクリプト", "低い：コマンド一つ", "高い", "狭い：対応アプリだけ",
+               "アプリしだい", "✗ 取られない", "場合による（macOS：オートメーション）"],
+              ["4. アクセシビリティツリー", "低い：テキストだけ", "高い：位置が正確",
+               "中：標準的な UI。canvas やゲームは空のことが多い", "✓ システムが返す",
+               "✗ ref で操作すれば取られない*", "必要：アクセシビリティ"]],
+        note="* ref で操作し、カーソルを動かさないのは <code>ui_action</code> で、{pr96} で開発中、"
+             "まだリリースしていません。今のところ OpenAB Computer のエージェントは "
+             "<code>mouse</code> でクリックするので、カーソルは動きます。",
+    ),
+    "ko": dict(
+        cap="네 가지 방법 비교",
+        cols=["방법", "단계당 비용", "정확도", "적용 범위", "상태 파악(누를 수 있는지, 현재 값)",
+              "커서를 빼앗는지", "필요한 권한"],
+        rows=[["1. 스크린샷 보고 좌표 짐작", "높음: 단계마다 이미지 한 장", "낮음: 좌표를 짐작",
+               "가장 넓음: 보이면 됨", "✗ 모름", "✓ 빼앗음", "필요: 화면 기록과 입력 제어"],
+              ["2. 번호 붙여 고르기(set-of-mark)", "높음: 이미지와 탐지 모델", "중간: 탐지 정확도에 달림",
+               "넓음: 탐지되면 됨", "✗ 모름", "✓ 빼앗음", "필요: 화면 기록과 입력 제어"],
+              ["3. 앱의 API나 스크립트", "낮음: 명령 하나", "높음", "좁음: 지원하는 앱만", "앱에 따라 다름",
+               "✗ 빼앗지 않음", "경우에 따라(macOS: 자동화)"],
+              ["4. 접근성 트리", "낮음: 텍스트 한 덩어리", "높음: 위치가 정확",
+               "중간: 표준 UI. canvas나 게임은 비어 있을 때가 많음", "✓ 시스템이 알려 줌",
+               "✗ ref로 조작하면 빼앗지 않음*", "필요: 손쉬운 사용"]],
+        note="* ref로 조작하고 커서를 움직이지 않는 것은 <code>ui_action</code>이며, {pr96}에서 개발 "
+             "중이고 아직 출시되지 않았습니다. 지금은 OpenAB Computer의 에이전트가 여전히 "
+             "<code>mouse</code>로 클릭하므로 커서가 움직입니다.",
+    ),
+}
+PR96 = "https://github.com/openabdev/openab-computer/pull/96"
+
+
+def cmp_table(code):
+    c = CMP[code]
+    head = "".join(f'<th scope="col">{esc(h)}</th>' for h in c["cols"])
+    body = []
+    for row in c["rows"]:
+        cells = "".join(f'<td data-label="{esc(h)}">{esc(v)}</td>'
+                        for h, v in zip(c["cols"][1:], row[1:]))
+        body.append(f'<tr><th scope="row">{esc(row[0])}</th>{cells}</tr>')
+    note = c["note"].format(pr96=f'<a href="{PR96}">PR #96</a>')
+    return (f'<div class="cmp-wrap"><table class="cmp"><caption>{esc(c["cap"])}</caption>'
+            f'<thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
+            f'<p class="cmp-note">{note}</p>')
+
+
+FIGS = {"fig_loop": fig_loop, "fig_tree": fig_tree, "fig_action": fig_action,
+        "fig_aim": fig_aim, "cmp_table": cmp_table}

@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=a955ab81">
+<link rel="stylesheet" href="../../../style.css?v=be0e490a">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -61,6 +61,55 @@ document.addEventListener("click", function (e) {
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
 <p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
 的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
+
+<h2>Agent 要怎麼點到對的按鈕？</h2>
+<p>所謂 computer use，就是讓 agent 操作一台電腦：看畫面、移動滑鼠、點擊、打字。點下去不難，難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 要怎麼知道它在哪裡、是不是真的是按鈕、現在能不能按？</p>
+<p>常見的做法大致有四種。</p>
+<ol class="ways">
+<li>
+<p><strong>1. 看截圖，猜座標。</strong>agent 每一步截一張圖，模型從圖裡判斷按鈕位置、回傳 x、y，再移動滑鼠點下去，再截圖確認。</p>
+<p><em>優點：</em>最通用，只要畫面看得到，什麼 app 都能操作，包括遊戲和自己畫的介面。</p>
+<p><em>缺點：</em>每一步都要傳一張圖，token 成本高、速度慢；座標是猜的，按鈕小、解析度或縮放比例不同時常點偏；模型看到的是像素，分不清按鈕和長得像按鈕的圖片，也不知道按鈕是不是灰掉了；點擊要真的移動游標，agent 工作時你就不能用那台電腦。</p>
+<p><em>例子：</em>Anthropic 的 <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool">computer use 工具</a>就是這樣運作：Claude 拿到截圖，回傳 <code>left_click</code> 這類動作和以截圖像素為單位的 [x, y]，由你的程式去執行。它的文件也列出目標很小時，點擊落在對的區域卻沒點中的情況，建議用 zoom 動作放大檢查。OpenAI 的
+<a href="https://developers.openai.com/api/docs/guides/tools-computer-use">computer use 工具</a>建立在它的 Computer-Using Agent 模型（<a href="https://github.com/openai/openai-cua-sample-app">CUA</a>）上，同樣看截圖，回傳帶 x、y 的滑鼠和鍵盤動作，截圖算作圖片輸入。OpenAI 另外也提供一種做法，讓模型寫程式（Playwright 或 PyAutoGUI）來操作介面。</p>
+</li>
+<li>
+<p><strong>2. 先在截圖上標號，再請模型選（常被稱為 set-of-mark）。</strong>先用另一個視覺模型偵測元件、框起來編號，再請 agent 回答「按 7 號」。</p>
+<p><em>優點：</em>模型不用自己算座標，點偏少很多。</p>
+<p><em>缺點：</em>還是每步要傳圖，又多一個偵測模型，漏掉或框錯，agent 就跟著錯，也不知道元件狀態（能不能按、目前的值）。</p>
+<p><em>例子：</em>這個做法出自 <a href="https://arxiv.org/abs/2310.11441">Set-of-Mark</a> 這篇論文：用現成的分割模型把圖切成區塊，疊上數字或框，模型看著標好的圖回答。Microsoft 的 <a href="https://github.com/microsoft/OmniParser">OmniParser</a> 把它用在螢幕截圖上：一個偵測模型找出可以互動的區域，一個描述模型說明每個元素的用途，把截圖轉成一份結構化的元素清單。</p>
+</li>
+<li>
+<p><strong>3. 用 app 自己的 API 或腳本。</strong>例如用 AppleScript 叫 Finder 開資料夾，或用指令列工具。</p>
+<p><em>優點：</em>最精準，不需要畫面。</p>
+<p><em>缺點：</em>每個 app 都不一樣，很多 app 沒有這種介面，agent 要先知道每個 app 怎麼用。</p>
+<p><em>例子：</em>Apple 的 <a href="https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html">AppleScript</a> 可以直接控制「可腳本化」的 Mac app 和部分
+macOS 功能；不支援腳本的 app 就用不上。</p>
+</li>
+<li>
+<p><strong>4. 讀 accessibility tree。</strong>作業系統本來就為螢幕閱讀器準備了一套介面（macOS <a href="https://developer.apple.com/documentation/applicationservices/axuielement_h">Accessibility API</a>、Windows <a href="https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32">UI Automation</a>、Linux <a href="https://docs.gtk.org/atspi2/">AT-SPI</a>；網頁也有瀏覽器的 <a href="https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree">accessibility tree</a>），把按鈕、欄位、選單描述成一棵樹：角色、標籤、目前的值、能不能操作，以及在螢幕上的確切位置。</p>
+<p><em>優點：</em>回傳的是文字，便宜又快；種類、名稱、狀態由系統直接給；位置是確切的；每個元件可以有
+ref，之後可以「對這個 ref 按下去」，連游標都不用移動。</p>
+<p><em>缺點：</em>要看 app 有沒有好好支援，自己畫的介面、canvas、遊戲在樹裡常是空的；需要開「輔助使用」權限；介面很複雜時樹很大，要限制深度和節點數；畫面一變，舊的 ref 就失效，要重新讀。</p>
+<p><em>例子：</em>Vercel 的 <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> 走的就是這條路：讀桌面 app 的
+accessibility tree，以 JSON 回傳，每個 agent 能操作的元素都有 ref；用 ref 執行動作時不移動游標，也不搶走焦點。它支援 macOS、Windows 和 Linux。</p>
+</li>
+</ol>
+<div class="cmp-wrap"><table class="cmp"><caption>四種做法對照</caption><thead><tr><th scope="col">做法</th><th scope="col">每步成本</th><th scope="col">準確度</th><th scope="col">涵蓋範圍</th><th scope="col">知道狀態（能不能按、目前的值）</th><th scope="col">搶走游標</th><th scope="col">需要權限</th></tr></thead><tbody><tr><th scope="row">1. 看截圖，猜座標</th><td data-label="每步成本">高：每步一張圖</td><td data-label="準確度">低：座標用猜的</td><td data-label="涵蓋範圍">最廣：看得到就行</td><td data-label="知道狀態（能不能按、目前的值）">✗ 不知道</td><td data-label="搶走游標">✓ 會</td><td data-label="需要權限">要：截圖和操控輸入</td></tr><tr><th scope="row">2. 標號再選（set-of-mark）</th><td data-label="每步成本">高：圖片加偵測模型</td><td data-label="準確度">中：看偵測準不準</td><td data-label="涵蓋範圍">廣：偵測得到就行</td><td data-label="知道狀態（能不能按、目前的值）">✗ 不知道</td><td data-label="搶走游標">✓ 會</td><td data-label="需要權限">要：截圖和操控輸入</td></tr><tr><th scope="row">3. app 的 API 或腳本</th><td data-label="每步成本">低：一個指令</td><td data-label="準確度">高</td><td data-label="涵蓋範圍">窄：要 app 有支援</td><td data-label="知道狀態（能不能按、目前的值）">看 app</td><td data-label="搶走游標">✗ 不會</td><td data-label="需要權限">看情況（macOS：自動化）</td></tr><tr><th scope="row">4. accessibility tree</th><td data-label="每步成本">低：一段文字</td><td data-label="準確度">高：位置是確切的</td><td data-label="涵蓋範圍">中：標準介面；canvas、遊戲常是空的</td><td data-label="知道狀態（能不能按、目前的值）">✓ 系統直接給</td><td data-label="搶走游標">✗ 用 ref 操作時不會*</td><td data-label="需要權限">要：輔助使用</td></tr></tbody></table></div><p class="cmp-note">* 用 ref 操作、不移動游標的是 <code>ui_action</code>，還在 <a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a> 開發中，尚未推出。目前 agent 透過 OpenAB Computer 還是用 <code>mouse</code> 點擊，游標會動。</p>
+<figure class="fig anim aim" data-steps="4" data-ms="1300" aria-label="動畫：第 1 種和第 4 種做法並排。左邊 agent 截圖，模型猜座標，點擊落在小小的「儲存」按鈕下方一點點，沒點中，只好再截一張圖；每張截圖都會增加圖片 token。右邊 agent 讀 accessibility tree 的文字，選出 ref e3（AXButton「儲存」）並對它按下：正好按在按鈕上，游標也沒有移動。用 ref 操作的是 ui_action，還在 PR #96 開發中，尚未推出；目前 OpenAB Computer 仍用 mouse 點 e3 的 frame 中心。">
+<div class="panels">
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="看截圖，猜座標"><text class="ft" x="16" y="22">看截圖，猜座標</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">未命名</text><text class="fs2" x="32" y="118">要儲存變更嗎？</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">取消</text><g class="okbtn"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">儲存</text></g><rect class="flash" data-hl="0 3" x="16" y="34" width="288" height="128" rx="10"/><g data-show="1"><circle class="aim" cx="266" cy="153" r="6"/><path class="aim" d="M256 153 h20 M266 143 v20"/><text class="fs" x="24" y="140">猜：(266, 153)</text></g><g data-show="2"><circle class="miss" cx="266" cy="153" r="10"/><text class="fmiss" x="254" y="176" text-anchor="end">差一點，沒點中</text></g><g class="cur" data-hl="0 1"><path class="cursor" d="M266 153 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/></g><g data-show="0"><rect class="thumb" x="16" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="16" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="60" y="211" width="12" height="6" rx="2"/></g><g data-show="3"><rect class="thumb" x="88" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="88" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="132" y="211" width="12" height="6" rx="2"/></g><text class="fs" x="164" y="208">送出的截圖</text><text class="fs2" data-hl="0" x="16" y="254">1  截圖</text><text class="fs2" data-hl="1" x="16" y="272">2  模型猜 x、y</text><text class="fs2" data-hl="2" x="16" y="290">3  點下去：差一點沒點中</text><text class="fs2" data-hl="3" x="16" y="308">4  再截一張圖確認</text><text class="fs" x="16" y="328">圖片 token</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="334" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="334" width="70" height="10" rx="5"/></svg></div>
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="讀 accessibility tree"><text class="ft" x="16" y="22">讀 accessibility tree</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">未命名</text><text class="fs2" x="32" y="118">要儲存變更嗎？</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">取消</text><g class="okbtn" data-hl="2"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">儲存</text></g><rect class="frx" data-show="1" x="229" y="123" width="62" height="28" rx="8"/><g data-show="2"><circle class="hit" cx="260" cy="137" r="10"/><text class="fhit" x="304" y="176" text-anchor="end">正中 e3</text><text class="fs" x="130" y="94">游標沒動</text></g><path class="cursor" d="M116 78 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><rect class="treebg" x="16" y="184" width="288" height="50" rx="6"/><g data-show="0"><text class="mono" x="24" y="198">[e1] AXWindow &quot;未命名&quot;</text><text class="mono" x="36" y="212">[e2] AXButton &quot;取消&quot; (168,126 56×22)</text><text class="mono" data-hl="1 2" x="36" y="226">[e3] AXButton &quot;儲存&quot; (232,126 56×22)</text></g><text class="fs2" data-hl="0" x="16" y="254">1  讀 tree：文字，沒有圖片</text><text class="fs2" data-hl="1" x="16" y="272">2  選 ref e3：AXButton &quot;儲存&quot;</text><text class="fs2" data-hl="2" x="16" y="290">3  對 e3 按下：正中，游標不動</text><text class="fs2" data-hl="3" x="16" y="308">4  再讀一次確認</text><text class="fs" x="16" y="328">圖片 token：0</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/></svg><p class="badge">用 ref 操作、不移動游標的是 ui_action：開發中（PR #96），尚未推出。</p></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
+<figcaption>動畫：第 1 種和第 4 種做法並排。左邊 agent 截圖，模型猜座標，點擊落在小小的「儲存」按鈕下方一點點，沒點中，只好再截一張圖；每張截圖都會增加圖片 token。右邊 agent 讀 accessibility tree 的文字，選出 ref e3（AXButton「儲存」）並對它按下：正好按在按鈕上，游標也沒有移動。用 ref 操作的是 ui_action，還在 PR #96 開發中，尚未推出；目前 OpenAB Computer 仍用 mouse 點 e3 的 frame 中心。</figcaption>
+</figure>
+
+<h3>為什麼我們選 accessibility tree</h3>
+<p>對 OpenAB Computer 這種「agent 在遠端」的情境，成本最高的就是一直來回傳截圖。accessibility tree
+把每一步從「傳一張圖、猜一次座標」變成「讀一段文字、選一個 ref」，也解決了點不準，因為位置不是猜的。對大多數標準的 Mac app 來說已經夠用。但它不是萬能的，所以我們保留截圖，三種一起用：原生 app 用
+<code>ui_snapshot</code> 讀 accessibility tree；網頁用 <code>browser_snapshot</code> 讀瀏覽器的
+accessibility tree；樹裡看不到的（canvas、自己畫的介面）回到截圖加 <code>mouse</code>。</p>
 
 <div class="callout">
 <h2>這項工作背後的研究</h2>

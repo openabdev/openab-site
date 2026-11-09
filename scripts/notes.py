@@ -61,6 +61,20 @@ MUSE = ("https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/"
         "7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg")
 BROWSE = "https://github.com/anomalyco/browse"
 
+# Links for the "How does an agent click the right button?" section. Facts and the exact source
+# lines are recorded outside this repo (facts-approaches.md in the task's run dir).
+ANTHROPIC_CU = "https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool"
+OPENAI_CU = "https://developers.openai.com/api/docs/guides/tools-computer-use"
+OPENAI_CUA = "https://github.com/openai/openai-cua-sample-app"
+SOM = "https://arxiv.org/abs/2310.11441"
+OMNIPARSER = "https://github.com/microsoft/OmniParser"
+APPLESCRIPT = ("https://developer.apple.com/library/archive/documentation/AppleScript/"
+               "Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html")
+AX_API = "https://developer.apple.com/documentation/applicationservices/axuielement_h"
+UIA = "https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32"
+ATSPI = "https://docs.gtk.org/atspi2/"
+WEB_AX = "https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree"
+
 # A real Finder snapshot taken on an M4 Mac mini with OpenAB Computer 0.9.0 (default limits),
 # shown verbatim except: the two drive names are replaced with "Data" and "Backup", the pid is
 # left out, and the JSON is an excerpt (e4, displays and coordinates are cut). The raw output is
@@ -121,6 +135,89 @@ NOTES = [
 accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
 and labels in a window as text, with their positions on screen, instead of working them out from
 a screenshot.</p>
+
+<h2>How does an agent click the right button?</h2>
+<p>Computer use means letting an agent operate a computer: look at the screen, move the mouse,
+click and type. Clicking is easy. Clicking the right thing is hard. If there is a Save button on
+the screen, how does the agent know where it is, whether it really is a button, and whether it can
+be pressed right now?</p>
+<p>There are roughly four common ways to do it.</p>
+<ol class="ways">
+<li>
+<p><strong>1. Look at a screenshot and guess coordinates.</strong> At every step the agent takes a
+screenshot, the model works out where the button is and returns x and y, the mouse moves there and
+clicks, and another screenshot checks the result.</p>
+<p><em>Pros:</em> it is the most general. Any app whose screen you can see can be operated,
+including games and custom-drawn interfaces.</p>
+<p><em>Cons:</em> every step sends an image, which costs tokens and time. The coordinates are a
+guess, so clicks often land off target when a button is small or the resolution or scaling
+differs. The model sees pixels: it cannot tell a button from a picture that looks like one, and it
+does not know whether a button is greyed out. Clicking moves the real cursor, so you cannot use
+that computer while the agent works.</p>
+<p><em>Examples:</em> Anthropic's {a(ANTHROPIC_CU, "computer use tool")} works this way. Claude
+receives screenshots and returns actions such as <code>left_click</code> with an [x, y] in
+screenshot pixels, which your code carries out. Its docs list clicks that land in the right area
+but miss a very small target, and suggest the zoom action for a closer look. OpenAI's
+{a(OPENAI_CU, "computer use tool")}, built on its Computer-Using Agent model
+({a(OPENAI_CUA, "CUA")}), also looks at screenshots and returns mouse and keyboard actions with x
+and y; screenshots count as image input. OpenAI also offers a second mode in which the model writes
+code (Playwright or PyAutoGUI) to drive the interface.</p>
+</li>
+<li>
+<p><strong>2. Number the screenshot first, then ask the model to pick (often called
+set-of-mark).</strong> Another vision model first detects the elements on screen, draws a box
+around each and numbers them. The agent then answers "press 7".</p>
+<p><em>Pros:</em> the model does not have to work out coordinates, so it misses far less
+often.</p>
+<p><em>Cons:</em> every step still sends an image, and there is now a second model. If the detector
+misses an element or boxes the wrong thing, the agent goes wrong with it. It still does not know
+an element's state, such as whether it can be pressed or what its value is.</p>
+<p><em>Examples:</em> the idea comes from the {a(SOM, "Set-of-Mark")} prompting paper, which
+splits an image into regions with an off-the-shelf segmentation model, overlays numbers or boxes,
+and has the model answer from the marked image. Microsoft's {a(OMNIPARSER, "OmniParser")} applies
+it to screenshots: a detection model finds the interactable regions, a caption model describes
+what each element does, and the screenshot becomes a structured list of elements.</p>
+</li>
+<li>
+<p><strong>3. Use the app's own API or scripts.</strong> For example, an AppleScript that tells
+Finder to open a folder, or a command-line tool.</p>
+<p><em>Pros:</em> the most precise, and no screen is needed.</p>
+<p><em>Cons:</em> every app is different, many apps have no such interface, and the agent has to
+learn each app first.</p>
+<p><em>Example:</em> Apple's {a(APPLESCRIPT, "AppleScript")} controls scriptable Mac apps and parts
+of macOS directly. Apps that are not scriptable are out of its reach.</p>
+</li>
+<li>
+<p><strong>4. Read the accessibility tree.</strong> Operating systems already have an interface
+built for screen readers: the macOS {a(AX_API, "Accessibility API")}, Windows
+{a(UIA, "UI Automation")} and Linux {a(ATSPI, "AT-SPI")}. Web pages have the browser's
+{a(WEB_AX, "accessibility tree")}. It describes buttons, fields and menus as a tree: the role,
+the label, the current value, whether the element can be used, and its exact position on
+screen.</p>
+<p><em>Pros:</em> the result is text, which is cheap and fast. The system gives the kind of
+element, its name and its state directly. Positions are exact. Each element can get a ref, and
+the agent can later say "press this ref", without even moving the cursor.</p>
+<p><em>Cons:</em> it depends on how well the app supports it. Custom-drawn interfaces, canvases and
+games are often empty in the tree. It needs the Accessibility permission. A complex interface makes
+a large tree, so depth and node count need limits. When the screen changes, old refs stop working
+and the tree has to be read again.</p>
+<p><em>Example:</em> Vercel's {a(AGENT_DESKTOP, "Agent Desktop")} takes this route. It reads a
+desktop app's accessibility tree and returns it as JSON with a ref for every element an agent can
+act on; ref actions do not move the pointer or take focus. It covers macOS, Windows and Linux.</p>
+</li>
+</ol>
+{{cmp_table}}
+{{fig_aim}}
+
+<h3>Why we chose the accessibility tree</h3>
+<p>In OpenAB Computer the agent is somewhere else, so the most expensive part is sending screenshots
+back and forth. The accessibility tree turns each step from "send an image, guess a coordinate" into
+"read some text, pick a ref". It also fixes the missed clicks, because positions are not guessed.
+For most standard Mac apps that is enough. It does not cover everything, so we kept screenshots
+and use all three together: <code>ui_snapshot</code> reads the accessibility tree of native apps,
+<code>browser_snapshot</code> reads the browser's accessibility tree for web pages, and whatever
+the tree cannot see (canvases, custom-drawn interfaces) goes back to <code>screenshot</code> and
+<code>mouse</code>.</p>
 
 <div class="callout">
 <h2>The research behind this</h2>
@@ -257,6 +354,67 @@ profile.</p>
 的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，
 連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
 
+<h2>Agent 要怎麼點到對的按鈕？</h2>
+<p>所謂 computer use，就是讓 agent 操作一台電腦：看畫面、移動滑鼠、點擊、打字。點下去不難，
+難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 要怎麼知道它在哪裡、是不是真的是按鈕、
+現在能不能按？</p>
+<p>常見的做法大致有四種。</p>
+<ol class="ways">
+<li>
+<p><strong>1. 看截圖，猜座標。</strong>agent 每一步截一張圖，模型從圖裡判斷按鈕位置、回傳 x、y，
+再移動滑鼠點下去，再截圖確認。</p>
+<p><em>優點：</em>最通用，只要畫面看得到，什麼 app 都能操作，包括遊戲和自己畫的介面。</p>
+<p><em>缺點：</em>每一步都要傳一張圖，token 成本高、速度慢；座標是猜的，按鈕小、解析度或縮放比例
+不同時常點偏；模型看到的是像素，分不清按鈕和長得像按鈕的圖片，也不知道按鈕是不是灰掉了；
+點擊要真的移動游標，agent 工作時你就不能用那台電腦。</p>
+<p><em>例子：</em>Anthropic 的 {a(ANTHROPIC_CU, "computer use 工具")}就是這樣運作：Claude 拿到截圖，
+回傳 <code>left_click</code> 這類動作和以截圖像素為單位的 [x, y]，由你的程式去執行。它的文件也列出
+目標很小時，點擊落在對的區域卻沒點中的情況，建議用 zoom 動作放大檢查。OpenAI 的
+{a(OPENAI_CU, "computer use 工具")}建立在它的 Computer-Using Agent 模型（{a(OPENAI_CUA, "CUA")}）上，
+同樣看截圖，回傳帶 x、y 的滑鼠和鍵盤動作，截圖算作圖片輸入。OpenAI 另外也提供一種做法，讓模型寫程式
+（Playwright 或 PyAutoGUI）來操作介面。</p>
+</li>
+<li>
+<p><strong>2. 先在截圖上標號，再請模型選（常被稱為 set-of-mark）。</strong>先用另一個視覺模型偵測
+元件、框起來編號，再請 agent 回答「按 7 號」。</p>
+<p><em>優點：</em>模型不用自己算座標，點偏少很多。</p>
+<p><em>缺點：</em>還是每步要傳圖，又多一個偵測模型，漏掉或框錯，agent 就跟著錯，也不知道元件狀態
+（能不能按、目前的值）。</p>
+<p><em>例子：</em>這個做法出自 {a(SOM, "Set-of-Mark")} 這篇論文：用現成的分割模型把圖切成區塊，
+疊上數字或框，模型看著標好的圖回答。Microsoft 的 {a(OMNIPARSER, "OmniParser")} 把它用在螢幕截圖上：
+一個偵測模型找出可以互動的區域，一個描述模型說明每個元素的用途，把截圖轉成一份結構化的元素清單。</p>
+</li>
+<li>
+<p><strong>3. 用 app 自己的 API 或腳本。</strong>例如用 AppleScript 叫 Finder 開資料夾，或用指令列工具。</p>
+<p><em>優點：</em>最精準，不需要畫面。</p>
+<p><em>缺點：</em>每個 app 都不一樣，很多 app 沒有這種介面，agent 要先知道每個 app 怎麼用。</p>
+<p><em>例子：</em>Apple 的 {a(APPLESCRIPT, "AppleScript")} 可以直接控制「可腳本化」的 Mac app 和部分
+macOS 功能；不支援腳本的 app 就用不上。</p>
+</li>
+<li>
+<p><strong>4. 讀 accessibility tree。</strong>作業系統本來就為螢幕閱讀器準備了一套介面
+（macOS {a(AX_API, "Accessibility API")}、Windows {a(UIA, "UI Automation")}、Linux {a(ATSPI, "AT-SPI")}；
+網頁也有瀏覽器的 {a(WEB_AX, "accessibility tree")}），把按鈕、欄位、選單描述成一棵樹：角色、標籤、
+目前的值、能不能操作，以及在螢幕上的確切位置。</p>
+<p><em>優點：</em>回傳的是文字，便宜又快；種類、名稱、狀態由系統直接給；位置是確切的；每個元件可以有
+ref，之後可以「對這個 ref 按下去」，連游標都不用移動。</p>
+<p><em>缺點：</em>要看 app 有沒有好好支援，自己畫的介面、canvas、遊戲在樹裡常是空的；需要開「輔助使用」
+權限；介面很複雜時樹很大，要限制深度和節點數；畫面一變，舊的 ref 就失效，要重新讀。</p>
+<p><em>例子：</em>Vercel 的 {a(AGENT_DESKTOP, "Agent Desktop")} 走的就是這條路：讀桌面 app 的
+accessibility tree，以 JSON 回傳，每個 agent 能操作的元素都有 ref；用 ref 執行動作時不移動游標，
+也不搶走焦點。它支援 macOS、Windows 和 Linux。</p>
+</li>
+</ol>
+{{cmp_table}}
+{{fig_aim}}
+
+<h3>為什麼我們選 accessibility tree</h3>
+<p>對 OpenAB Computer 這種「agent 在遠端」的情境，成本最高的就是一直來回傳截圖。accessibility tree
+把每一步從「傳一張圖、猜一次座標」變成「讀一段文字、選一個 ref」，也解決了點不準，因為位置不是猜的。
+對大多數標準的 Mac app 來說已經夠用。但它不是萬能的，所以我們保留截圖，三種一起用：原生 app 用
+<code>ui_snapshot</code> 讀 accessibility tree；網頁用 <code>browser_snapshot</code> 讀瀏覽器的
+accessibility tree；樹裡看不到的（canvas、自己畫的介面）回到截圖加 <code>mouse</code>。</p>
+
 <div class="callout">
 <h2>這項工作背後的研究</h2>
 <p>這次的工作，起點是我們在 Muse 上為社群發表的一份{a(MUSE, "研究報告")}。報告比較了三個專案。{a(BROWSE, "OpenCode Browse")} 讓 agent 在你自己的電腦上，操作你已經登入的瀏覽器。{a(AGENT_DESKTOP, "Vercel Agent Desktop")} 讓 agent 透過 accessibility tree 操作桌面 app：它回傳
@@ -370,6 +528,88 @@ macOS、Windows 和 Linux。</li>
 アプリのアクセシビリティツリーを読み、JSON で返します。エージェントは、ウィンドウの中のボタンや
 入力欄やラベルを、画面上の位置とあわせてテキストで受け取れます。スクリーンショットから読み解く
 必要はもうありません。</p>
+
+<h2>エージェントはどうやって正しいボタンを押すのか</h2>
+<p>computer use とは、エージェントにコンピューターを操作させることです。画面を見て、マウスを動かし、
+クリックし、文字を入力します。クリックすること自体は簡単です。難しいのは、正しいものをクリックする
+ことです。画面に「保存」ボタンがあるとき、エージェントはそれがどこにあり、本当にボタンなのか、今
+押せる状態なのかを、どうやって知るのでしょうか。</p>
+<p>よく使われる方法は、おおまかに四つあります。</p>
+<ol class="ways">
+<li>
+<p><strong>1. スクリーンショットを見て、座標を推測する。</strong>エージェントは一手ごとに
+スクリーンショットを撮り、モデルが画像からボタンの位置を判断して x と y を返します。マウスをそこへ
+動かしてクリックし、もう一度スクリーンショットで確かめます。</p>
+<p><em>長所：</em>最も汎用的です。画面に映っていれば、ゲームや独自に描画された UI も含めて、どんな
+アプリでも操作できます。</p>
+<p><em>短所：</em>一手ごとに画像を一枚送るので、トークンのコストが高く、時間もかかります。座標は推測
+なので、ボタンが小さいときや解像度、拡大率が違うときによく外れます。モデルが見ているのはピクセル
+なので、ボタンとボタンに似た画像の区別がつかず、ボタンがグレーアウトしているかどうかもわかりません。
+クリックには本物のカーソルを動かす必要があり、エージェントが動いている間、そのコンピューターは
+使えません。</p>
+<p><em>例：</em>Anthropic の {a(ANTHROPIC_CU, "computer use ツール")}はこの方式です。Claude は
+スクリーンショットを受け取り、<code>left_click</code> などの操作を、スクリーンショットのピクセル単位の
+[x, y] とともに返し、それを実行するのは利用者側のコードです。ドキュメントには、対象がとても小さいと
+クリックが近くに落ちても外れることがあると書かれ、zoom で拡大して確かめる方法が勧められています。
+OpenAI の {a(OPENAI_CU, "computer use ツール")}は Computer-Using Agent というモデル
+（{a(OPENAI_CUA, "CUA")}）にもとづき、同じくスクリーンショットを見て、x と y 付きのマウスとキーボードの
+操作を返します。スクリーンショットは画像入力として数えられます。OpenAI は、モデルがコード
+（Playwright や PyAutoGUI）を書いて UI を操作する方式も用意しています。</p>
+</li>
+<li>
+<p><strong>2. スクリーンショットに番号を付けてから、モデルに選ばせる（set-of-mark とも呼ばれます）。</strong>
+まず別の視覚モデルで画面上の要素を検出し、枠で囲んで番号を振ります。エージェントは「7 番を押す」と
+答えます。</p>
+<p><em>長所：</em>モデルが自分で座標を計算しなくてよいので、外れることがずっと少なくなります。</p>
+<p><em>短所：</em>やはり一手ごとに画像を送り、さらに検出モデルが一つ増えます。検出が漏れたり枠を
+間違えたりすれば、エージェントもそのまま間違えます。押せるか、今の値は何か、といった要素の状態も
+わかりません。</p>
+<p><em>例：</em>この考え方は {a(SOM, "Set-of-Mark")} の論文から来ています。既存のセグメンテーション
+モデルで画像を領域に分け、番号や枠を重ね、印の付いた画像を見てモデルに答えさせるものです。
+Microsoft の {a(OMNIPARSER, "OmniParser")} はこれをスクリーンショットに使います。検出モデルが操作
+できる領域を見つけ、説明モデルが各要素の役割を書き、スクリーンショットを構造化された要素の一覧に
+変えます。</p>
+</li>
+<li>
+<p><strong>3. アプリ自身の API やスクリプトを使う。</strong>たとえば AppleScript で Finder にフォルダを
+開かせたり、コマンドラインツールを使ったりします。</p>
+<p><em>長所：</em>最も正確で、画面がいりません。</p>
+<p><em>短所：</em>アプリごとにやり方が違い、こうした仕組みを持たないアプリも多く、エージェントは
+アプリごとに使い方を先に知っておく必要があります。</p>
+<p><em>例：</em>Apple の {a(APPLESCRIPT, "AppleScript")} は、スクリプトに対応した Mac アプリと macOS の
+一部を直接操作できます。スクリプトに対応していないアプリには使えません。</p>
+</li>
+<li>
+<p><strong>4. アクセシビリティツリーを読む。</strong>OS には、もともとスクリーンリーダーのための仕組みが
+あります。macOS の {a(AX_API, "Accessibility API")}、Windows の {a(UIA, "UI Automation")}、Linux の
+{a(ATSPI, "AT-SPI")} で、Web ページにもブラウザーの{a(WEB_AX, "アクセシビリティツリー")}があります。
+ボタン、入力欄、メニューを、ロール、ラベル、今の値、操作できるかどうか、画面上の正確な位置とともに、
+一本のツリーとして表します。</p>
+<p><em>長所：</em>返ってくるのはテキストなので、安くて速いです。種類、名前、状態はシステムが直接
+教えてくれます。位置は正確です。要素ごとに ref を付けられ、あとで「この ref を押す」と指示でき、
+カーソルを動かす必要すらありません。</p>
+<p><em>短所：</em>アプリがきちんと対応しているかどうかに左右されます。独自に描画された UI、canvas、
+ゲームは、ツリーが空のことがよくあります。「アクセシビリティ」の権限が必要です。UI が複雑だとツリーが
+大きくなるので、深さとノード数に上限が要ります。画面が変われば古い ref は使えなくなり、読み直す必要が
+あります。</p>
+<p><em>例：</em>Vercel の {a(AGENT_DESKTOP, "Agent Desktop")} はこの方法をとっています。
+デスクトップアプリのアクセシビリティツリーを読んで JSON で返し、エージェントが操作できる要素ごとに
+ref を付けます。ref による操作ではポインターを動かさず、フォーカスも奪いません。macOS、Windows、
+Linux に対応しています。</p>
+</li>
+</ol>
+{{cmp_table}}
+{{fig_aim}}
+
+<h3>アクセシビリティツリーを選んだ理由</h3>
+<p>OpenAB Computer のようにエージェントが遠くにいる場合、いちばんコストがかかるのは、
+スクリーンショットを何度も行き来させることです。アクセシビリティツリーを使うと、一手が「画像を一枚
+送って座標を一回推測する」から「テキストを読んで ref を一つ選ぶ」に変わります。位置を推測しないので、
+クリックが外れる問題も解消します。標準的な Mac アプリの多くは、これで十分です。ただ、どんな画面にも
+使えるわけではないので、スクリーンショットは残し、三つを組み合わせています。ネイティブアプリは
+<code>ui_snapshot</code> でアクセシビリティツリーを読み、Web ページは <code>browser_snapshot</code> で
+ブラウザーのアクセシビリティツリーを読み、ツリーに現れないもの（canvas や独自に描画された UI）は
+<code>screenshot</code> と <code>mouse</code> に戻ります。</p>
 
 <div class="callout">
 <h2>この取り組みのもとになった調査</h2>
@@ -506,6 +746,82 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
 <p class="lede">OpenAB Computer 0.9.0에 MCP 도구 <code>ui_snapshot</code>이 추가됐습니다. Mac 앱의
 접근성 트리를 읽어 JSON으로 돌려줍니다. 이제 에이전트는 창 안의 버튼, 입력란, 레이블을 화면 위
 위치와 함께 텍스트로 받습니다. 스크린샷을 보고 짐작할 필요가 없습니다.</p>
+
+<h2>에이전트는 어떻게 맞는 버튼을 누를까요?</h2>
+<p>computer use는 에이전트가 컴퓨터를 다루게 하는 것입니다. 화면을 보고, 마우스를 움직이고, 클릭하고,
+타이핑합니다. 클릭 자체는 쉽습니다. 어려운 것은 맞는 대상을 클릭하는 일입니다. 화면에 "저장" 버튼이
+있을 때, 에이전트는 그것이 어디 있는지, 정말 버튼인지, 지금 누를 수 있는지를 어떻게 알까요?</p>
+<p>흔히 쓰는 방법은 크게 네 가지입니다.</p>
+<ol class="ways">
+<li>
+<p><strong>1. 스크린샷을 보고 좌표를 짐작하기.</strong> 에이전트는 단계마다 스크린샷을 찍고, 모델이
+이미지에서 버튼 위치를 판단해 x, y를 돌려줍니다. 마우스를 그 위치로 옮겨 클릭한 뒤, 다시 스크린샷을
+찍어 확인합니다.</p>
+<p><em>장점:</em> 가장 범용적입니다. 화면에 보이기만 하면 게임이나 직접 그린 UI를 포함해 어떤 앱이든
+다룰 수 있습니다.</p>
+<p><em>단점:</em> 단계마다 이미지를 한 장씩 보내므로 토큰 비용이 크고 느립니다. 좌표는 짐작이라서
+버튼이 작거나 해상도, 배율이 다르면 자주 빗나갑니다. 모델이 보는 것은 픽셀이라 버튼과 버튼처럼 생긴
+그림을 구분하지 못하고, 버튼이 비활성화되어 있는지도 모릅니다. 클릭하려면 실제 커서를 움직여야 하므로
+에이전트가 일하는 동안 그 컴퓨터를 쓸 수 없습니다.</p>
+<p><em>예:</em> Anthropic의 {a(ANTHROPIC_CU, "computer use 도구")}가 이렇게 동작합니다. Claude는
+스크린샷을 받고 <code>left_click</code> 같은 동작을 스크린샷 픽셀 단위의 [x, y]와 함께 돌려주며, 그
+동작은 사용자 쪽 코드가 실행합니다. 문서에는 대상이 아주 작으면 클릭이 맞는 영역에 떨어져도 대상을
+놓칠 수 있다고 적혀 있고, zoom 동작으로 확대해 확인하라고 권합니다. OpenAI의
+{a(OPENAI_CU, "computer use 도구")}는 Computer-Using Agent 모델({a(OPENAI_CUA, "CUA")})을 바탕으로
+하며, 마찬가지로 스크린샷을 보고 x, y가 담긴 마우스와 키보드 동작을 돌려줍니다. 스크린샷은 이미지
+입력으로 계산됩니다. OpenAI는 모델이 코드(Playwright나 PyAutoGUI)를 써서 UI를 다루는 방식도
+제공합니다.</p>
+</li>
+<li>
+<p><strong>2. 스크린샷에 먼저 번호를 붙이고 모델에게 고르게 하기(흔히 set-of-mark라고
+부릅니다).</strong> 먼저 다른 비전 모델로 화면의 요소를 탐지해 테두리를 두르고 번호를 매깁니다.
+그러면 에이전트는 "7번을 눌러"라고 답합니다.</p>
+<p><em>장점:</em> 모델이 좌표를 직접 계산하지 않아도 되므로 빗나가는 일이 훨씬 줄어듭니다.</p>
+<p><em>단점:</em> 여전히 단계마다 이미지를 보내고, 탐지 모델이 하나 더 붙습니다. 탐지가 요소를 놓치거나
+테두리를 잘못 그리면 에이전트도 그대로 틀립니다. 누를 수 있는지, 현재 값이 무엇인지 같은 요소의
+상태도 모릅니다.</p>
+<p><em>예:</em> 이 방식은 {a(SOM, "Set-of-Mark")} 논문에서 나왔습니다. 기존 분할(segmentation)
+모델로 이미지를 영역으로 나누고 숫자나 테두리를 겹친 뒤, 모델이 표시된 이미지를 보고 답하게 합니다.
+Microsoft의 {a(OMNIPARSER, "OmniParser")}는 이를 스크린샷에 적용합니다. 탐지 모델이 조작할 수 있는
+영역을 찾고, 설명 모델이 각 요소의 역할을 적어, 스크린샷을 구조화된 요소 목록으로 바꿉니다.</p>
+</li>
+<li>
+<p><strong>3. 앱 자체의 API나 스크립트 쓰기.</strong> 예를 들어 AppleScript로 Finder에게 폴더를
+열게 하거나, 명령줄 도구를 씁니다.</p>
+<p><em>장점:</em> 가장 정확하고 화면이 필요 없습니다.</p>
+<p><em>단점:</em> 앱마다 방식이 다르고, 이런 인터페이스가 없는 앱도 많으며, 에이전트가 앱마다 쓰는 법을
+먼저 알아야 합니다.</p>
+<p><em>예:</em> Apple의 {a(APPLESCRIPT, "AppleScript")}는 스크립트를 지원하는 Mac 앱과 macOS 일부를
+직접 제어합니다. 스크립트를 지원하지 않는 앱에는 쓸 수 없습니다.</p>
+</li>
+<li>
+<p><strong>4. 접근성 트리 읽기.</strong> 운영체제에는 원래 화면 낭독기를 위한 인터페이스가 있습니다.
+macOS의 {a(AX_API, "Accessibility API")}, Windows의 {a(UIA, "UI Automation")}, Linux의
+{a(ATSPI, "AT-SPI")}이고, 웹 페이지에는 브라우저의 {a(WEB_AX, "접근성 트리")}가 있습니다. 버튼,
+입력란, 메뉴를 역할, 레이블, 현재 값, 조작할 수 있는지, 화면 위 정확한 위치와 함께 하나의 트리로
+나타냅니다.</p>
+<p><em>장점:</em> 돌려받는 것이 텍스트라 저렴하고 빠릅니다. 종류, 이름, 상태를 시스템이 직접
+알려 줍니다. 위치가 정확합니다. 요소마다 ref를 붙일 수 있어서 나중에 "이 ref를 눌러"라고 할 수 있고,
+커서를 움직일 필요도 없습니다.</p>
+<p><em>단점:</em> 앱이 얼마나 잘 지원하느냐에 달려 있습니다. 직접 그린 UI, canvas, 게임은 트리가 비어
+있는 경우가 많습니다. 손쉬운 사용 권한이 필요합니다. UI가 복잡하면 트리가 커지므로 깊이와 노드 수를
+제한해야 합니다. 화면이 바뀌면 이전 ref는 쓸 수 없게 되어 다시 읽어야 합니다.</p>
+<p><em>예:</em> Vercel의 {a(AGENT_DESKTOP, "Agent Desktop")}이 이 방식을 씁니다. 데스크톱 앱의
+접근성 트리를 읽어 JSON으로 돌려주고, 에이전트가 조작할 수 있는 요소마다 ref를 붙입니다. ref로
+동작할 때는 포인터를 움직이지 않고 포커스도 가져가지 않습니다. macOS, Windows, Linux를 지원합니다.</p>
+</li>
+</ol>
+{{cmp_table}}
+{{fig_aim}}
+
+<h3>접근성 트리를 고른 이유</h3>
+<p>OpenAB Computer처럼 에이전트가 멀리 있는 경우, 가장 비싼 부분은 스크린샷을 계속 주고받는
+일입니다. 접근성 트리를 쓰면 한 단계가 "이미지 한 장 보내고 좌표 한 번 짐작하기"에서 "텍스트를 읽고
+ref 하나 고르기"로 바뀝니다. 위치를 짐작하지 않으니 클릭이 빗나가는 문제도 해결됩니다. 대부분의 표준
+Mac 앱에는 이것으로 충분합니다. 다만 모든 화면을 다룰 수는 없어서 스크린샷은 그대로 두고 세 가지를
+함께 씁니다. 네이티브 앱은 <code>ui_snapshot</code>으로 접근성 트리를 읽고, 웹 페이지는
+<code>browser_snapshot</code>으로 브라우저의 접근성 트리를 읽고, 트리에 보이지 않는 것(canvas, 직접 그린
+UI)은 <code>screenshot</code>과 <code>mouse</code>로 돌아갑니다.</p>
 
 <div class="callout">
 <h2>이 작업의 바탕이 된 리서치</h2>

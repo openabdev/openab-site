@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=a955ab81">
+<link rel="stylesheet" href="../../style.css?v=be0e490a">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -63,6 +63,96 @@ document.addEventListener("click", function (e) {
 accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
 and labels in a window as text, with their positions on screen, instead of working them out from
 a screenshot.</p>
+
+<h2>How does an agent click the right button?</h2>
+<p>Computer use means letting an agent operate a computer: look at the screen, move the mouse,
+click and type. Clicking is easy. Clicking the right thing is hard. If there is a Save button on
+the screen, how does the agent know where it is, whether it really is a button, and whether it can
+be pressed right now?</p>
+<p>There are roughly four common ways to do it.</p>
+<ol class="ways">
+<li>
+<p><strong>1. Look at a screenshot and guess coordinates.</strong> At every step the agent takes a
+screenshot, the model works out where the button is and returns x and y, the mouse moves there and
+clicks, and another screenshot checks the result.</p>
+<p><em>Pros:</em> it is the most general. Any app whose screen you can see can be operated,
+including games and custom-drawn interfaces.</p>
+<p><em>Cons:</em> every step sends an image, which costs tokens and time. The coordinates are a
+guess, so clicks often land off target when a button is small or the resolution or scaling
+differs. The model sees pixels: it cannot tell a button from a picture that looks like one, and it
+does not know whether a button is greyed out. Clicking moves the real cursor, so you cannot use
+that computer while the agent works.</p>
+<p><em>Examples:</em> Anthropic's <a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool">computer use tool</a> works this way. Claude
+receives screenshots and returns actions such as <code>left_click</code> with an [x, y] in
+screenshot pixels, which your code carries out. Its docs list clicks that land in the right area
+but miss a very small target, and suggest the zoom action for a closer look. OpenAI's
+<a href="https://developers.openai.com/api/docs/guides/tools-computer-use">computer use tool</a>, built on its Computer-Using Agent model
+(<a href="https://github.com/openai/openai-cua-sample-app">CUA</a>), also looks at screenshots and returns mouse and keyboard actions with x
+and y; screenshots count as image input. OpenAI also offers a second mode in which the model writes
+code (Playwright or PyAutoGUI) to drive the interface.</p>
+</li>
+<li>
+<p><strong>2. Number the screenshot first, then ask the model to pick (often called
+set-of-mark).</strong> Another vision model first detects the elements on screen, draws a box
+around each and numbers them. The agent then answers "press 7".</p>
+<p><em>Pros:</em> the model does not have to work out coordinates, so it misses far less
+often.</p>
+<p><em>Cons:</em> every step still sends an image, and there is now a second model. If the detector
+misses an element or boxes the wrong thing, the agent goes wrong with it. It still does not know
+an element's state, such as whether it can be pressed or what its value is.</p>
+<p><em>Examples:</em> the idea comes from the <a href="https://arxiv.org/abs/2310.11441">Set-of-Mark</a> prompting paper, which
+splits an image into regions with an off-the-shelf segmentation model, overlays numbers or boxes,
+and has the model answer from the marked image. Microsoft's <a href="https://github.com/microsoft/OmniParser">OmniParser</a> applies
+it to screenshots: a detection model finds the interactable regions, a caption model describes
+what each element does, and the screenshot becomes a structured list of elements.</p>
+</li>
+<li>
+<p><strong>3. Use the app's own API or scripts.</strong> For example, an AppleScript that tells
+Finder to open a folder, or a command-line tool.</p>
+<p><em>Pros:</em> the most precise, and no screen is needed.</p>
+<p><em>Cons:</em> every app is different, many apps have no such interface, and the agent has to
+learn each app first.</p>
+<p><em>Example:</em> Apple's <a href="https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html">AppleScript</a> controls scriptable Mac apps and parts
+of macOS directly. Apps that are not scriptable are out of its reach.</p>
+</li>
+<li>
+<p><strong>4. Read the accessibility tree.</strong> Operating systems already have an interface
+built for screen readers: the macOS <a href="https://developer.apple.com/documentation/applicationservices/axuielement_h">Accessibility API</a>, Windows
+<a href="https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32">UI Automation</a> and Linux <a href="https://docs.gtk.org/atspi2/">AT-SPI</a>. Web pages have the browser's
+<a href="https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree">accessibility tree</a>. It describes buttons, fields and menus as a tree: the role,
+the label, the current value, whether the element can be used, and its exact position on
+screen.</p>
+<p><em>Pros:</em> the result is text, which is cheap and fast. The system gives the kind of
+element, its name and its state directly. Positions are exact. Each element can get a ref, and
+the agent can later say "press this ref", without even moving the cursor.</p>
+<p><em>Cons:</em> it depends on how well the app supports it. Custom-drawn interfaces, canvases and
+games are often empty in the tree. It needs the Accessibility permission. A complex interface makes
+a large tree, so depth and node count need limits. When the screen changes, old refs stop working
+and the tree has to be read again.</p>
+<p><em>Example:</em> Vercel's <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> takes this route. It reads a
+desktop app's accessibility tree and returns it as JSON with a ref for every element an agent can
+act on; ref actions do not move the pointer or take focus. It covers macOS, Windows and Linux.</p>
+</li>
+</ol>
+<div class="cmp-wrap"><table class="cmp"><caption>The four approaches side by side</caption><thead><tr><th scope="col">Approach</th><th scope="col">Cost per step</th><th scope="col">Accuracy</th><th scope="col">Coverage</th><th scope="col">Knows state (enabled, value)</th><th scope="col">Takes over the cursor</th><th scope="col">Needs permission</th></tr></thead><tbody><tr><th scope="row">1. Screenshot, guess coordinates</th><td data-label="Cost per step">High: an image every step</td><td data-label="Accuracy">Low: coordinates are guessed</td><td data-label="Coverage">Widest: anything visible</td><td data-label="Knows state (enabled, value)">✗ No</td><td data-label="Takes over the cursor">✓ Yes</td><td data-label="Needs permission">Yes: screen capture and input</td></tr><tr><th scope="row">2. Numbered marks (set-of-mark)</th><td data-label="Cost per step">High: image plus a detection model</td><td data-label="Accuracy">Medium: depends on detection</td><td data-label="Coverage">Wide: what the detector finds</td><td data-label="Knows state (enabled, value)">✗ No</td><td data-label="Takes over the cursor">✓ Yes</td><td data-label="Needs permission">Yes: screen capture and input</td></tr><tr><th scope="row">3. App API or script</th><td data-label="Cost per step">Low: one command</td><td data-label="Accuracy">High</td><td data-label="Coverage">Narrow: only apps that support it</td><td data-label="Knows state (enabled, value)">Depends on the app</td><td data-label="Takes over the cursor">✗ No</td><td data-label="Needs permission">Depends (macOS: Automation)</td></tr><tr><th scope="row">4. Accessibility tree</th><td data-label="Cost per step">Low: a block of text</td><td data-label="Accuracy">High: exact positions</td><td data-label="Coverage">Medium: standard UI; canvas and games often empty</td><td data-label="Knows state (enabled, value)">✓ Yes, from the system</td><td data-label="Takes over the cursor">✗ No, when acting by ref*</td><td data-label="Needs permission">Yes: Accessibility</td></tr></tbody></table></div><p class="cmp-note">* Acting by ref without moving the cursor is <code>ui_action</code>, in progress in <a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a> and not released yet. Today an agent on OpenAB Computer still clicks with <code>mouse</code>, which moves the cursor.</p>
+<figure class="fig anim aim" data-steps="4" data-ms="1300" aria-label="Animation: approach 1 next to approach 4. On the left, the agent takes a screenshot, the model guesses coordinates, and the click lands just below the small Save button, so it takes another screenshot; each screenshot adds image tokens. On the right, the agent reads the accessibility tree as text, picks ref e3 (AXButton &quot;Save&quot;) and acts on it: the press lands on the button and the cursor does not move. Acting by ref is ui_action, in progress in PR #96 and not released yet; today OpenAB Computer still clicks the center of e3&#x27;s frame with mouse.">
+<div class="panels">
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="Screenshot, guess coordinates"><text class="ft" x="16" y="22">Screenshot, guess coordinates</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">Untitled</text><text class="fs2" x="32" y="118">Save changes?</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">Cancel</text><g class="okbtn"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">Save</text></g><rect class="flash" data-hl="0 3" x="16" y="34" width="288" height="128" rx="10"/><g data-show="1"><circle class="aim" cx="266" cy="153" r="6"/><path class="aim" d="M256 153 h20 M266 143 v20"/><text class="fs" x="24" y="140">guess: (266, 153)</text></g><g data-show="2"><circle class="miss" cx="266" cy="153" r="10"/><text class="fmiss" x="254" y="176" text-anchor="end">just missed</text></g><g class="cur" data-hl="0 1"><path class="cursor" d="M266 153 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/></g><g data-show="0"><rect class="thumb" x="16" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="16" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="60" y="211" width="12" height="6" rx="2"/></g><g data-show="3"><rect class="thumb" x="88" y="184" width="64" height="40" rx="4"/><rect class="thumbbar" x="88" y="184" width="64" height="7" rx="3"/><rect class="thumbbtn" x="132" y="211" width="12" height="6" rx="2"/></g><text class="fs" x="164" y="208">screenshots sent</text><text class="fs2" data-hl="0" x="16" y="254">1  Screenshot</text><text class="fs2" data-hl="1" x="16" y="272">2  Model guesses x, y</text><text class="fs2" data-hl="2" x="16" y="290">3  Click: just off the button</text><text class="fs2" data-hl="3" x="16" y="308">4  Screenshot again to check</text><text class="fs" x="16" y="328">image tokens</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="334" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="334" width="70" height="10" rx="5"/></svg></div>
+<div class="panel"><svg viewBox="0 0 320 350" role="img" aria-label="Read the accessibility tree"><text class="ft" x="16" y="22">Read the accessibility tree</text><rect class="win" x="16" y="34" width="288" height="128" rx="10"/><path class="winbar" d="M16 44 a10 10 0 0 1 10 -10 h268 a10 10 0 0 1 10 10 v14 h-288z"/><circle class="dot" cx="30" cy="46" r="4"/><circle class="dot" cx="42" cy="46" r="4"/><circle class="dot" cx="54" cy="46" r="4"/><text class="fs2" x="160" y="50" text-anchor="middle">Untitled</text><text class="fs2" x="32" y="118">Save changes?</text><rect class="btn2" x="168" y="126" width="56" height="22" rx="6"/><text class="fbtn" x="196" y="141" text-anchor="middle">Cancel</text><g class="okbtn" data-hl="2"><rect class="btnok" x="232" y="126" width="56" height="22" rx="6"/><text class="fok fbtn" x="260" y="141" text-anchor="middle">Save</text></g><rect class="frx" data-show="1" x="229" y="123" width="62" height="28" rx="8"/><g data-show="2"><circle class="hit" cx="260" cy="137" r="10"/><text class="fhit" x="304" y="176" text-anchor="end">center of e3</text><text class="fs" x="130" y="94">cursor did not move</text></g><path class="cursor" d="M116 78 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><rect class="treebg" x="16" y="184" width="288" height="50" rx="6"/><g data-show="0"><text class="mono" x="24" y="198">[e1] AXWindow &quot;Untitled&quot;</text><text class="mono" x="36" y="212">[e2] AXButton &quot;Cancel&quot; (168,126 56×22)</text><text class="mono" data-hl="1 2" x="36" y="226">[e3] AXButton &quot;Save&quot; (232,126 56×22)</text></g><text class="fs2" data-hl="0" x="16" y="254">1  Read the tree: text, no image</text><text class="fs2" data-hl="1" x="16" y="272">2  Pick ref e3: AXButton &quot;Save&quot;</text><text class="fs2" data-hl="2" x="16" y="290">3  Act on e3: lands exactly, cursor stays</text><text class="fs2" data-hl="3" x="16" y="308">4  Read the tree again to check</text><text class="fs" x="16" y="328">image tokens: none</text><rect class="meter" x="16" y="334" width="288" height="10" rx="5"/></svg><p class="badge">Acting on a ref without moving the cursor is ui_action: in progress (PR #96), not released yet.</p></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
+<figcaption>Animation: approach 1 next to approach 4. On the left, the agent takes a screenshot, the model guesses coordinates, and the click lands just below the small Save button, so it takes another screenshot; each screenshot adds image tokens. On the right, the agent reads the accessibility tree as text, picks ref e3 (AXButton &quot;Save&quot;) and acts on it: the press lands on the button and the cursor does not move. Acting by ref is ui_action, in progress in PR #96 and not released yet; today OpenAB Computer still clicks the center of e3&#x27;s frame with mouse.</figcaption>
+</figure>
+
+<h3>Why we chose the accessibility tree</h3>
+<p>In OpenAB Computer the agent is somewhere else, so the most expensive part is sending screenshots
+back and forth. The accessibility tree turns each step from "send an image, guess a coordinate" into
+"read some text, pick a ref". It also fixes the missed clicks, because positions are not guessed.
+For most standard Mac apps that is enough. It does not cover everything, so we kept screenshots
+and use all three together: <code>ui_snapshot</code> reads the accessibility tree of native apps,
+<code>browser_snapshot</code> reads the browser's accessibility tree for web pages, and whatever
+the tree cannot see (canvases, custom-drawn interfaces) goes back to <code>screenshot</code> and
+<code>mouse</code>.</p>
 
 <div class="callout">
 <h2>The research behind this</h2>
