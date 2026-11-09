@@ -248,6 +248,74 @@ html[data-lang="ja"] .note p, html[data-lang="ja"] .note li { line-height: 1.9; 
   margin-top: 2.2rem; padding: 16px 18px; border-radius: 14px;
   background: var(--accent-tint); border: 1px solid var(--border);
 }
+.note .callout {
+  margin: 1.6rem 0; padding: 4px 20px 6px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  box-shadow: var(--shadow);
+}
+.note .callout h2 { margin-top: 0.9rem; font-size: 1.1rem; }
+
+/* Animated figures (scripts/figures.py + figs.js). Without JS everything is shown. */
+.fig {
+  margin: 1.8rem 0; padding: 16px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.fig svg { display: block; width: 100%; height: auto; font-family: inherit; }
+.fig .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.fig .pair { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.fig .pair svg { max-width: 460px; margin: 0 auto; }
+.fig figcaption { margin-top: 12px; color: var(--muted); font-size: 0.86rem; line-height: 1.6; }
+.fig text { fill: var(--ink); }
+.fig .ft { font-size: 15px; font-weight: 700; fill: var(--accent-deep); }
+.fig .fm { font-size: 13.5px; font-weight: 600; }
+.fig .fs { font-size: 11px; fill: var(--muted); }
+.fig .fs2 { font-size: 12px; }
+.fig .box { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; transition: fill .3s, stroke .3s; }
+.fig g.hl .box { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.fig .arr { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.fig .arrh { fill: var(--muted); }
+.fig .meter { fill: var(--accent-tint); }
+.fig .seg { fill: var(--accent); }
+.fig .off { opacity: 0; }
+.fig [data-show] { transition: opacity .35s; }
+.fig .screen { fill: var(--bg); stroke: var(--border); }
+.fig .win { fill: var(--card); stroke: var(--border); stroke-width: 1.4; }
+.fig .winbar { fill: var(--accent-tint); }
+.fig .dot { fill: var(--brush); }
+.fig .field { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }
+.fig .field.focus { stroke: var(--accent); stroke-width: 2; }
+.fig .tick { fill: none; stroke: var(--accent); stroke-width: 2; }
+.fig .btn2 { fill: var(--bg); stroke: var(--border); }
+.fig .btnok { fill: var(--accent); transition: fill .2s; }
+.fig .fok { font-size: 12px; font-weight: 600; fill: #fff; }
+@media (prefers-color-scheme: dark) { .fig .fok { fill: #14101F; } }
+.fig g.okbtn.hl .btnok { fill: var(--accent-deep); stroke: var(--accent); stroke-width: 4; }
+.fig .cursor { fill: var(--ink); stroke: var(--card); stroke-width: 1.2; }
+.fig text.hl { fill: var(--accent-deep); font-weight: 700; }
+.fig .fr { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 5 3; opacity: 0; transition: opacity .25s; }
+.fig .fr.hl, .fig .fr.link { opacity: 1; }
+.fig .treehead { margin: 0 0 6px; font-size: 0.8rem; color: var(--muted); }
+.fig .axtree {
+  list-style: none; margin: 0; padding: 8px 0; overflow-x: auto;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  font: 0.74rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.note .fig .axtree li {
+  margin: 0; padding: 2px 10px 2px calc(10px + 2em + var(--lvl, 0) * 1.3em); text-indent: -2em;
+  white-space: normal; overflow-wrap: anywhere; border-radius: 4px; cursor: default; transition: background .25s, opacity .35s;
+}
+.fig .axtree li:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.fig .axtree li.hl, .fig .axtree li.link { background: var(--accent-tint); }
+.fig .badge {
+  display: inline-block; margin: 0 0 10px; padding: 2px 10px; border-radius: 999px;
+  border: 1px dashed var(--accent); color: var(--accent-deep); font-size: 0.82rem; font-weight: 600;
+}
+.figctl { margin-top: 10px; }
+.figbtn {
+  font: inherit; font-size: 0.85rem; padding: 4px 14px; border-radius: 999px; cursor: pointer;
+  color: var(--accent-deep); background: var(--accent-tint); border: 1px solid var(--border);
+}
+.figbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 footer {
   max-width: 1040px; margin: 40px auto 0; padding: 26px 24px 48px;
@@ -270,9 +338,12 @@ footer a { color: var(--muted); }
   main.notes, main.note { padding: 12px 18px 0; }
   .grid { grid-template-columns: 1fr; }
   .card { padding: 20px; }
+  .fig { padding: 12px; }
+  .fig .panels { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero .logo { animation: none; }
   .card, .btn { transition: none; }
+  .fig *, .fig [data-show] { transition: none !important; }
 }

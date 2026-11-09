@@ -16,6 +16,7 @@ import os
 import pathlib
 import re
 
+from figures import FIGS
 from notes import INDEX, NOTES
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -736,6 +737,14 @@ def note_page(code, n):
         # A source line break between two Han/kana characters would render as a space.
         body = CJK_BREAK.sub("", body)
     body = body.replace("{text}", esc(n["text"])).replace("{json}", esc(n["json"]))
+    figs = False
+    for key, fn in FIGS.items():
+        if "{" + key + "}" in body:
+            body = body.replace("{" + key + "}", fn(code))
+            figs = True
+    if figs:
+        js = (ROOT / "scripts" / "figs.js").read_text(encoding="utf-8")
+        body += f"\n<script>\n{js}</script>"
     main = f"""<main class="note">
 <article>
 <p class="back"><a href="../">← {esc(ix['h1'])}</a></p>
