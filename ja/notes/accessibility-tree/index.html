@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB</title>
-<meta name="description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<meta name="description" content="リモートのデスクトップで、エージェントはどうやって狙ったボタンを正確に押すのか。OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
 <link rel="canonical" href="https://openab.dev/ja/notes/accessibility-tree/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:title" content="OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB">
-<meta property="og:description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<meta property="og:description" content="リモートのデスクトップで、エージェントはどうやって狙ったボタンを正確に押すのか。OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
 <meta property="og:url" content="https://openab.dev/ja/notes/accessibility-tree/">
 <meta property="og:image" content="https://openab.dev/ja/notes/accessibility-tree/og-ja.png?v=9cbb377e">
 <meta property="og:image:width" content="1200">
@@ -19,14 +19,14 @@
 <meta property="article:published_time" content="2026-11-09">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB">
-<meta name="twitter:description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<meta name="twitter:description" content="リモートのデスクトップで、エージェントはどうやって狙ったボタンを正確に押すのか。OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
 <meta name="twitter:image" content="https://openab.dev/ja/notes/accessibility-tree/og-ja.png?v=9cbb377e">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=be0e490a">
+<link rel="stylesheet" href="../../../style.css?v=24b07247">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -59,11 +59,13 @@ document.addEventListener("click", function (e) {
 <p class="back"><a href="../">← 開発ノート</a></p>
 <h1>OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました</h1>
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="hook">エージェントに「リモートのコンピューターのデスクトップで、あるアプリのこのボタンをクリックして」と頼んだとき、エージェントがどうやって狙いどおりに正確にクリックしているのか、考えたことはありますか。</p>
+
 <p class="lede">OpenAB Computer 0.9.0 で、MCP ツール <code>ui_snapshot</code> が加わりました。Mac
 アプリのアクセシビリティツリーを読み、JSON で返します。エージェントは、ウィンドウの中のボタンや入力欄やラベルを、画面上の位置とあわせてテキストで受け取れます。スクリーンショットから読み解く必要はもうありません。</p>
 
 <h2>エージェントはどうやって正しいボタンを押すのか</h2>
-<p>computer use とは、エージェントにコンピューターを操作させることです。画面を見て、マウスを動かし、クリックし、文字を入力します。クリックすること自体は簡単です。難しいのは、正しいものをクリックすることです。画面に「保存」ボタンがあるとき、エージェントはそれがどこにあり、本当にボタンなのか、今押せる状態なのかを、どうやって知るのでしょうか。</p>
+<p>computer use とは、エージェントにコンピューターを操作させることです。画面を見て、マウスを動かし、クリックし、文字を入力します。クリックすること自体は簡単です。難しいのは、正しいものをクリックすることです。画面に「保存」ボタンがあるなら、エージェントはそれがどこにあり、本当にボタンなのか、今押せる状態なのかを知る必要があります。</p>
 <p>よく使われる方法は、おおまかに四つあります。</p>
 <ol class="ways">
 <li>

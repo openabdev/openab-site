@@ -123,14 +123,17 @@ NOTES = [
         langs={
             "en": dict(
                 title="OpenAB Computer can now read the macOS accessibility tree",
-                desc="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app's "
-                     "accessibility tree as JSON. What it returns, what we learned from Vercel's "
-                     "Agent Desktop, and what is still missing.",
+                desc="How does an agent click exactly the right button on a remote desktop? "
+                     "OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app's "
+                     "accessibility tree as JSON.",
                 og=(["OpenAB Computer can now read", "the macOS accessibility tree."],
                     "ui_snapshot in 0.9.0: a Mac app's UI as JSON, not pixels"),
                 og_alt="OpenAB dev note: OpenAB Computer can now read the macOS accessibility tree",
                 byline="2026-11-09 · OpenAB Computer 0.9.0",
                 body=f"""
+<p class="hook">Have you ever wondered how an agent actually manages to click exactly the right
+button in an app on a remote computer's desktop when you ask it to?</p>
+
 <p class="lede">OpenAB Computer 0.9.0 adds <code>ui_snapshot</code>, an MCP tool that reads the
 accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
 and labels in a window as text, with their positions on screen, instead of working them out from
@@ -138,9 +141,9 @@ a screenshot.</p>
 
 <h2>How does an agent click the right button?</h2>
 <p>Computer use means letting an agent operate a computer: look at the screen, move the mouse,
-click and type. Clicking is easy. Clicking the right thing is hard. If there is a Save button on
-the screen, how does the agent know where it is, whether it really is a button, and whether it can
-be pressed right now?</p>
+click and type. Clicking is easy. Clicking the right thing is hard: for a Save button on the
+screen, the agent has to know where it is, whether it really is a button, and whether it can be
+pressed right now.</p>
 <p>There are roughly four common ways to do it.</p>
 <ol class="ways">
 <li>
@@ -342,7 +345,8 @@ profile.</p>
             ),
             "zh": dict(
                 title="OpenAB Computer 開始支援 macOS 的 accessibility tree",
-                desc="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree "
+                desc="Agent 是怎麼在遠端電腦上精準點到那顆按鈕的？"
+                     "OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree "
                      "以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，"
                      "以及還缺什麼。",
                 og=(["OpenAB Computer 開始支援", "macOS 的 accessibility tree。"],
@@ -350,14 +354,16 @@ profile.</p>
                 og_alt="OpenAB 開發筆記：OpenAB Computer 開始支援 macOS 的 accessibility tree",
                 byline="2026-11-09 · OpenAB Computer 0.9.0",
                 body=f"""
+<p class="hook">你有沒有想過：當你請 Agent 幫你用滑鼠點擊遠端電腦桌面上某個 app 裡的一顆按鈕時，Agent 到底是怎麼做到精準點擊的？</p>
+
 <p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
 的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，
 連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
 
 <h2>Agent 要怎麼點到對的按鈕？</h2>
 <p>所謂 computer use，就是讓 agent 操作一台電腦：看畫面、移動滑鼠、點擊、打字。點下去不難，
-難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 要怎麼知道它在哪裡、是不是真的是按鈕、
-現在能不能按？</p>
+難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 得知道它在哪裡、是不是真的是按鈕、
+現在能不能按。</p>
 <p>常見的做法大致有四種。</p>
 <ol class="ways">
 <li>
@@ -516,7 +522,8 @@ macOS、Windows 和 Linux。</li>
             ),
             "ja": dict(
                 title="OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました",
-                desc="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP "
+                desc="リモートのデスクトップで、エージェントはどうやって狙ったボタンを正確に押すのか。"
+                     "OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP "
                      "ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、"
                      "まだ足りないこと。",
                 og=(["OpenAB Computer が", "アクセシビリティツリーを読む。"],
@@ -524,6 +531,10 @@ macOS、Windows 和 Linux。</li>
                 og_alt="OpenAB 開発ノート：OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました",
                 byline="2026-11-09 · OpenAB Computer 0.9.0",
                 body=f"""
+<p class="hook">エージェントに「リモートのコンピューターのデスクトップで、あるアプリのこのボタンを
+クリックして」と頼んだとき、エージェントがどうやって狙いどおりに正確にクリックしているのか、
+考えたことはありますか。</p>
+
 <p class="lede">OpenAB Computer 0.9.0 で、MCP ツール <code>ui_snapshot</code> が加わりました。Mac
 アプリのアクセシビリティツリーを読み、JSON で返します。エージェントは、ウィンドウの中のボタンや
 入力欄やラベルを、画面上の位置とあわせてテキストで受け取れます。スクリーンショットから読み解く
@@ -532,8 +543,8 @@ macOS、Windows 和 Linux。</li>
 <h2>エージェントはどうやって正しいボタンを押すのか</h2>
 <p>computer use とは、エージェントにコンピューターを操作させることです。画面を見て、マウスを動かし、
 クリックし、文字を入力します。クリックすること自体は簡単です。難しいのは、正しいものをクリックする
-ことです。画面に「保存」ボタンがあるとき、エージェントはそれがどこにあり、本当にボタンなのか、今
-押せる状態なのかを、どうやって知るのでしょうか。</p>
+ことです。画面に「保存」ボタンがあるなら、エージェントはそれがどこにあり、本当にボタンなのか、今
+押せる状態なのかを知る必要があります。</p>
 <p>よく使われる方法は、おおまかに四つあります。</p>
 <ol class="ways">
 <li>
@@ -735,7 +746,8 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
             ),
             "ko": dict(
                 title="OpenAB Computer가 이제 macOS 접근성 트리를 읽습니다",
-                desc="OpenAB Computer 0.9.0에 Mac 앱의 접근성 트리를 JSON으로 돌려주는 MCP 도구 "
+                desc="원격 데스크톱에서 에이전트는 어떻게 정확히 그 버튼을 누를까요? "
+                     "OpenAB Computer 0.9.0에 Mac 앱의 접근성 트리를 JSON으로 돌려주는 MCP 도구 "
                      "ui_snapshot이 추가됐습니다. 무엇을 돌려주는지, Vercel의 Agent Desktop에서 무엇을 "
                      "배웠는지, 아직 무엇이 빠져 있는지.",
                 og=(["OpenAB Computer가 이제", "macOS 접근성 트리를 읽습니다."],
@@ -743,6 +755,9 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
                 og_alt="OpenAB 개발 노트: OpenAB Computer가 이제 macOS 접근성 트리를 읽습니다",
                 byline="2026-11-09 · OpenAB Computer 0.9.0",
                 body=f"""
+<p class="hook">에이전트에게 원격 컴퓨터 데스크톱의 어떤 앱에 있는 버튼 하나를 마우스로 눌러 달라고 할 때,
+에이전트가 실제로 어떻게 정확히 그 버튼을 누르는지 궁금했던 적이 있나요?</p>
+
 <p class="lede">OpenAB Computer 0.9.0에 MCP 도구 <code>ui_snapshot</code>이 추가됐습니다. Mac 앱의
 접근성 트리를 읽어 JSON으로 돌려줍니다. 이제 에이전트는 창 안의 버튼, 입력란, 레이블을 화면 위
 위치와 함께 텍스트로 받습니다. 스크린샷을 보고 짐작할 필요가 없습니다.</p>
@@ -750,7 +765,7 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
 <h2>에이전트는 어떻게 맞는 버튼을 누를까요?</h2>
 <p>computer use는 에이전트가 컴퓨터를 다루게 하는 것입니다. 화면을 보고, 마우스를 움직이고, 클릭하고,
 타이핑합니다. 클릭 자체는 쉽습니다. 어려운 것은 맞는 대상을 클릭하는 일입니다. 화면에 "저장" 버튼이
-있을 때, 에이전트는 그것이 어디 있는지, 정말 버튼인지, 지금 누를 수 있는지를 어떻게 알까요?</p>
+있다면, 에이전트는 그것이 어디 있는지, 정말 버튼인지, 지금 누를 수 있는지를 알아야 합니다.</p>
 <p>흔히 쓰는 방법은 크게 네 가지입니다.</p>
 <ol class="ways">
 <li>

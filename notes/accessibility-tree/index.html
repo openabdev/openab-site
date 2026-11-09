@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenAB Computer can now read the macOS accessibility tree — OpenAB</title>
-<meta name="description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta name="description" content="How does an agent click exactly the right button on a remote desktop? OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON.">
 <link rel="canonical" href="https://openab.dev/notes/accessibility-tree/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
-<meta property="og:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta property="og:description" content="How does an agent click exactly the right button on a remote desktop? OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON.">
 <meta property="og:url" content="https://openab.dev/notes/accessibility-tree/">
 <meta property="og:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=73919c8e">
 <meta property="og:image:width" content="1200">
@@ -19,14 +19,14 @@
 <meta property="article:published_time" content="2026-11-09">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
-<meta name="twitter:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta name="twitter:description" content="How does an agent click exactly the right button on a remote desktop? OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON.">
 <meta name="twitter:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=73919c8e">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=be0e490a">
+<link rel="stylesheet" href="../../style.css?v=24b07247">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -59,6 +59,9 @@ document.addEventListener("click", function (e) {
 <p class="back"><a href="../">← Dev notes</a></p>
 <h1>OpenAB Computer can now read the macOS accessibility tree</h1>
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="hook">Have you ever wondered how an agent actually manages to click exactly the right
+button in an app on a remote computer's desktop when you ask it to?</p>
+
 <p class="lede">OpenAB Computer 0.9.0 adds <code>ui_snapshot</code>, an MCP tool that reads the
 accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
 and labels in a window as text, with their positions on screen, instead of working them out from
@@ -66,9 +69,9 @@ a screenshot.</p>
 
 <h2>How does an agent click the right button?</h2>
 <p>Computer use means letting an agent operate a computer: look at the screen, move the mouse,
-click and type. Clicking is easy. Clicking the right thing is hard. If there is a Save button on
-the screen, how does the agent know where it is, whether it really is a button, and whether it can
-be pressed right now?</p>
+click and type. Clicking is easy. Clicking the right thing is hard: for a Save button on the
+screen, the agent has to know where it is, whether it really is a button, and whether it can be
+pressed right now.</p>
 <p>There are roughly four common ways to do it.</p>
 <ol class="ways">
 <li>

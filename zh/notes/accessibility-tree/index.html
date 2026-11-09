@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB</title>
-<meta name="description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<meta name="description" content="Agent 是怎麼在遠端電腦上精準點到那顆按鈕的？OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
 <link rel="canonical" href="https://openab.dev/zh/notes/accessibility-tree/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:title" content="OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB">
-<meta property="og:description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<meta property="og:description" content="Agent 是怎麼在遠端電腦上精準點到那顆按鈕的？OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
 <meta property="og:url" content="https://openab.dev/zh/notes/accessibility-tree/">
 <meta property="og:image" content="https://openab.dev/zh/notes/accessibility-tree/og-zh.png?v=f7166862">
 <meta property="og:image:width" content="1200">
@@ -19,14 +19,14 @@
 <meta property="article:published_time" content="2026-11-09">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB">
-<meta name="twitter:description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<meta name="twitter:description" content="Agent 是怎麼在遠端電腦上精準點到那顆按鈕的？OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
 <meta name="twitter:image" content="https://openab.dev/zh/notes/accessibility-tree/og-zh.png?v=f7166862">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=be0e490a">
+<link rel="stylesheet" href="../../../style.css?v=24b07247">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -59,11 +59,13 @@ document.addEventListener("click", function (e) {
 <p class="back"><a href="../">← 開發筆記</a></p>
 <h1>OpenAB Computer 開始支援 macOS 的 accessibility tree</h1>
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="hook">你有沒有想過：當你請 Agent 幫你用滑鼠點擊遠端電腦桌面上某個 app 裡的一顆按鈕時，Agent 到底是怎麼做到精準點擊的？</p>
+
 <p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
 的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
 
 <h2>Agent 要怎麼點到對的按鈕？</h2>
-<p>所謂 computer use，就是讓 agent 操作一台電腦：看畫面、移動滑鼠、點擊、打字。點下去不難，難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 要怎麼知道它在哪裡、是不是真的是按鈕、現在能不能按？</p>
+<p>所謂 computer use，就是讓 agent 操作一台電腦：看畫面、移動滑鼠、點擊、打字。點下去不難，難的是點到對的東西。畫面上有一顆「儲存」按鈕，agent 得知道它在哪裡、是不是真的是按鈕、現在能不能按。</p>
 <p>常見的做法大致有四種。</p>
 <ol class="ways">
 <li>
