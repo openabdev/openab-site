@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB Computer can now read the macOS accessibility tree — OpenAB</title>
+<meta name="description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<link rel="canonical" href="https://openab.dev/notes/accessibility-tree/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
+<meta property="og:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta property="og:url" content="https://openab.dev/notes/accessibility-tree/">
+<meta property="og:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=73919c8e">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB dev note: OpenAB Computer can now read the macOS accessibility tree">
+<meta property="article:published_time" content="2026-11-09">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
+<meta name="twitter:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta name="twitter:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=73919c8e">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../style.css?v=c1eefada">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/accessibility-tree/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/accessibility-tree/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../assets/brand-64.png?v=99caab3e" srcset="../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">Projects</a>
+    <a href="../../#participate">Participate</a>
+    <a href="../../notes/">Dev notes</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../../zh/notes/accessibility-tree/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../../ja/notes/accessibility-tree/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../ko/notes/accessibility-tree/" data-lang="ko" hreflang="ko">한국어</a>|<a class="active" aria-current="page" href="../../notes/accessibility-tree/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← Dev notes</a></p>
+<h1>OpenAB Computer can now read the macOS accessibility tree</h1>
+<p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="lede">OpenAB Computer 0.9.0 adds <code>ui_snapshot</code>, an MCP tool that reads the
+accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
+and labels in a window as text, with their positions on screen, instead of working them out from
+a screenshot.</p>
+
+<div class="callout">
+<h2>The research behind this</h2>
+<p>This work started with a research report we published for the community on Muse,
+<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">OpenCode Browse vs OpenAB Computer</a>. It compares <a href="https://github.com/anomalyco/browse">OpenCode Browse</a>, which
+lets an agent drive your real, logged-in browser on your own machine, with OpenAB Computer, which
+lends a whole machine to an agent somewhere else. For that remote agent, the report found, the
+screenshot loop is what drives the cost.</p>
+<p><code>ui_snapshot</code> is our first answer: the remote agent can now read native apps as
+structured text, not only the browser.</p>
+</div>
+
+<h2>Why the screenshot loop was not enough</h2>
+<p>Until now, an agent using OpenAB Computer on a Mac worked in a loop: take a screenshot, guess
+where a button is, click it with <code>mouse</code>, then take another screenshot to check.</p>
+<p>A community user, <a href="https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810">ttmuse</a>, described the cost of that loop on
+<a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a>. They use OpenAB Computer every day as the hands of a cloud agent that
+drives a home Mac. Every step costs image tokens, small targets get missed, and the real cursor is
+taken over while the agent works.</p>
+<p>The issue had been waiting for a real user. The comment showed there was one, so we raised its
+priority and started with macOS.</p>
+<figure class="fig anim" data-steps="8" data-ms="1100" aria-label="Animation: the screenshot loop next to ui_snapshot. On the left, every step sends a screenshot, the model guesses coordinates, mouse moves the real cursor to click, and another screenshot checks the result, so image tokens add up. On the right, ui_snapshot returns text; the agent finds the node by role and title, clicks the center of its frame (today still with mouse; phase 2 plans ui_action by ref), then takes a new snapshot. No image is sent.">
+<div class="panels">
+<svg viewBox="0 0 320 300" role="img" aria-label="Screenshot loop"><text class="ft" x="16" y="22">Screenshot loop</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">Screenshot</text><text class="fs" x="28" y="73">a full image, every step</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">Model guesses x, y</text><text class="fs" x="28" y="129">small targets get missed</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">mouse moves and clicks</text><text class="fs" x="28" y="185">the real cursor is taken over</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">Screenshot again to check</text><text class="fs" x="28" y="241">another image</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">image tokens</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="4" x="160" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="7" x="232" y="278" width="70" height="10" rx="5"/></svg>
+<svg viewBox="0 0 320 300" role="img" aria-label="With ui_snapshot"><text class="ft" x="16" y="22">With ui_snapshot</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">ui_snapshot</text><text class="fs" x="28" y="73">text and JSON, no image</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">Find the node by role and title</text><text class="fs" x="28" y="129">AXButton &quot;OK&quot; → ref e7 and its frame</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">Click the center of its frame</text><text class="fs" x="28" y="185">today with mouse; phase 2: ui_action(ref)</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">ui_snapshot again to check</text><text class="fs" x="28" y="241">a new snapshot with new refs</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">image tokens: none</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/></svg>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<figcaption>Animation: the screenshot loop next to ui_snapshot. On the left, every step sends a screenshot, the model guesses coordinates, mouse moves the real cursor to click, and another screenshot checks the result, so image tokens add up. On the right, ui_snapshot returns text; the agent finds the node by role and title, clicks the center of its frame (today still with mouse; phase 2 plans ui_action by ref), then takes a new snapshot. No image is sent.</figcaption>
+</figure>
+
+<h2>What we learned from Agent Desktop</h2>
+<p>Before writing code we read Vercel Labs' <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> closely: its
+README, its concept docs and its macOS code. Agent Desktop reads the accessibility tree of a
+desktop app and returns it as JSON, with a ref for every element an agent can act on. Three of its
+ideas shaped our plan: the first two are in <code>ui_snapshot</code> today, and the third waits for
+phase 2.</p>
+<ul>
+<li><strong>Structured text instead of images.</strong> The model reads roles, names and values.
+It does not have to find a button in pixels.</li>
+<li><strong>A ref per element, from one snapshot.</strong> Agent Desktop's refs belong to the
+snapshot that produced them. When the UI changes, a stale or ambiguous ref is rejected instead of
+guessed, and the agent takes a new snapshot.</li>
+<li><strong>Acting without the pointer (phase 2).</strong> Agent Desktop's ref actions go through the
+accessibility API without moving the pointer or taking focus.</li>
+</ul>
+<p>Issue #67 listed calling Agent Desktop from OpenAB Computer as one option, and weighed less code
+to own against an external dependency and its release cadence. We decided to make the
+accessibility tree one of OpenAB Computer's own MCP tools, in the Swift daemon that already serves
+<code>screenshot</code>, <code>mouse</code> and <code>key</code> (<a href="https://github.com/openabdev/openab-computer/pull/93">PR #93</a>).</p>
+
+<h2>What ui_snapshot returns</h2>
+<p>By default it reads the focused window of the frontmost app. <code>app</code> (a bundle id or
+name), <code>pid</code>, <code>window</code> and <code>all_windows</code> pick another target.</p>
+<p>Each node carries its role, title, value and description, whether it is enabled or focused, and
+a frame. The frame uses the same display points as <code>screenshot</code> and <code>mouse</code>,
+so an agent can aim a click at a node without looking at the screen first. Every node also gets a
+ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot's id.</p>
+<figure class="fig anim" data-steps="7" data-ms="1000" aria-label="Animation: a made-up dialog and the tree ui_snapshot returns for it, built node by node in the tool&#x27;s text form. Each node has a role, a title or value, a ref (e1 to e7) and a frame. Frames are in screen points, the same coordinates screenshot and mouse use, so each highlighted line matches the outlined area of the dialog. The password field shows ‹masked›: the tool never reads its value. Hover over, focus or tap a line to see its frame.">
+<div class="pair">
+<svg viewBox="0 0 400 260" role="img" aria-label="Export"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">Export</text><text class="fs2" x="64" y="78">File name</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">Password</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">Open when done</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">Cancel</text><g class="okbtn"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">OK</text></g><rect class="fr" data-node="e1" data-hl="0" x="38" y="18" width="324" height="214" rx="6"/><rect class="fr" data-node="e2" data-hl="1" x="54" y="54" width="292" height="116" rx="6"/><rect class="fr" data-node="e3" data-hl="2" x="148" y="60" width="184" height="28" rx="6"/><rect class="fr" data-node="e4" data-hl="3" x="148" y="92" width="184" height="28" rx="6"/><rect class="fr" data-node="e5" data-hl="4" x="148" y="126" width="154" height="24" rx="6"/><rect class="fr" data-node="e6" data-hl="5" x="194" y="182" width="76" height="32" rx="6"/><rect class="fr" data-node="e7" data-hl="6" x="274" y="182" width="76" height="32" rx="6"/></svg>
+<div class="treebox"><p class="treehead">ui_snapshot, text form</p><ol class="axtree"><li tabindex="0" data-node="e1" data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;Export&quot; (40,20 320×210)</li><li tabindex="0" data-node="e2" data-show="1" data-hl="1" style="--lvl:1">[e2] AXGroup (56,56 288×112)</li><li tabindex="0" data-node="e3" data-show="2" data-hl="2" style="--lvl:2">[e3] AXTextField = &quot;report&quot; desc=&quot;File name&quot; (150,62 180×24) focused</li><li tabindex="0" data-node="e4" data-show="3" data-hl="3" style="--lvl:2">[e4] AXTextField/AXSecureTextField = ‹masked› desc=&quot;Password&quot; (150,94 180×24)</li><li tabindex="0" data-node="e5" data-show="4" data-hl="4" style="--lvl:2">[e5] AXCheckBox &quot;Open when done&quot; = 1 (150,128 150×20)</li><li tabindex="0" data-node="e6" data-show="5" data-hl="5" style="--lvl:1">[e6] AXButton &quot;Cancel&quot; (196,184 72×28)</li><li tabindex="0" data-node="e7" data-show="6" data-hl="6" style="--lvl:1">[e7] AXButton &quot;OK&quot; (276,184 72×28)</li></ol></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<figcaption>Animation: a made-up dialog and the tree ui_snapshot returns for it, built node by node in the tool&#x27;s text form. Each node has a role, a title or value, a ref (e1 to e7) and a frame. Frames are in screen points, the same coordinates screenshot and mouse use, so each highlighted line matches the outlined area of the dialog. The password field shows ‹masked›: the tool never reads its value. Hover over, focus or tap a line to see its frame.</figcaption>
+</figure>
+<p>Here is a real snapshot of Finder on an M4 Mac mini, taken with no Finder window open. The
+window is the desktop itself, and the two images in it are the icons of two mounted drives. The
+tool returns a text form for the model:</p>
+<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+    [e3] AXImage &quot;Data&quot; (1823,145 64×64)
+    [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
+<p>and the same tree as JSON (an excerpt; some fields are left out):</p>
+<pre><code>{
+  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
+  &quot;node_count&quot;: 4,
+  &quot;truncated&quot;: false,
+  &quot;timed_out&quot;: false,
+  &quot;elapsed_ms&quot;: 46,
+  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;windows&quot;: [
+    { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
+      &quot;enabled&quot;: false,
+      &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
+      &quot;children&quot;: [
+        { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;children&quot;: [
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
+              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+              &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
+          ] }
+      ] }
+  ]
+}</code></pre>
+<p>In this one run it read four nodes in 46 ms. The drive names are replaced with generic ones here. To open the
+“Data” drive, an agent can double-click the center of e3's frame, (1855, 177), without taking a
+screenshot to find it.</p>
+
+<h2>Limits, timeouts and privacy</h2>
+<p>A snapshot is bounded. By default it stops at 20 levels deep or 300 nodes, and the whole call
+gets 3 seconds; a caller can raise these to 50 levels, 2,000 nodes and 10 seconds. Before every
+accessibility call the tool sets a messaging timeout of at most half a second, so an app that has
+stopped responding cannot block it.</p>
+<p>When a limit or the time budget runs out, the agent gets what was read so far, flagged with
+<code>truncated</code> or <code>timed_out</code>, and no error. Long text is read as a
+200-character prefix, so a large document is not copied whole.</p>
+<p>Password fields are always masked. For a secure text field the tool never asks for the value
+and does not look inside it. Other fields are not masked.</p>
+<p>That matters because the tree holds text a screenshot does not show: rows scrolled out of view,
+collapsed content, other windows. So <code>ui_snapshot</code> is available only to the
+<code>owner</code> profile, and it needs the macOS Accessibility permission, the same one
+<code>mouse</code> and <code>key</code> already use.</p>
+
+<h2>Which tool for which screen</h2>
+<ul>
+<li>Native Mac apps: <code>ui_snapshot</code>.</li>
+<li>Web pages: <code>browser_snapshot</code>, which reads the page structure from the browser.</li>
+<li>Custom-drawn content such as canvases, which has no accessibility tree:
+<code>screenshot</code> and <code>mouse</code>, as before.</li>
+</ul>
+
+<h2>Where we match Agent Desktop, and where we don't yet</h2>
+<p>The same: both read the macOS accessibility API and return JSON, not images. Both give elements
+refs that are valid only within one snapshot. Ours label every node; Agent Desktop's label the
+elements an agent can act on. Both return a partial tree instead of failing.
+Neither has a model inside; the calling agent runs the loop.</p>
+<p>Different, today:</p>
+<ul>
+<li><strong>OpenAB Computer only reads.</strong> Agent Desktop can already click, type, set values
+and move focus by ref without moving the pointer. An agent on OpenAB Computer still clicks with
+<code>mouse</code> at coordinates, and the real cursor still moves.</li>
+<li><strong>Refs.</strong> Our refs only label one snapshot; the tool keeps no state. Agent Desktop
+stores a map from each ref to evidence of the element's identity, and checks it is the same
+element before acting.</li>
+<li><strong>Platforms.</strong> OpenAB Computer reads the tree on macOS only. Agent Desktop covers
+macOS, Windows and Linux.</li>
+<li><strong>Shape.</strong> <code>ui_snapshot</code> is one tool in a remote MCP server, used by an
+agent on another machine. Agent Desktop runs locally as a CLI, a C library or a stdio MCP
+server.</li>
+</ul>
+
+<h2>What's next (not shipped)</h2>
+<p>Phase 2 is <code>ui_action(ref)</code>: press a button, set a field's value, move focus or open
+a menu by ref, without moving the cursor. That is the part that ends the cursor takeover. It will
+also add the menu bar, which today's tree leaves out. Setting a value on a password field will be
+refused.</p>
+<figure class="fig anim next" data-steps="4" data-ms="1400" aria-label="Animation of the planned phase 2, not shipped. After a snapshot, the agent calls ui_action with the snapshot id, ref e7 and the action press. OpenAB Computer presses the OK button through the accessibility API and the cursor stays where it was. The agent then takes a new snapshot to check. This follows the sketch in PR #93; the details may change.">
+<p class="badge">Next: ui_action · in progress, not shipped</p>
+<div class="pair">
+<svg viewBox="0 122 400 128" role="img" aria-label="Export"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">Export</text><text class="fs2" x="64" y="78">File name</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">Password</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">Open when done</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">Cancel</text><g class="okbtn" data-hl="2"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">OK</text></g><path class="cursor" d="M92 140 l0 18 l5 -5 l4 9 l3 -1.5 l-4 -9 l7 0z"/><text class="fs" data-hl="2 3" x="104" y="176">cursor stays here</text></svg>
+<div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0">ui_snapshot → [e7] AXButton &quot;OK&quot; (276,184 72×28)</li><li data-show="1" data-hl="1">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e7&quot;, action: &quot;press&quot; }</li><li data-show="2" data-hl="2">→ AXPress on e7; the cursor does not move</li><li data-show="3" data-hl="3">ui_snapshot again to check the result</li></ol></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<figcaption>Animation of the planned phase 2, not shipped. After a snapshot, the agent calls ui_action with the snapshot id, ref e7 and the action press. OpenAB Computer presses the OK button through the accessibility API and the cursor stays where it was. The agent then takes a new snapshot to check. This follows the sketch in PR #93; the details may change.</figcaption>
+</figure>
+<p>After macOS, a Linux version based on AT-SPI is planned. Neither has a date. Issue #67 stays
+open to track both.</p>
+
+<p class="outro">To try it, update to <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.9.0">OpenAB Computer 0.9.0</a>, give it the Accessibility
+permission, and call <code>ui_snapshot</code> from an agent with the <code>owner</code>
+profile.</p>
+<script>
+// Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
+// No JS or prefers-reduced-motion: the figure stays in its complete, static state. Reduced
+// motion never autoplays; the Replay button still plays it on request, without transitions.
+// ?fig-step=N freezes every figure at step N (used for preview screenshots).
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var freeze = new URLSearchParams(location.search).get("fig-step");
+  document.querySelectorAll("figure.anim").forEach(function (fig) {
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100, at = -1, timer = null;
+    var els = fig.querySelectorAll("[data-show],[data-hl]");
+    var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
+    function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
+    function render() {
+      fig.classList.toggle("playing", at >= 0);
+      els.forEach(function (e) {
+        var s = e.dataset.show, h = e.dataset.hl;
+        e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
+        e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
+      });
+      btn.textContent = btn.dataset[timer ? "pause" : at >= 0 ? "resume" : "replay"];
+    }
+    function stop() { clearInterval(timer); timer = null; }
+    function tick() {
+      at += 1;
+      if (at >= n) { stop(); at = -1; }
+      render();
+    }
+    function play() { stop(); timer = setInterval(tick, ms); render(); }
+    btn.addEventListener("click", function () {
+      if (timer) { stop(); render(); }
+      else { if (at < 0) at = -1, tick(); play(); }
+    });
+    ctl.hidden = false;
+    // Link a tree line with its frame (and back) on hover, focus or tap.
+    function link(id, on) {
+      fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
+        e.classList.toggle("link", on);
+      });
+    }
+    fig.querySelectorAll("li[data-node]").forEach(function (li) {
+      var id = li.dataset.node;
+      ["mouseenter", "focus"].forEach(function (ev) {
+        li.addEventListener(ev, function () { if (timer) { stop(); at = -1; render(); } link(id, true); });
+      });
+      li.addEventListener("click", function () {
+        fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
+        link(id, true);
+      });
+      ["mouseleave", "blur"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, false); });
+      });
+    });
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); render(); return; }
+    render();
+    if (reduce || !("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting) { io.disconnect(); at = -1; tick(); play(); }
+    }, { threshold: 0.45 });
+    io.observe(fig);
+  });
+})();
+</script>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>

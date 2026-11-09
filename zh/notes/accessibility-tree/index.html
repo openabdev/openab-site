@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB</title>
+<meta name="description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<link rel="canonical" href="https://openab.dev/zh/notes/accessibility-tree/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:title" content="OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB">
+<meta property="og:description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<meta property="og:url" content="https://openab.dev/zh/notes/accessibility-tree/">
+<meta property="og:image" content="https://openab.dev/zh/notes/accessibility-tree/og-zh.png?v=f7166862">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB 開發筆記：OpenAB Computer 開始支援 macOS 的 accessibility tree">
+<meta property="article:published_time" content="2026-11-09">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB Computer 開始支援 macOS 的 accessibility tree — OpenAB">
+<meta name="twitter:description" content="OpenAB Computer 0.9.0 新增 ui_snapshot，一個把 Mac app 的 accessibility tree 以 JSON 回傳的 MCP 工具。它回傳什麼、我們從 Vercel 的 Agent Desktop 學到什麼，以及還缺什麼。">
+<meta name="twitter:image" content="https://openab.dev/zh/notes/accessibility-tree/og-zh.png?v=f7166862">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../../style.css?v=c1eefada">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/accessibility-tree/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/accessibility-tree/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../../assets/brand-64.png?v=99caab3e" srcset="../../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">專案</a>
+    <a href="../../#participate">參與</a>
+    <a href="../../notes/">開發筆記</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a class="active" aria-current="page" href="../../../zh/notes/accessibility-tree/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../../../ja/notes/accessibility-tree/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../../ko/notes/accessibility-tree/" data-lang="ko" hreflang="ko">한국어</a>|<a href="../../../notes/accessibility-tree/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← 開發筆記</a></p>
+<h1>OpenAB Computer 開始支援 macOS 的 accessibility tree</h1>
+<p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
+的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
+
+<div class="callout">
+<h2>這項工作背後的研究</h2>
+<p>這次的工作，起點是我們在 Muse 上為社群發表的一份研究報告：
+<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">OpenCode Browse vs OpenAB Computer</a>。報告比較了 <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> 和
+OpenAB Computer：Browse 讓 agent 在你自己的電腦上操作你已經登入的瀏覽器，OpenAB Computer 則是把一整台機器借給在別處的 agent。報告也指出，對這個遠端 agent 來說，成本主要花在截圖迴圈上。</p>
+<p><code>ui_snapshot</code> 是我們的第一步：遠端 agent 除了瀏覽器，現在也能用結構化的文字讀原生
+app。</p>
+</div>
+
+<h2>為什麼截圖迴圈不夠用</h2>
+<p>在這之前，agent 透過 OpenAB Computer 操作 Mac，走的是這樣的迴圈：截圖、猜按鈕在哪裡、用
+<code>mouse</code> 點下去，再截一張圖確認。</p>
+<p>社群使用者 <a href="https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810">ttmuse</a> 在 <a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> 寫下了這個迴圈的代價。這位使用者每天把 OpenAB Computer 當成雲端 agent 的手，遠端操作家裡的 Mac。每一步都要花圖片
+token，小目標常常點不到，agent 工作時，真正的游標也被搶走了。</p>
+<p>這個 issue 原本在等一個真正需要它的人。這則留言說明了有人真的需要，於是我們調高了優先順序，先從 macOS 開始做。</p>
+<figure class="fig anim" data-steps="8" data-ms="1100" aria-label="動畫：截圖迴圈和 ui_snapshot 的對照。左邊每一步都要送一張截圖，模型猜座標，mouse 移動真正的游標去點，再截一張圖確認，圖片 token 越疊越多。右邊 ui_snapshot 回傳文字，agent 用角色和標題找到節點，點它 frame 的中心（現在還是用 mouse，第二階段規劃用 ref 呼叫 ui_action），再拍一次新的快照。全程不送圖片。">
+<div class="panels">
+<svg viewBox="0 0 320 300" role="img" aria-label="截圖迴圈"><text class="ft" x="16" y="22">截圖迴圈</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">截圖</text><text class="fs" x="28" y="73">每一步都是一張完整的圖片</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">模型猜 x, y</text><text class="fs" x="28" y="129">小目標容易點不到</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">mouse 移過去點擊</text><text class="fs" x="28" y="185">真正的游標被搶走</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">再截一張圖確認</text><text class="fs" x="28" y="241">又是一張圖片</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">圖片 token</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="4" x="160" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="7" x="232" y="278" width="70" height="10" rx="5"/></svg>
+<svg viewBox="0 0 320 300" role="img" aria-label="改用 ui_snapshot"><text class="ft" x="16" y="22">改用 ui_snapshot</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">ui_snapshot</text><text class="fs" x="28" y="73">文字和 JSON，沒有圖片</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">用角色和標題找到節點</text><text class="fs" x="28" y="129">AXButton &quot;好&quot; → ref e7 和它的 frame</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">點 frame 的中心</text><text class="fs" x="28" y="185">現在用 mouse；第二階段：ui_action(ref)</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">再拍一次快照確認</text><text class="fs" x="28" y="241">新的快照，新的 ref</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">圖片 token：0</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/></svg>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停" data-resume="繼續" data-replay="重播">重播</button></div>
+<figcaption>動畫：截圖迴圈和 ui_snapshot 的對照。左邊每一步都要送一張截圖，模型猜座標，mouse 移動真正的游標去點，再截一張圖確認，圖片 token 越疊越多。右邊 ui_snapshot 回傳文字，agent 用角色和標題找到節點，點它 frame 的中心（現在還是用 mouse，第二階段規劃用 ref 呼叫 ui_action），再拍一次新的快照。全程不送圖片。</figcaption>
+</figure>
+
+<h2>從 Agent Desktop 學到的事</h2>
+<p>動手之前，我們仔細讀了 Vercel Labs 的 <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a>：README、概念文件，還有 macOS 的程式碼。Agent Desktop 讀取桌面 app 的 accessibility tree，以 JSON 回傳，每個 agent
+能操作的元素都配有一個 ref。其中三個想法影響了我們的規劃：前兩個已經做進 <code>ui_snapshot</code>，第三個要等第二階段。</p>
+<ul>
+<li><strong>用結構化的文字取代圖片。</strong>模型讀的是角色、名稱和值，不用在像素裡找按鈕。</li>
+<li><strong>每個元素一個 ref，來自某一次快照。</strong>Agent Desktop 的 ref 只屬於產生它的那次快照。畫面一變，過期或對不上的 ref 會直接被拒絕，不會用猜的，agent 重新拍一次快照就好。</li>
+<li><strong>操作不靠游標（第二階段）。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，不移動游標，也不搶走焦點。</li>
+</ul>
+<p>issue #67 當初也列過另一個做法：讓 OpenAB Computer 直接呼叫 Agent Desktop，好處是自己要維護的程式碼比較少，代價是多一個外部依賴，也得跟著它的更新節奏走。最後我們決定把 accessibility tree
+做成 OpenAB Computer 自己的 MCP 工具之一，放進原本就提供 <code>screenshot</code>、<code>mouse</code>、
+<code>key</code> 的那支 Swift 常駐程式（<a href="https://github.com/openabdev/openab-computer/pull/93">PR #93</a>）。</p>
+
+<h2>ui_snapshot 回傳什麼</h2>
+<p>預設讀取最前面那個 app 目前的焦點視窗。用 <code>app</code>（bundle id 或 app 名稱）、
+<code>pid</code>、<code>window</code> 和 <code>all_windows</code> 可以換成別的目標。</p>
+<p>每個節點都帶有角色、標題、值、說明、是否啟用或取得焦點，以及一個 frame。frame 用的是和
+<code>screenshot</code>、<code>mouse</code> 相同的顯示點座標，所以 agent 不用先看螢幕，就能對準節點點下去。每個節點也有一個 ref（<code>e1</code>、<code>e2</code>⋯⋯），在同一個快照 id 之內不會重複。</p>
+<figure class="fig anim" data-steps="7" data-ms="1000" aria-label="動畫：一個示意用的對話框，以及 ui_snapshot 為它回傳的樹，用工具的文字格式一個節點一個節點長出來。每個節點都有角色、標題或值、ref（e1 到 e7）和 frame。frame 用的是螢幕點座標，和 screenshot、mouse 同一套，所以亮起來的那一行，會對上對話框裡框起來的區域。密碼欄位顯示 ‹masked›：工具從不讀它的值。把游標移到某一行、用鍵盤選取或點一下，就能看到它的 frame。">
+<div class="pair">
+<svg viewBox="0 0 400 260" role="img" aria-label="匯出"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">匯出</text><text class="fs2" x="64" y="78">檔案名稱</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">密碼</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">完成後開啟</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">取消</text><g class="okbtn"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">好</text></g><rect class="fr" data-node="e1" data-hl="0" x="38" y="18" width="324" height="214" rx="6"/><rect class="fr" data-node="e2" data-hl="1" x="54" y="54" width="292" height="116" rx="6"/><rect class="fr" data-node="e3" data-hl="2" x="148" y="60" width="184" height="28" rx="6"/><rect class="fr" data-node="e4" data-hl="3" x="148" y="92" width="184" height="28" rx="6"/><rect class="fr" data-node="e5" data-hl="4" x="148" y="126" width="154" height="24" rx="6"/><rect class="fr" data-node="e6" data-hl="5" x="194" y="182" width="76" height="32" rx="6"/><rect class="fr" data-node="e7" data-hl="6" x="274" y="182" width="76" height="32" rx="6"/></svg>
+<div class="treebox"><p class="treehead">ui_snapshot 的文字版</p><ol class="axtree"><li tabindex="0" data-node="e1" data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;匯出&quot; (40,20 320×210)</li><li tabindex="0" data-node="e2" data-show="1" data-hl="1" style="--lvl:1">[e2] AXGroup (56,56 288×112)</li><li tabindex="0" data-node="e3" data-show="2" data-hl="2" style="--lvl:2">[e3] AXTextField = &quot;report&quot; desc=&quot;檔案名稱&quot; (150,62 180×24) focused</li><li tabindex="0" data-node="e4" data-show="3" data-hl="3" style="--lvl:2">[e4] AXTextField/AXSecureTextField = ‹masked› desc=&quot;密碼&quot; (150,94 180×24)</li><li tabindex="0" data-node="e5" data-show="4" data-hl="4" style="--lvl:2">[e5] AXCheckBox &quot;完成後開啟&quot; = 1 (150,128 150×20)</li><li tabindex="0" data-node="e6" data-show="5" data-hl="5" style="--lvl:1">[e6] AXButton &quot;取消&quot; (196,184 72×28)</li><li tabindex="0" data-node="e7" data-show="6" data-hl="6" style="--lvl:1">[e7] AXButton &quot;好&quot; (276,184 72×28)</li></ol></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停" data-resume="繼續" data-replay="重播">重播</button></div>
+<figcaption>動畫：一個示意用的對話框，以及 ui_snapshot 為它回傳的樹，用工具的文字格式一個節點一個節點長出來。每個節點都有角色、標題或值、ref（e1 到 e7）和 frame。frame 用的是螢幕點座標，和 screenshot、mouse 同一套，所以亮起來的那一行，會對上對話框裡框起來的區域。密碼欄位顯示 ‹masked›：工具從不讀它的值。把游標移到某一行、用鍵盤選取或點一下，就能看到它的 frame。</figcaption>
+</figure>
+<p>下面是在一台 M4 Mac mini 上對 Finder 拍的真實快照，當時沒有開任何 Finder 視窗，所以這個「視窗」就是桌面本身，裡面兩張圖是兩顆已掛載磁碟的圖示。工具會回傳一份給模型讀的文字版：</p>
+<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+    [e3] AXImage &quot;Data&quot; (1823,145 64×64)
+    [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
+<p>以及同一棵樹的 JSON（節錄，省略了部分欄位）：</p>
+<pre><code>{
+  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
+  &quot;node_count&quot;: 4,
+  &quot;truncated&quot;: false,
+  &quot;timed_out&quot;: false,
+  &quot;elapsed_ms&quot;: 46,
+  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;windows&quot;: [
+    { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
+      &quot;enabled&quot;: false,
+      &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
+      &quot;children&quot;: [
+        { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;children&quot;: [
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
+              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+              &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
+          ] }
+      ] }
+  ]
+}</code></pre>
+<p>這一次讀到四個節點，花了 46 ms。磁碟名稱在這裡換成了通用名稱。agent 想打開「Data」這顆磁碟，只要對 e3 的
+frame 中心 (1855, 177) 按兩下，不必先截圖找它在哪裡。</p>
+
+<h2>上限、逾時與隱私</h2>
+<p>一次快照有上限。預設最多往下 20 層或 300 個節點，整個呼叫給 3 秒；呼叫端可以調高到 50 層、
+2,000 個節點和 10 秒。每次呼叫 accessibility API 之前，工具都會設定最多半秒的訊息逾時，所以一個已經沒有回應的 app 拖不住它。</p>
+<p>碰到上限或時間用完時，agent 拿到的是目前已經讀到的部分，標上 <code>truncated</code> 或
+<code>timed_out</code>，不會變成錯誤。很長的文字只讀前 200 個字元，大份文件不會被整份複製出來。</p>
+<p>密碼欄位一律遮蔽。遇到安全文字欄位，工具根本不會去要它的值，也不會往裡面讀。其他欄位則不遮蔽。</p>
+<p>這點很重要，因為這棵樹裡有截圖看不到的文字：捲到畫面外的列、收合起來的內容、其他視窗。所以
+<code>ui_snapshot</code> 只開放給 <code>owner</code> profile，而且需要 macOS 的「輔助使用」權限，也就是 <code>mouse</code> 和 <code>key</code> 本來就在用的那一個。</p>
+
+<h2>哪種畫面用哪個工具</h2>
+<ul>
+<li>原生 Mac app：<code>ui_snapshot</code>。</li>
+<li>網頁：<code>browser_snapshot</code>，從瀏覽器讀取頁面結構。</li>
+<li>自己繪製的內容，例如 canvas，沒有 accessibility tree：照舊用 <code>screenshot</code> 加
+<code>mouse</code>。</li>
+</ul>
+
+<h2>和 Agent Desktop 一樣的地方，以及還不一樣的地方</h2>
+<p>一樣的：兩者都讀 macOS 的 accessibility API，回傳 JSON 而不是圖片；都替元素配上只在單次快照內有效的
+ref，差別是我們替每個節點都配，Agent Desktop 只替 agent 能操作的元素配；讀不完時都回傳部分的樹，而不是直接失敗；兩者裡面都沒有模型，迴圈由呼叫它的
+agent 自己跑。</p>
+<p>目前不一樣的：</p>
+<ul>
+<li><strong>OpenAB Computer 只能讀。</strong>Agent Desktop 已經能用 ref 點擊、輸入、設定值、移動焦點，而且不動游標。用 OpenAB Computer 的 agent 還是得用 <code>mouse</code> 點座標，真正的游標還是會動。</li>
+<li><strong>ref。</strong>我們的 ref 只是單次快照裡的標籤，工具本身不保留狀態。Agent Desktop
+會把每個 ref 對應到辨識元素用的資訊並存下來，動作之前先確認還是同一個元素。</li>
+<li><strong>平台。</strong>OpenAB Computer 目前只在 macOS 上讀得到這棵樹，Agent Desktop 支援
+macOS、Windows 和 Linux。</li>
+<li><strong>形式。</strong><code>ui_snapshot</code> 是遠端 MCP server 裡的一個工具，給另一台機器上的 agent 使用。Agent Desktop 則在本機以 CLI、C 函式庫或 stdio MCP server 的形式執行。</li>
+</ul>
+
+<h2>接下來（尚未推出）</h2>
+<p>第二階段是 <code>ui_action(ref)</code>：用 ref 按按鈕、設定欄位的值、移動焦點或打開選單，不移動游標。真正解決游標被搶走的，是這一段。它也會把目前樹裡沒有的選單列加進來。對密碼欄位設定值則會被拒絕。</p>
+<figure class="fig anim next" data-steps="4" data-ms="1400" aria-label="動畫：規劃中的第二階段，尚未推出。拍完快照後，agent 帶著快照 id、ref e7 和 press 這個動作呼叫 ui_action。OpenAB Computer 透過 accessibility API 按下「好」，游標留在原地不動。接著 agent 再拍一次快照確認。內容依照 PR #93 裡的草案，細節還可能改變。">
+<p class="badge">下一步：ui_action · 開發中，尚未推出</p>
+<div class="pair">
+<svg viewBox="0 122 400 128" role="img" aria-label="匯出"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">匯出</text><text class="fs2" x="64" y="78">檔案名稱</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">密碼</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">完成後開啟</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">取消</text><g class="okbtn" data-hl="2"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">好</text></g><path class="cursor" d="M92 140 l0 18 l5 -5 l4 9 l3 -1.5 l-4 -9 l7 0z"/><text class="fs" data-hl="2 3" x="104" y="176">游標留在原地</text></svg>
+<div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0">ui_snapshot → [e7] AXButton &quot;好&quot; (276,184 72×28)</li><li data-show="1" data-hl="1">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e7&quot;, action: &quot;press&quot; }</li><li data-show="2" data-hl="2">→ 對 e7 執行 AXPress，游標沒有移動</li><li data-show="3" data-hl="3">再拍一次 ui_snapshot 確認結果</li></ol></div>
+</div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停" data-resume="繼續" data-replay="重播">重播</button></div>
+<figcaption>動畫：規劃中的第二階段，尚未推出。拍完快照後，agent 帶著快照 id、ref e7 和 press 這個動作呼叫 ui_action。OpenAB Computer 透過 accessibility API 按下「好」，游標留在原地不動。接著 agent 再拍一次快照確認。內容依照 PR #93 裡的草案，細節還可能改變。</figcaption>
+</figure>
+<p>macOS 之後，規劃中的是以 AT-SPI 為基礎的 Linux 版本。兩者都還沒有時程，issue #67 會繼續開著追蹤。</p>
+
+<p class="outro">想試試看的話：更新到 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.9.0">OpenAB Computer 0.9.0</a>，給它「輔助使用」權限，再從使用 <code>owner</code> profile 的 agent 呼叫 <code>ui_snapshot</code>。</p>
+<script>
+// Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
+// No JS or prefers-reduced-motion: the figure stays in its complete, static state. Reduced
+// motion never autoplays; the Replay button still plays it on request, without transitions.
+// ?fig-step=N freezes every figure at step N (used for preview screenshots).
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var freeze = new URLSearchParams(location.search).get("fig-step");
+  document.querySelectorAll("figure.anim").forEach(function (fig) {
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100, at = -1, timer = null;
+    var els = fig.querySelectorAll("[data-show],[data-hl]");
+    var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
+    function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
+    function render() {
+      fig.classList.toggle("playing", at >= 0);
+      els.forEach(function (e) {
+        var s = e.dataset.show, h = e.dataset.hl;
+        e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
+        e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
+      });
+      btn.textContent = btn.dataset[timer ? "pause" : at >= 0 ? "resume" : "replay"];
+    }
+    function stop() { clearInterval(timer); timer = null; }
+    function tick() {
+      at += 1;
+      if (at >= n) { stop(); at = -1; }
+      render();
+    }
+    function play() { stop(); timer = setInterval(tick, ms); render(); }
+    btn.addEventListener("click", function () {
+      if (timer) { stop(); render(); }
+      else { if (at < 0) at = -1, tick(); play(); }
+    });
+    ctl.hidden = false;
+    // Link a tree line with its frame (and back) on hover, focus or tap.
+    function link(id, on) {
+      fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
+        e.classList.toggle("link", on);
+      });
+    }
+    fig.querySelectorAll("li[data-node]").forEach(function (li) {
+      var id = li.dataset.node;
+      ["mouseenter", "focus"].forEach(function (ev) {
+        li.addEventListener(ev, function () { if (timer) { stop(); at = -1; render(); } link(id, true); });
+      });
+      li.addEventListener("click", function () {
+        fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
+        link(id, true);
+      });
+      ["mouseleave", "blur"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, false); });
+      });
+    });
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); render(); return; }
+    render();
+    if (reduce || !("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (es) {
+      if (es[0].isIntersecting) { io.disconnect(); at = -1; tick(); play(); }
+    }, { threshold: 0.45 });
+    io.observe(fig);
+  });
+})();
+</script>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>

@@ -205,6 +205,118 @@ section.participate h2 { margin-bottom: 1.4rem; }
 .step-name { margin: 0; font-size: 1.12rem; line-height: 1.35; font-weight: 700; }
 .step .card-link { margin-top: auto; }
 
+/* ── Dev notes (index and note pages) ── */
+main.notes, main.note { max-width: 720px; margin: 0 auto; padding: 24px 24px 0; }
+main.notes h1 { text-align: center; font-size: clamp(1.8rem, 6vw, 2.6rem); }
+main.notes .intro { margin-bottom: 2rem; }
+.note-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.note-item { gap: 8px; }
+.note-title { margin: 0; font-size: 1.28rem; line-height: 1.35; font-weight: 700; }
+.when, .byline { color: var(--muted); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.note h1 {
+  font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.25; margin: 6px 0 6px; text-wrap: balance;
+}
+html[data-lang="zh"] .note h1,
+html[data-lang="ja"] .note h1,
+html[data-lang="ko"] .note h1 { font-size: clamp(1.45rem, 5vw, 2.2rem); line-height: 1.4; }
+/* The zh title is Latin words and short Han phrases separated by spaces: break at the spaces. */
+html[data-lang="zh"] .note h1, html[data-lang="zh"] .note-title { word-break: keep-all; overflow-wrap: anywhere; }
+.note .back { margin: 0; font-size: 0.92rem; }
+.note .back a { color: var(--muted); text-decoration: none; }
+.note .back a:hover { color: var(--ink); }
+.note .byline { margin: 0 0 1.6rem; }
+.note .lede { font-size: 1.12rem; line-height: 1.75; }
+.note h2 { text-align: left; font-size: 1.3rem; margin: 2.2rem 0 0.4rem; line-height: 1.4; }
+html[data-lang="zh"] .note h2,
+html[data-lang="ja"] .note h2,
+html[data-lang="ko"] .note h2 { font-size: 1.3rem; }
+.note p, .note li { overflow-wrap: break-word; }
+html[data-lang="zh"] .note p, html[data-lang="zh"] .note li,
+html[data-lang="ja"] .note p, html[data-lang="ja"] .note li { line-height: 1.9; }
+.note ul { padding-left: 1.3em; }
+.note li { margin: 0.35rem 0; }
+.note code {
+  font: 0.88em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--accent-tint); border-radius: 5px; padding: 0.1em 0.35em;
+}
+.note pre {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px 16px; overflow-x: auto; box-shadow: var(--shadow);
+}
+.note pre code { background: none; padding: 0; font-size: 0.8rem; line-height: 1.55; white-space: pre; }
+.note .outro {
+  margin-top: 2.2rem; padding: 16px 18px; border-radius: 14px;
+  background: var(--accent-tint); border: 1px solid var(--border);
+}
+.note .callout {
+  margin: 1.6rem 0; padding: 4px 20px 6px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  box-shadow: var(--shadow);
+}
+.note .callout h2 { margin-top: 0.9rem; font-size: 1.1rem; }
+
+/* Animated figures (scripts/figures.py + figs.js). Without JS everything is shown. */
+.fig {
+  margin: 1.8rem 0; padding: 16px; border-radius: 14px;
+  background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.fig svg { display: block; width: 100%; height: auto; font-family: inherit; }
+.fig .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.fig .pair { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.fig .pair svg { max-width: 460px; margin: 0 auto; }
+.fig figcaption { margin-top: 12px; color: var(--muted); font-size: 0.86rem; line-height: 1.6; }
+.fig text { fill: var(--ink); }
+.fig .ft { font-size: 15px; font-weight: 700; fill: var(--accent-deep); }
+.fig .fm { font-size: 13.5px; font-weight: 600; }
+.fig .fs { font-size: 11px; fill: var(--muted); }
+.fig .fs2 { font-size: 12px; }
+.fig .box { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; transition: fill .3s, stroke .3s; }
+.fig g.hl .box { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.fig .arr { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.fig .arrh { fill: var(--muted); }
+.fig .meter { fill: var(--accent-tint); }
+.fig .seg { fill: var(--accent); }
+.fig .off { opacity: 0; }
+.fig [data-show] { transition: opacity .35s; }
+.fig .screen { fill: var(--bg); stroke: var(--border); }
+.fig .win { fill: var(--card); stroke: var(--border); stroke-width: 1.4; }
+.fig .winbar { fill: var(--accent-tint); }
+.fig .dot { fill: var(--brush); }
+.fig .field { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }
+.fig .field.focus { stroke: var(--accent); stroke-width: 2; }
+.fig .tick { fill: none; stroke: var(--accent); stroke-width: 2; }
+.fig .btn2 { fill: var(--bg); stroke: var(--border); }
+.fig .btnok { fill: var(--accent); transition: fill .2s; }
+.fig .fok { font-size: 12px; font-weight: 600; fill: #fff; }
+@media (prefers-color-scheme: dark) { .fig .fok { fill: #14101F; } }
+.fig g.okbtn.hl .btnok { fill: var(--accent-deep); stroke: var(--accent); stroke-width: 4; }
+.fig .cursor { fill: var(--ink); stroke: var(--card); stroke-width: 1.2; }
+.fig text.hl { fill: var(--accent-deep); font-weight: 700; }
+.fig .fr { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 5 3; opacity: 0; transition: opacity .25s; }
+.fig .fr.hl, .fig .fr.link { opacity: 1; }
+.fig .treehead { margin: 0 0 6px; font-size: 0.8rem; color: var(--muted); }
+.fig .axtree {
+  list-style: none; margin: 0; padding: 8px 0; overflow-x: auto;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  font: 0.74rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.note .fig .axtree li {
+  margin: 0; padding: 2px 10px 2px calc(10px + 2em + var(--lvl, 0) * 1.3em); text-indent: -2em;
+  white-space: normal; overflow-wrap: anywhere; border-radius: 4px; cursor: default; transition: background .25s, opacity .35s;
+}
+.fig .axtree li:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.fig .axtree li.hl, .fig .axtree li.link { background: var(--accent-tint); }
+.fig .badge {
+  display: inline-block; margin: 0 0 10px; padding: 2px 10px; border-radius: 999px;
+  border: 1px dashed var(--accent); color: var(--accent-deep); font-size: 0.82rem; font-weight: 600;
+}
+.figctl { margin-top: 10px; }
+.figbtn {
+  font: inherit; font-size: 0.85rem; padding: 4px 14px; border-radius: 999px; cursor: pointer;
+  color: var(--accent-deep); background: var(--accent-tint); border: 1px solid var(--border);
+}
+.figbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 footer {
   max-width: 1040px; margin: 40px auto 0; padding: 26px 24px 48px;
   border-top: 1px solid var(--border);
@@ -223,11 +335,15 @@ footer a { color: var(--muted); }
   .tag { font-size: 1.02rem; }
   br.wide { display: none; }
   section.products, section.participate { padding: 2.6rem 16px 0; }
+  main.notes, main.note { padding: 12px 18px 0; }
   .grid { grid-template-columns: 1fr; }
   .card { padding: 20px; }
+  .fig { padding: 12px; }
+  .fig .panels { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero .logo { animation: none; }
   .card, .btn { transition: none; }
+  .fig *, .fig [data-show] { transition: none !important; }
 }

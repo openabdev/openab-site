@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dev notes — OpenAB</title>
+<meta name="description" content="Notes from building OpenAB: what we changed, why, and what we learned on the way.">
+<link rel="canonical" href="https://openab.dev/notes/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Dev notes — OpenAB">
+<meta property="og:description" content="Notes from building OpenAB: what we changed, why, and what we learned on the way.">
+<meta property="og:url" content="https://openab.dev/notes/">
+<meta property="og:image" content="https://openab.dev/notes/og-en.png?v=031bc82c">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB dev notes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dev notes — OpenAB">
+<meta name="twitter:description" content="Notes from building OpenAB: what we changed, why, and what we learned on the way.">
+<meta name="twitter:image" content="https://openab.dev/notes/og-en.png?v=031bc82c">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../style.css?v=c1eefada">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../"><img src="../assets/brand-64.png?v=99caab3e" srcset="../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../#projects">Projects</a>
+    <a href="../#participate">Participate</a>
+    <a href="../notes/" aria-current="page">Dev notes</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../zh/notes/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../ja/notes/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../ko/notes/" data-lang="ko" hreflang="ko">한국어</a>|<a class="active" aria-current="page" href="../notes/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="notes">
+  <h1>Dev notes</h1>
+  <p class="intro">Notes from building OpenAB: what we changed, why, and what we learned on the way.</p>
+  <ul class="note-list">
+  <li>
+    <a class="card note-item" href="accessibility-tree/">
+      <time class="when" datetime="2026-11-09">2026-11-09</time>
+      <h2 class="note-title">OpenAB Computer can now read the macOS accessibility tree</h2>
+      <p class="card-desc">OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.</p>
+      <span class="card-link">Read the note</span>
+    </a>
+  </li>
+  </ul>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>
