@@ -310,11 +310,12 @@ html[data-lang="ja"] .note p, html[data-lang="ja"] .note li { line-height: 1.9; 
   display: inline-block; margin: 0 0 10px; padding: 2px 10px; border-radius: 999px;
   border: 1px dashed var(--accent); color: var(--accent-deep); font-size: 0.82rem; font-weight: 600;
 }
-.figctl { margin-top: 10px; }
+.figctl { margin-top: 8px; text-align: right; }
 .figbtn {
-  font: inherit; font-size: 0.85rem; padding: 4px 14px; border-radius: 999px; cursor: pointer;
-  color: var(--accent-deep); background: var(--accent-tint); border: 1px solid var(--border);
+  font: inherit; font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; cursor: pointer;
+  color: var(--muted); background: transparent; border: 1px solid var(--border);
 }
+.figbtn:hover { color: var(--ink); }
 .figbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 footer {

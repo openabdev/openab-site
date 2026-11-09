@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=c1eefada">
+<link rel="stylesheet" href="../../style.css?v=a955ab81">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -89,7 +89,7 @@ priority and started with macOS.</p>
 <svg viewBox="0 0 320 300" role="img" aria-label="Screenshot loop"><text class="ft" x="16" y="22">Screenshot loop</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">Screenshot</text><text class="fs" x="28" y="73">a full image, every step</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">Model guesses x, y</text><text class="fs" x="28" y="129">small targets get missed</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">mouse moves and clicks</text><text class="fs" x="28" y="185">the real cursor is taken over</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">Screenshot again to check</text><text class="fs" x="28" y="241">another image</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">image tokens</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="4" x="160" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="7" x="232" y="278" width="70" height="10" rx="5"/></svg>
 <svg viewBox="0 0 320 300" role="img" aria-label="With ui_snapshot"><text class="ft" x="16" y="22">With ui_snapshot</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">ui_snapshot</text><text class="fs" x="28" y="73">text and JSON, no image</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">Find the node by role and title</text><text class="fs" x="28" y="129">AXButton &quot;OK&quot; → ref e7 and its frame</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">Click the center of its frame</text><text class="fs" x="28" y="185">today with mouse; phase 2: ui_action(ref)</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">ui_snapshot again to check</text><text class="fs" x="28" y="241">a new snapshot with new refs</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">image tokens: none</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/></svg>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
 <figcaption>Animation: the screenshot loop next to ui_snapshot. On the left, every step sends a screenshot, the model guesses coordinates, mouse moves the real cursor to click, and another screenshot checks the result, so image tokens add up. On the right, ui_snapshot returns text; the agent finds the node by role and title, clicks the center of its frame (today still with mouse; phase 2 plans ui_action by ref), then takes a new snapshot. No image is sent.</figcaption>
 </figure>
 
@@ -125,7 +125,7 @@ ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot'
 <svg viewBox="0 0 400 260" role="img" aria-label="Export"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">Export</text><text class="fs2" x="64" y="78">File name</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">Password</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">Open when done</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">Cancel</text><g class="okbtn"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">OK</text></g><rect class="fr" data-node="e1" data-hl="0" x="38" y="18" width="324" height="214" rx="6"/><rect class="fr" data-node="e2" data-hl="1" x="54" y="54" width="292" height="116" rx="6"/><rect class="fr" data-node="e3" data-hl="2" x="148" y="60" width="184" height="28" rx="6"/><rect class="fr" data-node="e4" data-hl="3" x="148" y="92" width="184" height="28" rx="6"/><rect class="fr" data-node="e5" data-hl="4" x="148" y="126" width="154" height="24" rx="6"/><rect class="fr" data-node="e6" data-hl="5" x="194" y="182" width="76" height="32" rx="6"/><rect class="fr" data-node="e7" data-hl="6" x="274" y="182" width="76" height="32" rx="6"/></svg>
 <div class="treebox"><p class="treehead">ui_snapshot, text form</p><ol class="axtree"><li tabindex="0" data-node="e1" data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;Export&quot; (40,20 320×210)</li><li tabindex="0" data-node="e2" data-show="1" data-hl="1" style="--lvl:1">[e2] AXGroup (56,56 288×112)</li><li tabindex="0" data-node="e3" data-show="2" data-hl="2" style="--lvl:2">[e3] AXTextField = &quot;report&quot; desc=&quot;File name&quot; (150,62 180×24) focused</li><li tabindex="0" data-node="e4" data-show="3" data-hl="3" style="--lvl:2">[e4] AXTextField/AXSecureTextField = ‹masked› desc=&quot;Password&quot; (150,94 180×24)</li><li tabindex="0" data-node="e5" data-show="4" data-hl="4" style="--lvl:2">[e5] AXCheckBox &quot;Open when done&quot; = 1 (150,128 150×20)</li><li tabindex="0" data-node="e6" data-show="5" data-hl="5" style="--lvl:1">[e6] AXButton &quot;Cancel&quot; (196,184 72×28)</li><li tabindex="0" data-node="e7" data-show="6" data-hl="6" style="--lvl:1">[e7] AXButton &quot;OK&quot; (276,184 72×28)</li></ol></div>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
 <figcaption>Animation: a made-up dialog and the tree ui_snapshot returns for it, built node by node in the tool&#x27;s text form. Each node has a role, a title or value, a ref (e1 to e7) and a frame. Frames are in screen points, the same coordinates screenshot and mouse use, so each highlighted line matches the outlined area of the dialog. The password field shows ‹masked›: the tool never reads its value. Hover over, focus or tap a line to see its frame.</figcaption>
 </figure>
 <p>Here is a real snapshot of Finder on an M4 Mac mini, taken with no Finder window open. The
@@ -217,7 +217,7 @@ refused.</p>
 <svg viewBox="0 122 400 128" role="img" aria-label="Export"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">Export</text><text class="fs2" x="64" y="78">File name</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">Password</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">Open when done</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">Cancel</text><g class="okbtn" data-hl="2"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">OK</text></g><path class="cursor" d="M92 140 l0 18 l5 -5 l4 9 l3 -1.5 l-4 -9 l7 0z"/><text class="fs" data-hl="2 3" x="104" y="176">cursor stays here</text></svg>
 <div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0">ui_snapshot → [e7] AXButton &quot;OK&quot; (276,184 72×28)</li><li data-show="1" data-hl="1">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e7&quot;, action: &quot;press&quot; }</li><li data-show="2" data-hl="2">→ AXPress on e7; the cursor does not move</li><li data-show="3" data-hl="3">ui_snapshot again to check the result</li></ol></div>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause" data-resume="Resume" data-replay="Replay">Replay</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
 <figcaption>Animation of the planned phase 2, not shipped. After a snapshot, the agent calls ui_action with the snapshot id, ref e7 and the action press. OpenAB Computer presses the OK button through the accessibility API and the cursor stays where it was. The agent then takes a new snapshot to check. This follows the sketch in PR #93; the details may change.</figcaption>
 </figure>
 <p>After macOS, a Linux version based on AT-SPI is planned. Neither has a date. Issue #67 stays
@@ -228,14 +228,18 @@ permission, and call <code>ui_snapshot</code> from an agent with the <code>owner
 profile.</p>
 <script>
 // Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
-// No JS or prefers-reduced-motion: the figure stays in its complete, static state. Reduced
-// motion never autoplays; the Replay button still plays it on request, without transitions.
+// Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete
+// state held for HOLD ms, then again. Off-screen figures are paused (IntersectionObserver).
+// A small Pause/Play toggle stops the motion (WCAG 2.2.2); playing never depends on it.
+// No JS or prefers-reduced-motion: the complete static state, no autoplay (Play still works).
 // ?fig-step=N freezes every figure at step N (used for preview screenshots).
 (function () {
+  var HOLD = 1800;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var freeze = new URLSearchParams(location.search).get("fig-step");
   document.querySelectorAll("figure.anim").forEach(function (fig) {
-    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100, at = -1, timer = null;
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100;
+    var at = -1, timer = null, visible = false, paused = reduce;
     var els = fig.querySelectorAll("[data-show],[data-hl]");
     var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
     function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
@@ -246,21 +250,27 @@ profile.</p>
         e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
         e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
       });
-      btn.textContent = btn.dataset[timer ? "pause" : at >= 0 ? "resume" : "replay"];
+      btn.textContent = btn.dataset[paused ? "play" : "pause"];
+      btn.setAttribute("aria-pressed", paused ? "true" : "false");
     }
-    function stop() { clearInterval(timer); timer = null; }
-    function tick() {
-      at += 1;
-      if (at >= n) { stop(); at = -1; }
+    function stop() { clearTimeout(timer); timer = null; }
+    function next() {
+      at = at + 1 >= n ? -1 : at + 1;   // -1 is the complete state between loops
+      render();
+      timer = setTimeout(next, at < 0 ? HOLD : ms);
+    }
+    function sync() {
+      stop();
+      if (visible && !paused) timer = setTimeout(next, at < 0 ? 400 : ms);
       render();
     }
-    function play() { stop(); timer = setInterval(tick, ms); render(); }
     btn.addEventListener("click", function () {
-      if (timer) { stop(); render(); }
-      else { if (at < 0) at = -1, tick(); play(); }
+      paused = !paused;
+      if (paused) at = -1;   // stopping shows the complete diagram
+      sync();
     });
     ctl.hidden = false;
-    // Link a tree line with its frame (and back) on hover, focus or tap.
+    // Link a tree line with its frame on hover, focus or tap; works while the loop runs.
     function link(id, on) {
       fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
         e.classList.toggle("link", on);
@@ -269,7 +279,7 @@ profile.</p>
     fig.querySelectorAll("li[data-node]").forEach(function (li) {
       var id = li.dataset.node;
       ["mouseenter", "focus"].forEach(function (ev) {
-        li.addEventListener(ev, function () { if (timer) { stop(); at = -1; render(); } link(id, true); });
+        li.addEventListener(ev, function () { link(id, true); });
       });
       li.addEventListener("click", function () {
         fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
@@ -279,13 +289,13 @@ profile.</p>
         li.addEventListener(ev, function () { link(id, false); });
       });
     });
-    if (freeze !== null) { at = Math.min(+freeze, n - 1); render(); return; }
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); paused = true; render(); return; }
     render();
-    if (reduce || !("IntersectionObserver" in window)) return;
-    var io = new IntersectionObserver(function (es) {
-      if (es[0].isIntersecting) { io.disconnect(); at = -1; tick(); play(); }
-    }, { threshold: 0.45 });
-    io.observe(fig);
+    if (!("IntersectionObserver" in window)) { visible = true; sync(); return; }
+    new IntersectionObserver(function (es) {
+      visible = es[es.length - 1].isIntersecting;
+      sync();
+    }, { threshold: 0.35 }).observe(fig);
   });
 })();
 </script>

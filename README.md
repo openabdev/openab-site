@@ -24,8 +24,9 @@ the card must stay readable at a 600×315 thumbnail.
 
 Notes can embed animated diagrams from `scripts/figures.py` (`{fig_…}` in a body; every
 visible word is localized there). `scripts/figs.js` is inlined into those pages; without JS or
-with `prefers-reduced-motion` the diagrams show their complete static state, and Replay plays
-them on request. `?fig-step=N` freezes every diagram at step N for screenshots.
+the diagrams autoplay when they scroll into view and loop (pausing off-screen), with a small
+Pause/Play toggle; with `prefers-reduced-motion` they show their complete static state and do not
+autoplay. `?fig-step=N` freezes every diagram at step N for screenshots.
 
 Run `og_cards.py` before `build.py` when the cards change, because the pages stamp
 each asset with a content hash (`?v=…`). Links and asset paths are relative, so the

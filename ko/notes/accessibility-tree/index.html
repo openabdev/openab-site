@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=c1eefada">
+<link rel="stylesheet" href="../../../style.css?v=a955ab81">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -88,7 +88,7 @@ document.addEventListener("click", function (e) {
 <svg viewBox="0 0 320 300" role="img" aria-label="스크린샷 루프"><text class="ft" x="16" y="22">스크린샷 루프</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">스크린샷</text><text class="fs" x="28" y="73">단계마다 이미지 한 장</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">모델이 x, y를 짐작</text><text class="fs" x="28" y="129">작은 대상은 빗나가기 쉬움</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">mouse가 움직여 클릭</text><text class="fs" x="28" y="185">실제 커서를 빼앗김</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">다시 찍어서 확인</text><text class="fs" x="28" y="241">또 이미지 한 장</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">이미지 토큰</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/><rect class="seg" data-show="0" x="16" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="3" x="88" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="4" x="160" y="278" width="70" height="10" rx="5"/><rect class="seg" data-show="7" x="232" y="278" width="70" height="10" rx="5"/></svg>
 <svg viewBox="0 0 320 300" role="img" aria-label="ui_snapshot으로"><text class="ft" x="16" y="22">ui_snapshot으로</text><g data-hl="0 4"><rect class="box" x="16" y="36" width="276" height="46" rx="10"/><text class="fm" x="28" y="56">ui_snapshot</text><text class="fs" x="28" y="73">텍스트와 JSON, 이미지 없음</text></g><path class="arr" d="M154 83 v8"/><g data-hl="1 5"><rect class="box" x="16" y="92" width="276" height="46" rx="10"/><text class="fm" x="28" y="112">역할과 제목으로 노드 찾기</text><text class="fs" x="28" y="129">AXButton &quot;확인&quot; → ref e7과 frame</text></g><path class="arr" d="M154 139 v8"/><g data-hl="2 6"><rect class="box" x="16" y="148" width="276" height="46" rx="10"/><text class="fm" x="28" y="168">frame 중심을 클릭</text><text class="fs" x="28" y="185">지금은 mouse, 2단계는 ui_action(ref)</text></g><path class="arr" d="M154 195 v8"/><g data-hl="3 7"><rect class="box" x="16" y="204" width="276" height="46" rx="10"/><text class="fm" x="28" y="224">다시 스냅샷으로 확인</text><text class="fs" x="28" y="241">새 스냅샷, 새 ref</text></g><path class="arr" d="M292 227 h12 V59 h-10"/><path class="arrh" d="M294 55 l7 4 l-7 4z"/><text class="fs" x="16" y="270">이미지 토큰: 0</text><rect class="meter" x="16" y="278" width="288" height="10" rx="5"/></svg>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지" data-resume="계속" data-replay="다시 보기">다시 보기</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지">일시 정지</button></div>
 <figcaption>애니메이션: 스크린샷 루프와 ui_snapshot 비교. 왼쪽은 단계마다 스크린샷을 보내고, 모델이 좌표를 짐작하고, mouse가 실제 커서를 움직여 클릭하고, 다시 스크린샷으로 확인하므로 이미지 토큰이 쌓입니다. 오른쪽은 ui_snapshot이 텍스트를 돌려주고, 에이전트가 역할과 제목으로 노드를 찾아 그 frame의 중심을 클릭한 뒤(지금은 여전히 mouse, 2단계에서는 ref로 ui_action을 호출할 계획) 새 스냅샷을 찍습니다. 이미지는 보내지 않습니다.</figcaption>
 </figure>
 
@@ -124,7 +124,7 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 <svg viewBox="0 0 400 260" role="img" aria-label="내보내기"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">내보내기</text><text class="fs2" x="64" y="78">파일 이름</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">암호</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">완료 후 열기</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">취소</text><g class="okbtn"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">확인</text></g><rect class="fr" data-node="e1" data-hl="0" x="38" y="18" width="324" height="214" rx="6"/><rect class="fr" data-node="e2" data-hl="1" x="54" y="54" width="292" height="116" rx="6"/><rect class="fr" data-node="e3" data-hl="2" x="148" y="60" width="184" height="28" rx="6"/><rect class="fr" data-node="e4" data-hl="3" x="148" y="92" width="184" height="28" rx="6"/><rect class="fr" data-node="e5" data-hl="4" x="148" y="126" width="154" height="24" rx="6"/><rect class="fr" data-node="e6" data-hl="5" x="194" y="182" width="76" height="32" rx="6"/><rect class="fr" data-node="e7" data-hl="6" x="274" y="182" width="76" height="32" rx="6"/></svg>
 <div class="treebox"><p class="treehead">ui_snapshot 텍스트 형식</p><ol class="axtree"><li tabindex="0" data-node="e1" data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;내보내기&quot; (40,20 320×210)</li><li tabindex="0" data-node="e2" data-show="1" data-hl="1" style="--lvl:1">[e2] AXGroup (56,56 288×112)</li><li tabindex="0" data-node="e3" data-show="2" data-hl="2" style="--lvl:2">[e3] AXTextField = &quot;report&quot; desc=&quot;파일 이름&quot; (150,62 180×24) focused</li><li tabindex="0" data-node="e4" data-show="3" data-hl="3" style="--lvl:2">[e4] AXTextField/AXSecureTextField = ‹masked› desc=&quot;암호&quot; (150,94 180×24)</li><li tabindex="0" data-node="e5" data-show="4" data-hl="4" style="--lvl:2">[e5] AXCheckBox &quot;완료 후 열기&quot; = 1 (150,128 150×20)</li><li tabindex="0" data-node="e6" data-show="5" data-hl="5" style="--lvl:1">[e6] AXButton &quot;취소&quot; (196,184 72×28)</li><li tabindex="0" data-node="e7" data-show="6" data-hl="6" style="--lvl:1">[e7] AXButton &quot;확인&quot; (276,184 72×28)</li></ol></div>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지" data-resume="계속" data-replay="다시 보기">다시 보기</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지">일시 정지</button></div>
 <figcaption>애니메이션: 설명용 대화상자와 ui_snapshot이 그에 대해 돌려주는 트리를, 도구의 텍스트 형식으로 노드 하나씩 쌓아 갑니다. 노드마다 역할, 제목이나 값, ref(e1~e7), frame이 있습니다. frame은 screenshot, mouse와 같은 화면 포인트 좌표라서, 강조된 줄은 대화상자에서 테두리로 표시된 영역과 맞습니다. 암호 입력란은 ‹masked›로 표시되며 도구는 그 값을 읽지 않습니다. 줄에 포인터를 올리거나, 포커스하거나, 탭하면 그 frame이 보입니다.</figcaption>
 </figure>
 <p>아래는 M4 Mac mini에서 Finder 창을 하나도 열지 않은 상태로 찍은 실제 스냅샷입니다. 이때 창은
@@ -214,7 +214,7 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 <svg viewBox="0 122 400 128" role="img" aria-label="내보내기"><rect class="screen" x="0" y="0" width="400" height="260"/><text class="fs" x="4" y="12">(0,0)</text><rect class="win" x="40" y="20" width="320" height="210" rx="10"/><path class="winbar" d="M40 30 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="54" cy="32" r="4"/><circle class="dot" cx="66" cy="32" r="4"/><circle class="dot" cx="78" cy="32" r="4"/><text class="fm" x="200" y="37" text-anchor="middle">내보내기</text><text class="fs2" x="64" y="78">파일 이름</text><rect class="field focus" x="150" y="62" width="180" height="24" rx="5"/><text class="fs2" x="158" y="78">report</text><text class="fs2" x="64" y="110">암호</text><rect class="field" x="150" y="94" width="180" height="24" rx="5"/><text class="fs2" x="158" y="111">••••••</text><rect class="field" x="150" y="131" width="14" height="14" rx="3"/><path class="tick" d="M153 138 l3 3 l6 -7"/><text class="fs2" x="170" y="143">완료 후 열기</text><rect class="btn2" x="196" y="184" width="72" height="28" rx="7"/><text class="fs2" x="232" y="203" text-anchor="middle">취소</text><g class="okbtn" data-hl="2"><rect class="btnok" x="276" y="184" width="72" height="28" rx="7"/><text class="fok" x="312" y="203" text-anchor="middle">확인</text></g><path class="cursor" d="M92 140 l0 18 l5 -5 l4 9 l3 -1.5 l-4 -9 l7 0z"/><text class="fs" data-hl="2 3" x="104" y="176">커서는 그대로</text></svg>
 <div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0">ui_snapshot → [e7] AXButton &quot;확인&quot; (276,184 72×28)</li><li data-show="1" data-hl="1">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e7&quot;, action: &quot;press&quot; }</li><li data-show="2" data-hl="2">→ e7에 AXPress, 커서는 움직이지 않음</li><li data-show="3" data-hl="3">다시 ui_snapshot으로 결과 확인</li></ol></div>
 </div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지" data-resume="계속" data-replay="다시 보기">다시 보기</button></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="재생" data-pause="일시 정지">일시 정지</button></div>
 <figcaption>애니메이션: 계획 중인 2단계로, 아직 출시되지 않았습니다. 스냅샷을 찍은 뒤 에이전트는 스냅샷 ID, ref e7, press 동작을 넘겨 ui_action을 호출합니다. OpenAB Computer는 접근성 API로 확인 버튼을 누르고, 커서는 제자리에 있습니다. 그다음 에이전트는 새 스냅샷으로 확인합니다. PR #93의 초안을 따른 것이며 세부 사항은 바뀔 수 있습니다.</figcaption>
 </figure>
 <p>macOS 다음으로는 AT-SPI 기반의 Linux 버전을 계획하고 있습니다. 둘 다 일정은 정해지지 않았고,
@@ -224,14 +224,18 @@ issue #67을 열어 둔 채 둘 다 추적합니다.</p>
 <code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하세요.</p>
 <script>
 // Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
-// No JS or prefers-reduced-motion: the figure stays in its complete, static state. Reduced
-// motion never autoplays; the Replay button still plays it on request, without transitions.
+// Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete
+// state held for HOLD ms, then again. Off-screen figures are paused (IntersectionObserver).
+// A small Pause/Play toggle stops the motion (WCAG 2.2.2); playing never depends on it.
+// No JS or prefers-reduced-motion: the complete static state, no autoplay (Play still works).
 // ?fig-step=N freezes every figure at step N (used for preview screenshots).
 (function () {
+  var HOLD = 1800;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var freeze = new URLSearchParams(location.search).get("fig-step");
   document.querySelectorAll("figure.anim").forEach(function (fig) {
-    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100, at = -1, timer = null;
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100;
+    var at = -1, timer = null, visible = false, paused = reduce;
     var els = fig.querySelectorAll("[data-show],[data-hl]");
     var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
     function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
@@ -242,21 +246,27 @@ issue #67을 열어 둔 채 둘 다 추적합니다.</p>
         e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
         e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
       });
-      btn.textContent = btn.dataset[timer ? "pause" : at >= 0 ? "resume" : "replay"];
+      btn.textContent = btn.dataset[paused ? "play" : "pause"];
+      btn.setAttribute("aria-pressed", paused ? "true" : "false");
     }
-    function stop() { clearInterval(timer); timer = null; }
-    function tick() {
-      at += 1;
-      if (at >= n) { stop(); at = -1; }
+    function stop() { clearTimeout(timer); timer = null; }
+    function next() {
+      at = at + 1 >= n ? -1 : at + 1;   // -1 is the complete state between loops
+      render();
+      timer = setTimeout(next, at < 0 ? HOLD : ms);
+    }
+    function sync() {
+      stop();
+      if (visible && !paused) timer = setTimeout(next, at < 0 ? 400 : ms);
       render();
     }
-    function play() { stop(); timer = setInterval(tick, ms); render(); }
     btn.addEventListener("click", function () {
-      if (timer) { stop(); render(); }
-      else { if (at < 0) at = -1, tick(); play(); }
+      paused = !paused;
+      if (paused) at = -1;   // stopping shows the complete diagram
+      sync();
     });
     ctl.hidden = false;
-    // Link a tree line with its frame (and back) on hover, focus or tap.
+    // Link a tree line with its frame on hover, focus or tap; works while the loop runs.
     function link(id, on) {
       fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
         e.classList.toggle("link", on);
@@ -265,7 +275,7 @@ issue #67을 열어 둔 채 둘 다 추적합니다.</p>
     fig.querySelectorAll("li[data-node]").forEach(function (li) {
       var id = li.dataset.node;
       ["mouseenter", "focus"].forEach(function (ev) {
-        li.addEventListener(ev, function () { if (timer) { stop(); at = -1; render(); } link(id, true); });
+        li.addEventListener(ev, function () { link(id, true); });
       });
       li.addEventListener("click", function () {
         fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
@@ -275,13 +285,13 @@ issue #67을 열어 둔 채 둘 다 추적합니다.</p>
         li.addEventListener(ev, function () { link(id, false); });
       });
     });
-    if (freeze !== null) { at = Math.min(+freeze, n - 1); render(); return; }
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); paused = true; render(); return; }
     render();
-    if (reduce || !("IntersectionObserver" in window)) return;
-    var io = new IntersectionObserver(function (es) {
-      if (es[0].isIntersecting) { io.disconnect(); at = -1; tick(); play(); }
-    }, { threshold: 0.45 });
-    io.observe(fig);
+    if (!("IntersectionObserver" in window)) { visible = true; sync(); return; }
+    new IntersectionObserver(function (es) {
+      visible = es[es.length - 1].isIntersecting;
+      sync();
+    }, { threshold: 0.35 }).observe(fig);
   });
 })();
 </script>

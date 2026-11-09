@@ -1,8 +1,8 @@
 """Animated diagrams for the ui_snapshot dev note, four languages.
 
 Each figure is inline SVG plus HTML, with every visible word taken from S[code], so nothing
-is baked into an image. scripts/figs.js plays them step by step. Without JS, or with
-prefers-reduced-motion, the figure shows its final, complete state:
+is baked into an image. scripts/figs.js plays them step by step, looping while they are on
+screen. Without JS, or with prefers-reduced-motion, the figure shows its final, complete state:
 
   data-show="k"   hidden while playing until step k
   data-hl="k m"   highlighted at steps k and m
@@ -20,7 +20,7 @@ def esc(s):
 
 S = {
     "en": dict(
-        ctl=dict(play="Play", pause="Pause", resume="Resume", replay="Replay"),
+        ctl=dict(play="Play", pause="Pause"),
         loop_l="Screenshot loop", loop_r="With ui_snapshot",
         loop_rows_l=[("Screenshot", "a full image, every step"),
                      ("Model guesses x, y", "small targets get missed"),
@@ -59,7 +59,7 @@ S = {
                 "PR #93; the details may change.",
     ),
     "zh": dict(
-        ctl=dict(play="播放", pause="暫停", resume="繼續", replay="重播"),
+        ctl=dict(play="播放", pause="暫停"),
         loop_l="截圖迴圈", loop_r="改用 ui_snapshot",
         loop_rows_l=[("截圖", "每一步都是一張完整的圖片"),
                      ("模型猜 x, y", "小目標容易點不到"),
@@ -93,7 +93,7 @@ S = {
                 "留在原地不動。接著 agent 再拍一次快照確認。內容依照 PR #93 裡的草案，細節還可能改變。",
     ),
     "ja": dict(
-        ctl=dict(play="再生", pause="一時停止", resume="再開", replay="もう一度"),
+        ctl=dict(play="再生", pause="一時停止"),
         loop_l="スクリーンショットのループ", loop_r="ui_snapshot を使う",
         loop_rows_l=[("スクリーンショット", "毎回、画像を一枚まるごと"),
                      ("モデルが x, y を推測", "小さな対象は外れやすい"),
@@ -132,7 +132,7 @@ S = {
                 "ます。PR #93 の案に沿った内容で、細部は変わる可能性があります。",
     ),
     "ko": dict(
-        ctl=dict(play="재생", pause="일시 정지", resume="계속", replay="다시 보기"),
+        ctl=dict(play="재생", pause="일시 정지"),
         loop_l="스크린샷 루프", loop_r="ui_snapshot으로",
         loop_rows_l=[("스크린샷", "단계마다 이미지 한 장"),
                      ("모델이 x, y를 짐작", "작은 대상은 빗나가기 쉬움"),
@@ -176,9 +176,8 @@ S = {
 def controls(t):
     c = t["ctl"]
     return (f'<div class="figctl" hidden><button type="button" class="figbtn" '
-            f'data-play="{esc(c["play"])}" data-pause="{esc(c["pause"])}" '
-            f'data-resume="{esc(c["resume"])}" data-replay="{esc(c["replay"])}">'
-            f'{esc(c["replay"])}</button></div>')
+            f'data-play="{esc(c["play"])}" data-pause="{esc(c["pause"])}">'
+            f'{esc(c["pause"])}</button></div>')
 
 
 def fig_loop(code):
