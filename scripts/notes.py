@@ -52,7 +52,7 @@ INDEX = {
 }
 
 # Links used by the first note.
-REL = "https://github.com/openabdev/openab-computer/releases/tag/v0.9.0"
+REL10 = "https://github.com/openabdev/openab-computer/releases/tag/v0.10.0"
 PR93 = "https://github.com/openabdev/openab-computer/pull/93"
 ISSUE67 = "https://github.com/openabdev/openab-computer/issues/67"
 TTMUSE = "https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810"
@@ -75,7 +75,7 @@ UIA = "https://learn.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win3
 ATSPI = "https://docs.gtk.org/atspi2/"
 WEB_AX = "https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree"
 
-# A real Finder snapshot taken on an M4 Mac mini with OpenAB Computer 0.9.0 (default limits),
+# A real Finder snapshot taken on an Apple-silicon Mac with OpenAB Computer 0.9.0 (default limits),
 # shown verbatim except: the two drive names are replaced with "Data" and "Backup", the pid is
 # left out, and the JSON is an excerpt (e4, displays and coordinates are cut). The raw output is
 # kept outside this repo as evidence.
@@ -252,15 +252,15 @@ priority and started with macOS.</p>
 <p>Before writing code we read Vercel Labs' {a(AGENT_DESKTOP, "Agent Desktop")} closely: its
 README, its concept docs and its macOS code. Agent Desktop reads the accessibility tree of a
 desktop app and returns it as JSON, with a ref for every element an agent can act on. Three of its
-ideas shaped our plan: the first two are in <code>ui_snapshot</code> today, and the third waits for
-phase 2.</p>
+ideas shaped our plan: the first two are in <code>ui_snapshot</code>, and the third shipped in
+0.10.0 as <code>ui_action</code>.</p>
 <ul>
 <li><strong>Structured text instead of images.</strong> The model reads roles, names and values.
 It does not have to find a button in pixels.</li>
 <li><strong>A ref per element, from one snapshot.</strong> Agent Desktop's refs belong to the
 snapshot that produced them. When the UI changes, a stale or ambiguous ref is rejected instead of
 guessed, and the agent takes a new snapshot.</li>
-<li><strong>Acting without the pointer (phase 2).</strong> Agent Desktop's ref actions go through the
+<li><strong>Acting without the pointer (phase 2, shipped in 0.10.0).</strong> Agent Desktop's ref actions go through the
 accessibility API without moving the pointer or taking focus.</li>
 </ul>
 <p>Issue #67 listed calling Agent Desktop from OpenAB Computer as one option, and weighed less code
@@ -276,7 +276,7 @@ a frame. The frame uses the same display points as <code>screenshot</code> and <
 so an agent can aim a click at a node without looking at the screen first. Every node also gets a
 ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot's id.</p>
 {{fig_tree}}
-<p>Here is a real snapshot of Finder on an M4 Mac mini, taken with no Finder window open. The
+<p>Here is a real snapshot of Finder on an Apple-silicon Mac, taken with no Finder window open. The
 window is the desktop itself, and the two images in it are the icons of two mounted drives. The
 tool returns a text form for the model:</p>
 <pre><code>{{text}}</code></pre>
@@ -316,12 +316,16 @@ elements an agent can act on. Both return a partial tree instead of failing.
 Neither has a model inside; the calling agent runs the loop.</p>
 <p>Different, today:</p>
 <ul>
-<li><strong>OpenAB Computer only reads.</strong> Agent Desktop can already click, type, set values
-and move focus by ref without moving the pointer. An agent on OpenAB Computer still clicks with
-<code>mouse</code> at coordinates, and the real cursor still moves.</li>
-<li><strong>Refs.</strong> Our refs only label one snapshot; the tool keeps no state. Agent Desktop
-stores a map from each ref to evidence of the element's identity, and checks it is the same
-element before acting.</li>
+<li><strong>Acting by ref is new in 0.10.0.</strong> Until then OpenAB Computer only read the tree.
+Agent Desktop could already click, type, set values and move focus by ref without moving the
+pointer. Since 0.10.0, <code>ui_action</code> presses, sets values and moves focus by ref without
+moving the cursor too. Drags, gestures and custom-drawn content still go through
+<code>mouse</code>, and there the real cursor still moves.</li>
+<li><strong>Refs.</strong> Since 0.10.0 the tool keeps the last four snapshots for five minutes.
+Before acting it checks that the element is still there, with the same role and in the same
+window, and refuses a stale ref instead of guessing a replacement. Agent Desktop stores a map from
+each ref to evidence of the element's identity, and checks it is the same element before
+acting.</li>
 <li><strong>Platforms.</strong> OpenAB Computer reads the tree on macOS only. Agent Desktop covers
 macOS, Windows and Linux.</li>
 <li><strong>Shape.</strong> <code>ui_snapshot</code> is one tool in a remote MCP server, used by an
@@ -329,18 +333,20 @@ agent on another machine. Agent Desktop runs locally as a CLI, a C library or a 
 server.</li>
 </ul>
 
-<h2>What's next (not shipped)</h2>
-<p>Phase 2 is <code>ui_action(ref)</code>: press a button, set a field's value, move focus or open
-a menu by ref, without moving the cursor. That is the part that ends the cursor takeover. It will
-also add the menu bar, which today's tree leaves out. Setting a value on a password field will be
-refused.</p>
+<h2>Phase 2 shipped: ui_action in 0.10.0</h2>
+<p>Phase 2 is <code>ui_action</code>, released in {a(REL10, "OpenAB Computer 0.10.0")}. With a
+<code>snapshot_id</code> and a <code>ref</code> it presses a button, sets a field's value, moves
+focus, opens a menu, confirms, cancels, or steps a value up or down, through the accessibility API
+and without moving the cursor. That is the part that ends the cursor takeover. Pass
+<code>include_menu_bar</code> to <code>ui_snapshot</code> and menu bar items get refs too. Through
+a switchboard, setting a value on a password field is refused unless the owner opts in.</p>
 {{fig_action}}
-<p>After macOS, a Linux version based on AT-SPI is planned. Neither has a date. Issue #67 stays
-open to track both.</p>
+<p>Next is a Linux version based on AT-SPI. It has no date yet. Issue #67 stays open to track
+it.</p>
 
-<p class="outro">To try it, update to {a(REL, "OpenAB Computer 0.9.0")}, give it the Accessibility
-permission, and call <code>ui_snapshot</code> from an agent with the <code>owner</code>
-profile.</p>
+<p class="outro">To try it, update to {a(REL10, "OpenAB Computer 0.10.0")}, give it the
+Accessibility permission, and call <code>ui_snapshot</code> and then <code>ui_action</code> from an
+agent with the <code>owner</code> profile.</p>
 """,
             ),
             "zh": dict(
@@ -444,13 +450,13 @@ token，小目標常常點不到，agent 工作時，真正的游標也被搶走
 <h2>從 Agent Desktop 學到的事</h2>
 <p>動手之前，我們仔細讀了 Vercel Labs 的 {a(AGENT_DESKTOP, "Agent Desktop")}：README、概念文件，
 還有 macOS 的程式碼。Agent Desktop 讀取桌面 app 的 accessibility tree，以 JSON 回傳，每個 agent
-能操作的元素都配有一個 ref。其中三個想法影響了我們的規劃：前兩個已經做進 <code>ui_snapshot</code>，
-第三個要等第二階段。</p>
+能操作的元素都配有一個 ref。其中三個想法影響了我們的規劃：前兩個做進了 <code>ui_snapshot</code>，
+第三個在 0.10.0 以 <code>ui_action</code> 推出。</p>
 <ul>
 <li><strong>用結構化的文字取代圖片。</strong>模型讀的是角色、名稱和值，不用在像素裡找按鈕。</li>
 <li><strong>每個元素一個 ref，來自某一次快照。</strong>Agent Desktop 的 ref 只屬於產生它的那次快照。
 畫面一變，過期或對不上的 ref 會直接被拒絕，不會用猜的，agent 重新拍一次快照就好。</li>
-<li><strong>操作不靠游標（第二階段）。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，
+<li><strong>操作不靠游標（第二階段，已在 0.10.0 推出）。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，
 不移動游標，也不搶走焦點。</li>
 </ul>
 <p>issue #67 當初也列過另一個做法：讓 OpenAB Computer 直接呼叫 Agent Desktop，好處是自己要維護的
@@ -465,7 +471,7 @@ token，小目標常常點不到，agent 工作時，真正的游標也被搶走
 <code>screenshot</code>、<code>mouse</code> 相同的顯示點座標，所以 agent 不用先看螢幕，就能對準
 節點點下去。每個節點也有一個 ref（<code>e1</code>、<code>e2</code>⋯⋯），在同一個快照 id 之內不會重複。</p>
 {{fig_tree}}
-<p>下面是在一台 M4 Mac mini 上對 Finder 拍的真實快照，當時沒有開任何 Finder 視窗，所以這個「視窗」
+<p>下面是在一台 Apple 晶片的 Mac 上對 Finder 拍的真實快照，當時沒有開任何 Finder 視窗，所以這個「視窗」
 就是桌面本身，裡面兩張圖是兩顆已掛載磁碟的圖示。工具會回傳一份給模型讀的文字版：</p>
 <pre><code>{{text}}</code></pre>
 <p>以及同一棵樹的 JSON（節錄，省略了部分欄位）：</p>
@@ -498,26 +504,31 @@ ref，差別是我們替每個節點都配，Agent Desktop 只替 agent 能操�
 agent 自己跑。</p>
 <p>目前不一樣的：</p>
 <ul>
-<li><strong>OpenAB Computer 只能讀。</strong>Agent Desktop 已經能用 ref 點擊、輸入、設定值、
-移動焦點，而且不動游標。用 OpenAB Computer 的 agent 還是得用 <code>mouse</code> 點座標，
-真正的游標還是會動。</li>
-<li><strong>ref。</strong>我們的 ref 只是單次快照裡的標籤，工具本身不保留狀態。Agent Desktop
-會把每個 ref 對應到辨識元素用的資訊並存下來，動作之前先確認還是同一個元素。</li>
+<li><strong>用 ref 操作是 0.10.0 才有的。</strong>在那之前 OpenAB Computer 只能讀。Agent Desktop
+早就能用 ref 點擊、輸入、設定值、移動焦點，而且不動游標；從 0.10.0 起，<code>ui_action</code>
+也能用 ref 按下、設定值、移動焦點，游標不動。拖曳、手勢和自己繪製的內容還是得用 <code>mouse</code>，
+這時真正的游標還是會動。</li>
+<li><strong>ref。</strong>從 0.10.0 起，工具會保留最近四次快照五分鐘。動作之前先確認元素還在、角色
+沒變、還在同一個視窗裡；ref 過期就拒絕，不會猜一個替代的。Agent Desktop 會把每個 ref 對應到辨識
+元素用的資訊並存下來，動作之前先確認還是同一個元素。</li>
 <li><strong>平台。</strong>OpenAB Computer 目前只在 macOS 上讀得到這棵樹，Agent Desktop 支援
 macOS、Windows 和 Linux。</li>
 <li><strong>形式。</strong><code>ui_snapshot</code> 是遠端 MCP server 裡的一個工具，給另一台
 機器上的 agent 使用。Agent Desktop 則在本機以 CLI、C 函式庫或 stdio MCP server 的形式執行。</li>
 </ul>
 
-<h2>接下來（尚未推出）</h2>
-<p>第二階段是 <code>ui_action(ref)</code>：用 ref 按按鈕、設定欄位的值、移動焦點或打開選單，
-不移動游標。真正解決游標被搶走的，是這一段。它也會把目前樹裡沒有的選單列加進來。對密碼欄位設定值
-則會被拒絕。</p>
+<h2>第二階段已推出：0.10.0 的 ui_action</h2>
+<p>第二階段是 <code>ui_action</code>，已在 {a(REL10, "OpenAB Computer 0.10.0")} 推出。帶著
+<code>snapshot_id</code> 和 <code>ref</code>，它透過 accessibility API 按按鈕、設定欄位的值、移動焦點、
+打開選單、確認、取消，或把數值調高調低，而且不移動游標。真正解決游標被搶走的，是這一段。對
+<code>ui_snapshot</code> 加上 <code>include_menu_bar</code>，選單列的項目也會有 ref。透過 switchboard
+時，對密碼欄位設定值預設會被拒絕，除非擁有者自己開啟。</p>
 {{fig_action}}
-<p>macOS 之後，規劃中的是以 AT-SPI 為基礎的 Linux 版本。兩者都還沒有時程，issue #67 會繼續開著追蹤。</p>
+<p>接下來是以 AT-SPI 為基礎的 Linux 版本，還沒有時程，issue #67 會繼續開著追蹤。</p>
 
-<p class="outro">想試試看的話：更新到 {a(REL, "OpenAB Computer 0.9.0")}，給它「輔助使用」權限，
-再從使用 <code>owner</code> profile 的 agent 呼叫 <code>ui_snapshot</code>。</p>
+<p class="outro">想試試看的話：更新到 {a(REL10, "OpenAB Computer 0.10.0")}，給它「輔助使用」權限，
+再從使用 <code>owner</code> profile 的 agent 先呼叫 <code>ui_snapshot</code>，再呼叫
+<code>ui_action</code>。</p>
 """,
             ),
             "ja": dict(
@@ -652,15 +663,15 @@ Linux に対応しています。</p>
 <p>コードを書く前に、Vercel Labs の {a(AGENT_DESKTOP, "Agent Desktop")} をじっくり読みました。
 README、コンセプトの文書、そして macOS のコードです。Agent Desktop はデスクトップアプリの
 アクセシビリティツリーを読んで JSON で返し、エージェントが操作できる要素ごとに ref を付けます。
-そのうち三つの考え方が私たちの計画を形づくりました。最初の二つは今の <code>ui_snapshot</code> に
-入っていて、三つ目は第 2 段階で取り組みます。</p>
+そのうち三つの考え方が私たちの計画を形づくりました。最初の二つは <code>ui_snapshot</code> に
+入り、三つ目は 0.10.0 で <code>ui_action</code> としてリリースしました。</p>
 <ul>
 <li><strong>画像ではなく構造化されたテキスト。</strong>モデルが読むのはロール、名前、値です。
 ピクセルの中からボタンを探す必要はありません。</li>
 <li><strong>要素ごとの ref は、一回のスナップショットのもの。</strong>Agent Desktop の ref は、
 それを作ったスナップショットに属します。UI が変われば、古い ref や曖昧な ref は推測せずに
 拒否され、エージェントは新しいスナップショットを撮ります。</li>
-<li><strong>ポインターを使わない操作（第 2 段階）。</strong>Agent Desktop の ref による操作はアクセシビリティ
+<li><strong>ポインターを使わない操作（第 2 段階、0.10.0 でリリース）。</strong>Agent Desktop の ref による操作はアクセシビリティ
 API を通り、ポインターを動かさず、フォーカスも奪いません。</li>
 </ul>
 <p>issue #67 では、OpenAB Computer から Agent Desktop を呼び出す案も挙げていました。自分で持つコードが
@@ -677,7 +688,7 @@ API を通り、ポインターを動かさず、フォーカスも奪いませ�
 なので、エージェントは画面を見なくてもノードを狙ってクリックできます。各ノードには ref
 （<code>e1</code>、<code>e2</code>…）も付き、同じスナップショット ID の中では重複しません。</p>
 {{fig_tree}}
-<p>以下は、M4 Mac mini で Finder のウィンドウを一つも開いていないときに撮った、実際の
+<p>以下は、Apple シリコンの Mac で Finder のウィンドウを一つも開いていないときに撮った、実際の
 スナップショットです。この場合のウィンドウはデスクトップそのもので、中の二つの画像は
 マウントされた二台のドライブのアイコンです。ツールはモデル向けのテキスト版を返します。</p>
 <pre><code>{{text}}</code></pre>
@@ -718,12 +729,15 @@ API を通り、ポインターを動かさず、フォーカスも奪いませ�
 回します。</p>
 <p>今のところ違うところ：</p>
 <ul>
-<li><strong>OpenAB Computer は読むだけです。</strong>Agent Desktop はすでに、ref でクリック、入力、
-値の設定、フォーカスの移動ができ、ポインターも動かしません。OpenAB Computer のエージェントは今も
-<code>mouse</code> で座標をクリックするので、本物のカーソルは動きます。</li>
-<li><strong>ref。</strong>こちらの ref は一回のスナップショットのラベルにすぎず、ツールは状態を
-持ちません。Agent Desktop は ref ごとに要素を特定するための情報を保存し、操作の前に同じ要素で
-あることを確かめます。</li>
+<li><strong>ref による操作は 0.10.0 からです。</strong>それまで OpenAB Computer は読むだけでした。
+Agent Desktop は以前から、ref でクリック、入力、値の設定、フォーカスの移動ができ、ポインターも
+動かしません。0.10.0 からは <code>ui_action</code> も、ref で押す、値を設定する、フォーカスを移す
+操作をカーソルを動かさずに行います。ドラッグ、ジェスチャー、独自に描画された内容は今も
+<code>mouse</code> を使うので、その場合は本物のカーソルが動きます。</li>
+<li><strong>ref。</strong>0.10.0 から、ツールは直近四回のスナップショットを五分間保持します。
+操作の前に、要素がまだあり、ロールが同じで、同じウィンドウの中にあることを確かめ、古い ref は
+代わりを推測せずに拒否します。Agent Desktop は ref ごとに要素を特定するための情報を保存し、
+操作の前に同じ要素であることを確かめます。</li>
 <li><strong>プラットフォーム。</strong>OpenAB Computer がツリーを読めるのは今のところ macOS だけです。
 Agent Desktop は macOS、Windows、Linux に対応しています。</li>
 <li><strong>形。</strong><code>ui_snapshot</code> はリモートの MCP サーバーにあるツールの一つで、
@@ -731,17 +745,20 @@ Agent Desktop は macOS、Windows、Linux に対応しています。</li>
 stdio の MCP サーバーとして動きます。</li>
 </ul>
 
-<h2>次にやること（まだリリースしていません）</h2>
-<p>第 2 段階は <code>ui_action(ref)</code> です。ref を使って、ボタンを押す、入力欄に値を設定する、
-フォーカスを移す、メニューを開く、といった操作をカーソルを動かさずに行います。カーソルを取られる
-問題を解消するのはこの部分です。今のツリーには入っていないメニューバーもここで加えます。
-パスワード欄への値の設定は拒否します。</p>
+<h2>第 2 段階をリリース：0.10.0 の ui_action</h2>
+<p>第 2 段階は <code>ui_action</code> で、{a(REL10, "OpenAB Computer 0.10.0")} でリリースしました。
+<code>snapshot_id</code> と <code>ref</code> を渡すと、アクセシビリティ API を通して、ボタンを押す、
+入力欄に値を設定する、フォーカスを移す、メニューを開く、確定する、キャンセルする、値を上げ下げする、
+といった操作をカーソルを動かさずに行います。カーソルを取られる問題を解消するのはこの部分です。
+<code>ui_snapshot</code> に <code>include_menu_bar</code> を付ければ、メニューバーの項目にも ref が
+付きます。スイッチボード経由では、パスワード欄への値の設定は、所有者が有効にしない限り拒否されます。</p>
 {{fig_action}}
-<p>macOS の次は、AT-SPI を使った Linux 版を予定しています。どちらも日程は決まっていません。
-issue #67 は開いたままにして、両方を追いかけます。</p>
+<p>次は AT-SPI を使った Linux 版です。日程はまだ決まっていません。issue #67 は開いたままにして
+追いかけます。</p>
 
-<p class="outro">試すには、{a(REL, "OpenAB Computer 0.9.0")} に更新してアクセシビリティ権限を与え、
-<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code> を呼んでください。</p>
+<p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、
+<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、続けて
+<code>ui_action</code> を呼んでください。</p>
 """,
             ),
             "ko": dict(
@@ -868,15 +885,15 @@ UI)은 <code>screenshot</code>과 <code>mouse</code>로 돌아갑니다.</p>
 <p>코드를 쓰기 전에 Vercel Labs의 {a(AGENT_DESKTOP, "Agent Desktop")}을 꼼꼼히 읽었습니다.
 README, 개념 문서, 그리고 macOS 코드입니다. Agent Desktop은 데스크톱 앱의 접근성 트리를 읽어
 JSON으로 돌려주고, 에이전트가 조작할 수 있는 요소마다 ref를 붙입니다. 그중 세 가지 생각이
-우리 계획의 모양을 정했습니다. 앞의 두 가지는 지금의 <code>ui_snapshot</code>에 들어 있고, 세 번째는
-2단계에서 다룹니다.</p>
+우리 계획의 모양을 정했습니다. 앞의 두 가지는 <code>ui_snapshot</code>에 들어갔고, 세 번째는
+0.10.0에서 <code>ui_action</code>으로 출시했습니다.</p>
 <ul>
 <li><strong>이미지 대신 구조화된 텍스트.</strong> 모델은 역할, 이름, 값을 읽습니다. 픽셀 속에서
 버튼을 찾지 않아도 됩니다.</li>
 <li><strong>요소마다 하나의 ref, 한 번의 스냅샷에서.</strong> Agent Desktop의 ref는 그것을 만든
 스냅샷에 속합니다. UI가 바뀌면 오래되었거나 모호한 ref는 짐작하지 않고 거부되고, 에이전트는 새
 스냅샷을 찍습니다.</li>
-<li><strong>포인터 없이 조작하기(2단계).</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
+<li><strong>포인터 없이 조작하기(2단계, 0.10.0에서 출시).</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
 포인터를 움직이지 않고 포커스도 가져가지 않습니다.</li>
 </ul>
 <p>issue #67에는 OpenAB Computer에서 Agent Desktop을 호출하는 방안도 있었습니다. 직접 관리할
@@ -892,7 +909,7 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 화면을 먼저 보지 않고도 노드를 겨냥해 클릭할 수 있습니다. 노드마다 ref(<code>e1</code>,
 <code>e2</code>, …)도 붙는데, 같은 스냅샷 ID 안에서는 겹치지 않습니다.</p>
 {{fig_tree}}
-<p>아래는 M4 Mac mini에서 Finder 창을 하나도 열지 않은 상태로 찍은 실제 스냅샷입니다. 이때 창은
+<p>아래는 Apple 실리콘 Mac에서 Finder 창을 하나도 열지 않은 상태로 찍은 실제 스냅샷입니다. 이때 창은
 데스크톱 자체이고, 그 안의 두 이미지는 마운트된 드라이브 두 개의 아이콘입니다. 도구는 모델이
 읽을 텍스트 형식을 돌려줍니다.</p>
 <pre><code>{{text}}</code></pre>
@@ -931,12 +948,15 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 둘 다 안에 모델이 없고, 루프는 호출하는 에이전트가 돌립니다.</p>
 <p>지금 다른 점:</p>
 <ul>
-<li><strong>OpenAB Computer는 읽기만 합니다.</strong> Agent Desktop은 이미 ref로 클릭, 입력, 값
-설정, 포커스 이동을 하고 포인터도 움직이지 않습니다. OpenAB Computer의 에이전트는 여전히
-<code>mouse</code>로 좌표를 클릭하고, 실제 커서는 여전히 움직입니다.</li>
-<li><strong>ref.</strong> 우리 ref는 한 스냅샷의 레이블일 뿐이고 도구는 상태를 두지 않습니다.
-Agent Desktop은 ref마다 요소를 식별할 정보를 저장해 두고, 동작하기 전에 같은 요소인지
-확인합니다.</li>
+<li><strong>ref로 조작하기는 0.10.0부터입니다.</strong> 그전까지 OpenAB Computer는 읽기만 했습니다.
+Agent Desktop은 이미 ref로 클릭, 입력, 값 설정, 포커스 이동을 하고 포인터도 움직이지 않습니다.
+0.10.0부터는 <code>ui_action</code>도 ref로 누르기, 값 설정, 포커스 이동을 커서를 움직이지 않고
+합니다. 드래그, 제스처, 직접 그린 내용은 여전히 <code>mouse</code>를 쓰고, 이때는 실제 커서가
+움직입니다.</li>
+<li><strong>ref.</strong> 0.10.0부터 도구는 최근 스냅샷 네 개를 5분 동안 보관합니다. 동작하기 전에
+요소가 아직 있는지, 역할이 같은지, 같은 창 안에 있는지 확인하고, 오래된 ref는 대신할 요소를 짐작하지
+않고 거부합니다. Agent Desktop은 ref마다 요소를 식별할 정보를 저장해 두고, 동작하기 전에 같은
+요소인지 확인합니다.</li>
 <li><strong>플랫폼.</strong> OpenAB Computer가 트리를 읽는 곳은 아직 macOS뿐입니다. Agent
 Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 <li><strong>형태.</strong> <code>ui_snapshot</code>은 원격 MCP 서버의 도구 하나로, 다른 기기의
@@ -944,16 +964,20 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 실행됩니다.</li>
 </ul>
 
-<h2>다음 단계(아직 출시 전)</h2>
-<p>2단계는 <code>ui_action(ref)</code>입니다. ref로 버튼 누르기, 입력란 값 설정, 포커스 이동,
-메뉴 열기를 커서를 움직이지 않고 합니다. 커서를 빼앗기는 문제를 끝내는 것이 이 부분입니다. 지금
-트리에 빠져 있는 메뉴 막대도 이때 추가합니다. 비밀번호 입력란에 값을 설정하는 것은 거부합니다.</p>
+<h2>2단계 출시: 0.10.0의 ui_action</h2>
+<p>2단계는 <code>ui_action</code>이며 {a(REL10, "OpenAB Computer 0.10.0")}에서 출시했습니다.
+<code>snapshot_id</code>와 <code>ref</code>를 넘기면 접근성 API를 통해 버튼 누르기, 입력란 값 설정,
+포커스 이동, 메뉴 열기, 확인, 취소, 값 올리기와 내리기를 커서를 움직이지 않고 합니다. 커서를 빼앗기는
+문제를 끝내는 것이 이 부분입니다. <code>ui_snapshot</code>에 <code>include_menu_bar</code>를 주면
+메뉴 막대 항목에도 ref가 붙습니다. 스위치보드를 거칠 때는 소유자가 직접 켜지 않는 한 비밀번호
+입력란에 값을 설정하는 것이 거부됩니다.</p>
 {{fig_action}}
-<p>macOS 다음으로는 AT-SPI 기반의 Linux 버전을 계획하고 있습니다. 둘 다 일정은 정해지지 않았고,
-issue #67을 열어 둔 채 둘 다 추적합니다.</p>
+<p>다음은 AT-SPI 기반의 Linux 버전입니다. 아직 일정은 정해지지 않았고, issue #67을 열어 둔 채
+추적합니다.</p>
 
-<p class="outro">써 보려면 {a(REL, "OpenAB Computer 0.9.0")}으로 업데이트하고 손쉬운 사용 권한을 준 뒤,
-<code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하세요.</p>
+<p class="outro">써 보려면 {a(REL10, "OpenAB Computer 0.10.0")}으로 업데이트하고 손쉬운 사용 권한을 준 뒤,
+<code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하고 이어서
+<code>ui_action</code>을 호출하세요.</p>
 """,
             ),
         },

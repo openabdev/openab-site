@@ -28,15 +28,15 @@ S = {
                      ("Screenshot again to check", "another image")],
         loop_rows_r=[("ui_snapshot", "text and JSON, no image"),
                      ("Find the node by role and title", 'AXButton "{ok}" → ref e7 and its frame'),
-                     ("Click the center of its frame", "today with mouse; phase 2: ui_action(ref)"),
+                     ("Act on the ref", "ui_action (0.10.0): the cursor stays"),
                      ("ui_snapshot again to check", "a new snapshot with new refs")],
         meter_l="image tokens", meter_r="image tokens: none",
         loop_cap="Animation: the screenshot loop next to ui_snapshot. On the left, every step "
                  "sends a screenshot, the model guesses coordinates, mouse moves the real cursor "
                  "to click, and another screenshot checks the result, so image tokens add up. On "
                  "the right, ui_snapshot returns text; the agent finds the node by role and title, "
-                 "clicks the center of its frame (today still with mouse; phase 2 plans ui_action "
-                 "by ref), then takes a new snapshot. No image is sent.",
+                 "acts on its ref with ui_action (shipped in 0.10.0) without moving the cursor, "
+                 "then takes a new snapshot. No image is sent.",
         dlg=dict(title="Export", name="File name", pw="Password", check="Open when done",
                  cancel="Cancel", ok="OK"),
         tree_head="ui_snapshot, text form",
@@ -46,17 +46,16 @@ S = {
                  "screenshot and mouse use, so each highlighted line matches the outlined area of "
                  "the dialog. The password field shows ‹masked›: the tool never reads its value. "
                  "Hover over, focus or tap a line to see its frame.",
-        act_badge="Next: ui_action · in progress, not shipped",
+        act_badge="ui_action · shipped in {rel}",
         act_lines=['ui_snapshot → [e7] AXButton "{ok}" (276,184 72×28)',
                    'ui_action {{ snapshot_id: "snap-…", ref: "e7", action: "press" }}',
                    "→ AXPress on e7; the cursor does not move",
                    "ui_snapshot again to check the result"],
         cursor="cursor stays here",
-        act_cap="Animation of the planned phase 2, not shipped. After a snapshot, the agent calls "
-                "ui_action with the snapshot id, ref e7 and the action press. OpenAB Computer "
-                "presses the OK button through the accessibility API and the cursor stays where it "
-                "was. The agent then takes a new snapshot to check. This follows the sketch in "
-                "PR #93; the details may change.",
+        act_cap="Animation: phase 2, ui_action, shipped in OpenAB Computer 0.10.0. After a "
+                "snapshot, the agent calls ui_action with the snapshot id, ref e7 and the action "
+                "press. OpenAB Computer presses the OK button through the accessibility API and the "
+                "cursor stays where it was. The agent then takes a new snapshot to check.",
     ),
     "zh": dict(
         ctl=dict(play="播放", pause="暫停"),
@@ -67,13 +66,13 @@ S = {
                      ("再截一張圖確認", "又是一張圖片")],
         loop_rows_r=[("ui_snapshot", "文字和 JSON，沒有圖片"),
                      ("用角色和標題找到節點", 'AXButton "{ok}" → ref e7 和它的 frame'),
-                     ("點 frame 的中心", "現在用 mouse；第二階段：ui_action(ref)"),
+                     ("用 ref 操作", "ui_action（0.10.0）：游標不動"),
                      ("再拍一次快照確認", "新的快照，新的 ref")],
         meter_l="圖片 token", meter_r="圖片 token：0",
         loop_cap="動畫：截圖迴圈和 ui_snapshot 的對照。左邊每一步都要送一張截圖，模型猜座標，"
                  "mouse 移動真正的游標去點，再截一張圖確認，圖片 token 越疊越多。右邊 ui_snapshot "
-                 "回傳文字，agent 用角色和標題找到節點，點它 frame 的中心（現在還是用 mouse，"
-                 "第二階段規劃用 ref 呼叫 ui_action），再拍一次新的快照。全程不送圖片。",
+                 "回傳文字，agent 用角色和標題找到節點，用 ui_action（已在 0.10.0 推出）對它的 ref "
+                 "操作，游標不動，再拍一次新的快照。全程不送圖片。",
         dlg=dict(title="匯出", name="檔案名稱", pw="密碼", check="完成後開啟",
                  cancel="取消", ok="好"),
         tree_head="ui_snapshot 的文字版",
@@ -82,15 +81,15 @@ S = {
                  "用的是螢幕點座標，和 screenshot、mouse 同一套，所以亮起來的那一行，會對上對話框裡"
                  "框起來的區域。密碼欄位顯示 ‹masked›：工具從不讀它的值。把游標移到某一行、用鍵盤"
                  "選取或點一下，就能看到它的 frame。",
-        act_badge="下一步：ui_action · 開發中，尚未推出",
+        act_badge="ui_action · 已在 {rel} 推出",
         act_lines=['ui_snapshot → [e7] AXButton "{ok}" (276,184 72×28)',
                    'ui_action {{ snapshot_id: "snap-…", ref: "e7", action: "press" }}',
                    "→ 對 e7 執行 AXPress，游標沒有移動",
                    "再拍一次 ui_snapshot 確認結果"],
         cursor="游標留在原地",
-        act_cap="動畫：規劃中的第二階段，尚未推出。拍完快照後，agent 帶著快照 id、ref e7 和 press "
-                "這個動作呼叫 ui_action。OpenAB Computer 透過 accessibility API 按下「好」，游標"
-                "留在原地不動。接著 agent 再拍一次快照確認。內容依照 PR #93 裡的草案，細節還可能改變。",
+        act_cap="動畫：第二階段的 ui_action，已在 OpenAB Computer 0.10.0 推出。拍完快照後，agent "
+                "帶著快照 id、ref e7 和 press 這個動作呼叫 ui_action。OpenAB Computer 透過 "
+                "accessibility API 按下「好」，游標留在原地不動。接著 agent 再拍一次快照確認。",
     ),
     "ja": dict(
         ctl=dict(play="再生", pause="一時停止"),
@@ -101,15 +100,15 @@ S = {
                      ("もう一度撮って確認", "また画像が一枚")],
         loop_rows_r=[("ui_snapshot", "テキストと JSON、画像なし"),
                      ("ロールとタイトルでノードを探す", 'AXButton "{ok}" → ref e7 と frame'),
-                     ("frame の中心をクリック", "今は mouse、第 2 段階で ui_action(ref)"),
+                     ("ref で操作", "ui_action（0.10.0）、カーソルはそのまま"),
                      ("もう一度スナップショットで確認", "新しいスナップショット、新しい ref")],
         meter_l="画像のトークン", meter_r="画像のトークン：0",
         loop_cap="アニメーション：スクリーンショットのループと ui_snapshot の比較。左では一手ごとに"
                  "スクリーンショットを送り、モデルが座標を推測し、mouse が本物のカーソルを動かして"
                  "クリックし、もう一枚撮って確かめるので、画像のトークンが積み上がります。右では "
-                 "ui_snapshot がテキストを返し、エージェントはロールとタイトルでノードを見つけ、その "
-                 "frame の中心をクリックし（今はまだ mouse。第 2 段階では ref で ui_action を呼ぶ"
-                 "予定）、新しいスナップショットを撮ります。画像は送りません。",
+                 "ui_snapshot がテキストを返し、エージェントはロールとタイトルでノードを見つけ、"
+                 "ui_action（0.10.0 でリリース）でその ref を操作し、カーソルは動かさずに、"
+                 "新しいスナップショットを撮ります。画像は送りません。",
         dlg=dict(title="書き出し", name="ファイル名", pw="パスワード", check="完了後に開く",
                  cancel="キャンセル", ok="OK"),
         tree_head="ui_snapshot のテキスト形式",
@@ -119,17 +118,17 @@ S = {
                  "座標なので、光った行はダイアログの枠で囲まれた部分と一致します。パスワード欄は "
                  "‹masked› と表示され、ツールは値を読みません。行にポインターを重ねるか、フォーカス"
                  "するか、タップすると、その frame が表示されます。",
-        act_badge="次の段階：ui_action · 開発中、未リリース",
+        act_badge="ui_action · {rel} でリリース",
         act_lines=['ui_snapshot → [e7] AXButton "{ok}" (276,184 72×28)',
                    'ui_action {{ snapshot_id: "snap-…", ref: "e7", action: "press" }}',
                    "→ e7 に AXPress。カーソルは動かない",
                    "もう一度 ui_snapshot で結果を確認"],
         cursor="カーソルはそのまま",
-        act_cap="アニメーション：計画中の第 2 段階で、まだリリースしていません。スナップショットの"
-                "あと、エージェントはスナップショット ID、ref e7、press という操作を渡して "
-                "ui_action を呼びます。OpenAB Computer はアクセシビリティ API で OK ボタンを押し、"
-                "カーソルは元の位置のままです。そのあとエージェントは新しいスナップショットで確かめ"
-                "ます。PR #93 の案に沿った内容で、細部は変わる可能性があります。",
+        act_cap="アニメーション：第 2 段階の ui_action で、OpenAB Computer 0.10.0 でリリースしました。"
+                "スナップショットのあと、エージェントはスナップショット ID、ref e7、press という操作を"
+                "渡して ui_action を呼びます。OpenAB Computer はアクセシビリティ API で OK ボタンを"
+                "押し、カーソルは元の位置のままです。そのあとエージェントは新しいスナップショットで"
+                "確かめます。",
     ),
     "ko": dict(
         ctl=dict(play="재생", pause="일시 정지"),
@@ -140,15 +139,14 @@ S = {
                      ("다시 찍어서 확인", "또 이미지 한 장")],
         loop_rows_r=[("ui_snapshot", "텍스트와 JSON, 이미지 없음"),
                      ("역할과 제목으로 노드 찾기", 'AXButton "{ok}" → ref e7과 frame'),
-                     ("frame 중심을 클릭", "지금은 mouse, 2단계는 ui_action(ref)"),
+                     ("ref로 조작", "ui_action(0.10.0), 커서는 그대로"),
                      ("다시 스냅샷으로 확인", "새 스냅샷, 새 ref")],
         meter_l="이미지 토큰", meter_r="이미지 토큰: 0",
         loop_cap="애니메이션: 스크린샷 루프와 ui_snapshot 비교. 왼쪽은 단계마다 스크린샷을 보내고, "
                  "모델이 좌표를 짐작하고, mouse가 실제 커서를 움직여 클릭하고, 다시 스크린샷으로 "
                  "확인하므로 이미지 토큰이 쌓입니다. 오른쪽은 ui_snapshot이 텍스트를 돌려주고, "
-                 "에이전트가 역할과 제목으로 노드를 찾아 그 frame의 중심을 클릭한 뒤(지금은 여전히 "
-                 "mouse, 2단계에서는 ref로 ui_action을 호출할 계획) 새 스냅샷을 찍습니다. 이미지는 "
-                 "보내지 않습니다.",
+                 "에이전트가 역할과 제목으로 노드를 찾아 ui_action(0.10.0에서 출시)으로 그 ref를 "
+                 "커서를 움직이지 않고 조작한 뒤 새 스냅샷을 찍습니다. 이미지는 보내지 않습니다.",
         dlg=dict(title="내보내기", name="파일 이름", pw="암호", check="완료 후 열기",
                  cancel="취소", ok="확인"),
         tree_head="ui_snapshot 텍스트 형식",
@@ -158,17 +156,16 @@ S = {
                  "줄은 대화상자에서 테두리로 표시된 영역과 맞습니다. 암호 입력란은 ‹masked›로 "
                  "표시되며 도구는 그 값을 읽지 않습니다. 줄에 포인터를 올리거나, 포커스하거나, "
                  "탭하면 그 frame이 보입니다.",
-        act_badge="다음 단계: ui_action · 개발 중, 아직 출시 전",
+        act_badge="ui_action · {rel}에서 출시",
         act_lines=['ui_snapshot → [e7] AXButton "{ok}" (276,184 72×28)',
                    'ui_action {{ snapshot_id: "snap-…", ref: "e7", action: "press" }}',
                    "→ e7에 AXPress, 커서는 움직이지 않음",
                    "다시 ui_snapshot으로 결과 확인"],
         cursor="커서는 그대로",
-        act_cap="애니메이션: 계획 중인 2단계로, 아직 출시되지 않았습니다. 스냅샷을 찍은 뒤 "
-                "에이전트는 스냅샷 ID, ref e7, press 동작을 넘겨 ui_action을 호출합니다. OpenAB "
-                "Computer는 접근성 API로 확인 버튼을 누르고, 커서는 제자리에 있습니다. 그다음 "
-                "에이전트는 새 스냅샷으로 확인합니다. PR #93의 초안을 따른 것이며 세부 사항은 바뀔 수 "
-                "있습니다.",
+        act_cap="애니메이션: 2단계인 ui_action으로, OpenAB Computer 0.10.0에서 출시됐습니다. 스냅샷을 "
+                "찍은 뒤 에이전트는 스냅샷 ID, ref e7, press 동작을 넘겨 ui_action을 호출합니다. "
+                "OpenAB Computer는 접근성 API로 확인 버튼을 누르고, 커서는 제자리에 있습니다. 그다음 "
+                "에이전트는 새 스냅샷으로 확인합니다.",
     ),
 }
 
@@ -303,7 +300,7 @@ def fig_action(code):
         f'<li data-show="{i}" data-hl="{i}">{esc(s.format(ok=ok))}</li>'
         for i, s in enumerate(t["act_lines"]))
     return f"""<figure class="fig anim next" data-steps="4" data-ms="1400" aria-label="{esc(t['act_cap'])}">
-<p class="badge">{esc(t['act_badge'])}</p>
+<p class="badge">{esc(t['act_badge']).format(rel=REL10_A)}</p>
 <div class="pair">
 {dialog_svg(t, "0 122 400 128", t['dlg']['title'], pressed_step=2, cursor=True)}
 <div class="treebox"><ol class="axtree axsteps">{lines}</ol></div>
@@ -316,7 +313,7 @@ def fig_action(code):
 # ── Approach 1 next to approach 4 (the "How does an agent click the right button?" section) ──
 # Same made-up dialog on both sides, in screen points. The Save button is small (56×22); on the
 # left the guessed point (266,153) lands 5 points below it, on the right the press lands on the
-# center of e3's frame. Acting by ref is ui_action (openab-computer PR #96, not released).
+# center of e3's frame. Acting by ref is ui_action (OpenAB Computer 0.10.0).
 AIM = {
     "en": dict(
         l="Screenshot, guess coordinates", r="Read the accessibility tree",
@@ -327,15 +324,14 @@ AIM = {
                 "4  Screenshot again to check"],
         rows_r=["1  Read the tree: text, no image", '2  Pick ref e3: AXButton "{save}"',
                 "3  Act on e3: lands exactly, cursor stays", "4  Read the tree again to check"],
-        badge="Acting on a ref without moving the cursor is ui_action: in progress (PR #96), "
-              "not released yet.",
+        badge="Acting on a ref without moving the cursor is ui_action, shipped in "
+              "OpenAB Computer 0.10.0.",
         cap="Animation: approach 1 next to approach 4. On the left, the agent takes a screenshot, "
             "the model guesses coordinates, and the click lands just below the small Save button, "
             "so it takes another screenshot; each screenshot adds image tokens. On the right, the "
             "agent reads the accessibility tree as text, picks ref e3 (AXButton \"Save\") and acts "
             "on it: the press lands on the button and the cursor does not move. Acting by ref is "
-            "ui_action, in progress in PR #96 and not released yet; today OpenAB Computer still "
-            "clicks the center of e3's frame with mouse.",
+            "ui_action, shipped in OpenAB Computer 0.10.0.",
     ),
     "zh": dict(
         l="看截圖，猜座標", r="讀 accessibility tree",
@@ -345,12 +341,11 @@ AIM = {
         rows_l=["1  截圖", "2  模型猜 x、y", "3  點下去：差一點沒點中", "4  再截一張圖確認"],
         rows_r=["1  讀 tree：文字，沒有圖片", '2  選 ref e3：AXButton "{save}"',
                 "3  對 e3 按下：正中，游標不動", "4  再讀一次確認"],
-        badge="用 ref 操作、不移動游標的是 ui_action：開發中（PR #96），尚未推出。",
+        badge="用 ref 操作、不移動游標的是 ui_action，已在 OpenAB Computer 0.10.0 推出。",
         cap="動畫：第 1 種和第 4 種做法並排。左邊 agent 截圖，模型猜座標，點擊落在小小的「儲存」"
             "按鈕下方一點點，沒點中，只好再截一張圖；每張截圖都會增加圖片 token。右邊 agent 讀 "
             "accessibility tree 的文字，選出 ref e3（AXButton「儲存」）並對它按下：正好按在按鈕上，"
-            "游標也沒有移動。用 ref 操作的是 ui_action，還在 PR #96 開發中，尚未推出；目前 OpenAB "
-            "Computer 仍用 mouse 點 e3 的 frame 中心。",
+            "游標也沒有移動。用 ref 操作的是 ui_action，已在 OpenAB Computer 0.10.0 推出。",
     ),
     "ja": dict(
         l="スクリーンショットで推測", r="アクセシビリティツリーを読む",
@@ -361,15 +356,14 @@ AIM = {
                 "4  もう一度撮って確認"],
         rows_r=["1  ツリーを読む：テキスト、画像なし", '2  ref e3 を選ぶ：AXButton "{save}"',
                 "3  e3 を押す：正確に当たり、カーソルはそのまま", "4  もう一度読んで確認"],
-        badge="ref で操作し、カーソルを動かさないのは ui_action です。開発中（PR #96）で、"
-              "まだリリースしていません。",
+        badge="ref で操作し、カーソルを動かさないのは ui_action です。OpenAB Computer 0.10.0 で"
+              "リリースしました。",
         cap="アニメーション：方法 1 と方法 4 の比較。左では、エージェントがスクリーンショットを撮り、"
             "モデルが座標を推測し、クリックは小さな「保存」ボタンのすぐ下に外れるので、もう一枚撮り"
             "ます。スクリーンショットのたびに画像のトークンが増えます。右では、エージェントが"
             "アクセシビリティツリーをテキストで読み、ref e3（AXButton「保存」）を選んで操作します。"
             "押す位置はボタンに正確に当たり、カーソルは動きません。ref による操作は ui_action で、"
-            "PR #96 で開発中、まだリリースしていません。今の OpenAB Computer は mouse で e3 の "
-            "frame の中心をクリックします。",
+            "OpenAB Computer 0.10.0 でリリースしました。",
     ),
     "ko": dict(
         l="스크린샷 보고 좌표 짐작", r="접근성 트리 읽기",
@@ -380,14 +374,14 @@ AIM = {
                 "4  다시 찍어서 확인"],
         rows_r=["1  트리 읽기: 텍스트, 이미지 없음", '2  ref e3 고르기: AXButton "{save}"',
                 "3  e3 누르기: 정확히 맞고 커서는 그대로", "4  다시 읽어서 확인"],
-        badge="ref로 조작하고 커서를 움직이지 않는 것은 ui_action입니다. 개발 중(PR #96)이며 "
-              "아직 출시되지 않았습니다.",
+        badge="ref로 조작하고 커서를 움직이지 않는 것은 ui_action이며, OpenAB Computer 0.10.0에서 "
+              "출시됐습니다.",
         cap="애니메이션: 방법 1과 방법 4 비교. 왼쪽에서는 에이전트가 스크린샷을 찍고, 모델이 좌표를 "
             "짐작하고, 클릭이 작은 \"저장\" 버튼 바로 아래로 빗나가서 스크린샷을 한 장 더 찍습니다. "
             "스크린샷마다 이미지 토큰이 늘어납니다. 오른쪽에서는 에이전트가 접근성 트리를 텍스트로 "
             "읽고 ref e3(AXButton \"저장\")을 골라 누릅니다. 누른 위치가 버튼에 정확히 맞고 커서는 "
-            "움직이지 않습니다. ref로 조작하는 것은 ui_action이며 PR #96에서 개발 중이고 아직 "
-            "출시되지 않았습니다. 지금의 OpenAB Computer는 mouse로 e3 frame의 중심을 클릭합니다.",
+            "움직이지 않습니다. ref로 조작하는 것은 ui_action이며 OpenAB Computer 0.10.0에서 "
+            "출시됐습니다.",
     ),
 }
 
@@ -487,8 +481,8 @@ CMP = {
               ["4. Accessibility tree", "Low: a block of text", "High: exact positions",
                "Medium: standard UI; canvas and games often empty", "✓ Yes, from the system",
                "✗ No, when acting by ref*", "Yes: Accessibility"]],
-        note="* Acting by ref without moving the cursor is <code>ui_action</code>, in progress in "
-             "{pr96} and not released yet. Today an agent on OpenAB Computer still clicks with "
+        note="* Acting by ref without moving the cursor is <code>ui_action</code>, shipped in "
+             "{rel}. Drags, gestures and custom-drawn content still go through "
              "<code>mouse</code>, which moves the cursor.",
     ),
     "zh": dict(
@@ -502,8 +496,8 @@ CMP = {
                "看情況（macOS：自動化）"],
               ["4. accessibility tree", "低：一段文字", "高：位置是確切的", "中：標準介面；canvas、遊戲常是空的",
                "✓ 系統直接給", "✗ 用 ref 操作時不會*", "要：輔助使用"]],
-        note="* 用 ref 操作、不移動游標的是 <code>ui_action</code>，還在 {pr96} 開發中，尚未推出。"
-             "目前 agent 透過 OpenAB Computer 還是用 <code>mouse</code> 點擊，游標會動。",
+        note="* 用 ref 操作、不移動游標的是 <code>ui_action</code>，已在 {rel} 推出。"
+             "拖曳、手勢和自己繪製的內容還是用 <code>mouse</code>，游標會動。",
     ),
     "ja": dict(
         cap="四つの方法の比較",
@@ -518,9 +512,9 @@ CMP = {
               ["4. アクセシビリティツリー", "低い：テキストだけ", "高い：位置が正確",
                "中：標準的な UI。canvas やゲームは空のことが多い", "✓ システムが返す",
                "✗ ref で操作すれば取られない*", "必要：アクセシビリティ"]],
-        note="* ref で操作し、カーソルを動かさないのは <code>ui_action</code> で、{pr96} で開発中、"
-             "まだリリースしていません。今のところ OpenAB Computer のエージェントは "
-             "<code>mouse</code> でクリックするので、カーソルは動きます。",
+        note="* ref で操作し、カーソルを動かさないのは <code>ui_action</code> で、{rel} で"
+             "リリースしました。ドラッグ、ジェスチャー、独自に描画された内容は今も "
+             "<code>mouse</code> を使うので、カーソルは動きます。",
     ),
     "ko": dict(
         cap="네 가지 방법 비교",
@@ -535,12 +529,13 @@ CMP = {
               ["4. 접근성 트리", "낮음: 텍스트 한 덩어리", "높음: 위치가 정확",
                "중간: 표준 UI. canvas나 게임은 비어 있을 때가 많음", "✓ 시스템이 알려 줌",
                "✗ ref로 조작하면 빼앗지 않음*", "필요: 손쉬운 사용"]],
-        note="* ref로 조작하고 커서를 움직이지 않는 것은 <code>ui_action</code>이며, {pr96}에서 개발 "
-             "중이고 아직 출시되지 않았습니다. 지금은 OpenAB Computer의 에이전트가 여전히 "
-             "<code>mouse</code>로 클릭하므로 커서가 움직입니다.",
+        note="* ref로 조작하고 커서를 움직이지 않는 것은 <code>ui_action</code>이며, {rel}에서 "
+             "출시됐습니다. 드래그, 제스처, 직접 그린 내용은 여전히 <code>mouse</code>를 쓰므로 "
+             "커서가 움직입니다.",
     ),
 }
-PR96 = "https://github.com/openabdev/openab-computer/pull/96"
+REL10 = "https://github.com/openabdev/openab-computer/releases/tag/v0.10.0"
+REL10_A = f'<a href="{REL10}">OpenAB Computer 0.10.0</a>'
 
 
 def cmp_table(code):
@@ -551,7 +546,7 @@ def cmp_table(code):
         cells = "".join(f'<td data-label="{esc(h)}">{esc(v)}</td>'
                         for h, v in zip(c["cols"][1:], row[1:]))
         body.append(f'<tr><th scope="row">{esc(row[0])}</th>{cells}</tr>')
-    note = c["note"].format(pr96=f'<a href="{PR96}">PR #96</a>')
+    note = c["note"].format(rel=REL10_A)
     return (f'<div class="cmp-wrap"><table class="cmp"><caption>{esc(c["cap"])}</caption>'
             f'<thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
             f'<p class="cmp-note">{note}</p>')
