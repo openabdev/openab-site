@@ -60,23 +60,22 @@ document.addEventListener("click", function (e) {
 <h1>OpenAB Computer 開始支援 macOS 的 accessibility tree</h1>
 <p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
 <p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
-的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，連同它們在螢幕上的位置，不必再從截圖裡推敲。</p>
+的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
 
 <h2>為什麼截圖迴圈不夠用</h2>
 <p>在這之前，agent 透過 OpenAB Computer 操作 Mac，走的是這樣的迴圈：截圖、猜按鈕在哪裡、用
 <code>mouse</code> 點下去，再截一張圖確認。</p>
 <p>社群使用者 <a href="https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810">ttmuse</a> 在 <a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> 寫下了這個迴圈的代價。這位使用者每天把 OpenAB Computer 當成雲端 agent 的手，遠端操作家裡的 Mac。每一步都要花圖片
 token，小目標常常點不到，agent 工作時，真正的游標也被搶走了。</p>
-<p>這個 issue 原本在等一個真正需要它的人。這則留言就是答案，於是我們調高了優先順序，先從 macOS
-開始做。</p>
+<p>這個 issue 原本在等一個真正需要它的人。這則留言說明了有人真的需要，於是我們調高了優先順序，先從 macOS 開始做。</p>
 
 <h2>從 Agent Desktop 學到的事</h2>
 <p>動手之前，我們仔細讀了 Vercel Labs 的 <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a>：README、概念文件，還有 macOS 的程式碼。Agent Desktop 讀取桌面 app 的 accessibility tree，以 JSON 回傳，每個 agent
-能操作的元素都配有一個 ref。其中三個想法直接影響了 <code>ui_snapshot</code>。</p>
+能操作的元素都配有一個 ref。其中三個想法影響了我們的規劃：前兩個已經做進 <code>ui_snapshot</code>，第三個要等第二階段。</p>
 <ul>
 <li><strong>用結構化的文字取代圖片。</strong>模型讀的是角色、名稱和值，不用在像素裡找按鈕。</li>
 <li><strong>每個元素一個 ref，來自某一次快照。</strong>Agent Desktop 的 ref 只屬於產生它的那次快照。畫面一變，過期或對不上的 ref 會直接被拒絕，不會用猜的，agent 重新拍一次快照就好。</li>
-<li><strong>操作不靠游標。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，不移動游標，也不搶走焦點。</li>
+<li><strong>操作不靠游標（第二階段）。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，不移動游標，也不搶走焦點。</li>
 </ul>
 <p>issue #67 當初也列過另一個做法：讓 OpenAB Computer 直接呼叫 Agent Desktop，好處是自己要維護的程式碼比較少，代價是多一個外部依賴，也得跟著它的更新節奏走。最後我們決定把 accessibility tree
 做成 OpenAB Computer 自己的 MCP 工具之一，放進原本就提供 <code>screenshot</code>、<code>mouse</code>、
@@ -88,35 +87,35 @@ token，小目標常常點不到，agent 工作時，真正的游標也被搶走
 <p>每個節點都帶有角色、標題、值、說明、是否啟用或取得焦點，以及一個 frame。frame 用的是和
 <code>screenshot</code>、<code>mouse</code> 相同的顯示點座標，所以 agent 不用先看螢幕，就能對準節點點下去。每個節點也有一個 ref（<code>e1</code>、<code>e2</code>⋯⋯），在同一個快照 id 之內不會重複。</p>
 <p>下面是在一台 M4 Mac mini 上對 Finder 拍的真實快照，當時沒有開任何 Finder 視窗，所以這個「視窗」就是桌面本身，裡面兩張圖是兩顆已掛載磁碟的圖示。工具會回傳一份給模型讀的文字版：</p>
-<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
-[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
-  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+<pre><code>ui_snapshot snap-10661573 · Finder (com.apple.finder) · 4 nodes · 104 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) focused
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080) focused
     [e3] AXImage &quot;Data&quot; (1823,145 64×64)
     [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
-<p>以及同一棵樹的 JSON（節錄）：</p>
+<p>以及同一棵樹的 JSON（節錄，省略了部分欄位）：</p>
 <pre><code>{
-  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;snapshot_id&quot;: &quot;snap-10661573&quot;,
   &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
   &quot;node_count&quot;: 4,
   &quot;truncated&quot;: false,
   &quot;timed_out&quot;: false,
-  &quot;elapsed_ms&quot;: 46,
-  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;elapsed_ms&quot;: 104,
   &quot;windows&quot;: [
     { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
-      &quot;enabled&quot;: false,
+      &quot;focused&quot;: true,
       &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
       &quot;children&quot;: [
         { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;focused&quot;: true,
+          &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
           &quot;children&quot;: [
-            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
-              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;title&quot;: &quot;Data&quot;,
               &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
           ] }
       ] }
   ]
 }</code></pre>
-<p>四個節點，花了 46 ms。磁碟名稱在這裡換成了通用名稱。agent 想打開「Data」這顆磁碟，只要對 e3 的
+<p>四個節點，花了 104 ms。磁碟名稱在這裡換成了通用名稱。agent 想打開「Data」這顆磁碟，只要對 e3 的
 frame 中心 (1855, 177) 按兩下，不必先截圖找它在哪裡。</p>
 
 <h2>上限、逾時與隱私</h2>
@@ -137,7 +136,8 @@ frame 中心 (1855, 177) 按兩下，不必先截圖找它在哪裡。</p>
 </ul>
 
 <h2>和 Agent Desktop 一樣的地方，以及還不一樣的地方</h2>
-<p>一樣的：兩者都讀 macOS 的 accessibility API，回傳 JSON 而不是圖片；都替每個元素配一個只在單次快照內有效的 ref；讀不完時都回傳部分的樹，而不是直接失敗；兩者裡面都沒有模型，迴圈由呼叫它的
+<p>一樣的：兩者都讀 macOS 的 accessibility API，回傳 JSON 而不是圖片；都替元素配上只在單次快照內有效的
+ref，差別是我們替每個節點都配，Agent Desktop 只替 agent 能操作的元素配；讀不完時都回傳部分的樹，而不是直接失敗；兩者裡面都沒有模型，迴圈由呼叫它的
 agent 自己跑。</p>
 <p>目前不一樣的：</p>
 <ul>
@@ -150,7 +150,7 @@ macOS、Windows 和 Linux。</li>
 </ul>
 
 <h2>一篇值得一讀的比較</h2>
-<p>Muse 上有一篇<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">研究文章</a>比較了 <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> 和 OpenAB Computer。重點是：Browse 讓 agent 在你自己的電腦上操作你已經登入的那個瀏覽器，OpenAB Computer 則是把一整台機器借給在別處的 agent。有了 <code>ui_snapshot</code>，這個遠端 agent 能讀的範圍從瀏覽器延伸到了原生 app。</p>
+<p>Muse 上有一篇<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">研究文章</a>比較了 <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> 和 OpenAB Computer。重點是：Browse 讓 agent 在你自己的電腦上操作你已經登入的那個瀏覽器，OpenAB Computer 則是把一整台機器借給在別處的 agent。有了 <code>ui_snapshot</code>，這個遠端 agent 除了瀏覽器，也能用結構化的文字讀原生 app 了。</p>
 
 <h2>接下來（尚未推出）</h2>
 <p>第二階段是 <code>ui_action(ref)</code>：用 ref 按按鈕、設定欄位的值、移動焦點或打開選單，不移動游標。真正解決游標被搶走的，是這一段。它也會把目前樹裡沒有的選單列加進來。對密碼欄位設定值則會被拒絕。</p>

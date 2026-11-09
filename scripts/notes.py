@@ -61,32 +61,35 @@ MUSE = ("https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/"
         "7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg")
 BROWSE = "https://github.com/anomalyco/browse"
 
-# A real Finder snapshot taken on an M4 Mac mini with OpenAB Computer 0.9.0. Changed
-# from the tool's output: the two drive names are replaced with "Data" and "Backup",
-# the pid is left out, and the JSON is an excerpt (e4 and the display list are cut).
-UI_TEXT = """ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
-[e1] AXScrollArea desc="desktop" (0,0 1920×1080) disabled
-  [e2] AXGroup desc="desktop" (0,0 1920×1080)
+# A real Finder snapshot taken on an M4 Mac mini with OpenAB Computer 0.9.0, called with
+# app "Finder" and max_nodes 40. Changed from the tool's text output: the two drive names are
+# replaced with "Data" and "Backup" and the pid is left out. Only the text output of that call
+# was kept, so the JSON below is the same snapshot written with the tool's JSON field names
+# (UITree.swift), as an excerpt: e4, limits, displays and fields the text form does not show
+# are left out.
+UI_TEXT = """ui_snapshot snap-10661573 · Finder (com.apple.finder) · 4 nodes · 104 ms
+[e1] AXScrollArea desc="desktop" (0,0 1920×1080) focused
+  [e2] AXGroup desc="desktop" (0,0 1920×1080) focused
     [e3] AXImage "Data" (1823,145 64×64)
     [e4] AXImage "Backup" (1823,33 64×64)"""
 
 UI_JSON = """{
-  "snapshot_id": "snap-54785c06",
+  "snapshot_id": "snap-10661573",
   "app": { "name": "Finder", "bundle_id": "com.apple.finder" },
   "node_count": 4,
   "truncated": false,
   "timed_out": false,
-  "elapsed_ms": 46,
-  "limits": { "max_depth": 20, "max_nodes": 300, "timeout_ms": 3000 },
+  "elapsed_ms": 104,
   "windows": [
     { "ref": "e1", "role": "AXScrollArea", "description": "desktop",
-      "enabled": false,
+      "focused": true,
       "frame": { "x": 0, "y": 0, "width": 1920, "height": 1080 },
       "children": [
         { "ref": "e2", "role": "AXGroup", "description": "desktop",
+          "focused": true,
+          "frame": { "x": 0, "y": 0, "width": 1920, "height": 1080 },
           "children": [
-            { "ref": "e3", "role": "AXImage", "role_description": "image",
-              "title": "Data", "description": "Data", "display": 0,
+            { "ref": "e3", "role": "AXImage", "title": "Data",
               "frame": { "x": 1823, "y": 145, "width": 64, "height": 64 } }
           ] }
       ] }
@@ -127,21 +130,22 @@ where a button is, click it with <code>mouse</code>, then take another screensho
 {a(ISSUE67, "issue #67")}. They use OpenAB Computer every day as the hands of a cloud agent that
 drives a home Mac. Every step costs image tokens, small targets get missed, and the real cursor is
 taken over while the agent works.</p>
-<p>The issue had been waiting for someone who needed it. That comment was the answer, so we raised
-its priority and started with macOS.</p>
+<p>The issue had been waiting for a real user. The comment showed there was one, so we raised its
+priority and started with macOS.</p>
 
 <h2>What we learned from Agent Desktop</h2>
 <p>Before writing code we read Vercel Labs' {a(AGENT_DESKTOP, "Agent Desktop")} closely: its
 README, its concept docs and its macOS code. Agent Desktop reads the accessibility tree of a
 desktop app and returns it as JSON, with a ref for every element an agent can act on. Three of its
-ideas shaped <code>ui_snapshot</code>.</p>
+ideas shaped our plan: the first two are in <code>ui_snapshot</code> today, and the third waits for
+phase 2.</p>
 <ul>
 <li><strong>Structured text instead of images.</strong> The model reads roles, names and values.
 It does not have to find a button in pixels.</li>
 <li><strong>A ref per element, from one snapshot.</strong> Agent Desktop's refs belong to the
 snapshot that produced them. When the UI changes, a stale or ambiguous ref is rejected instead of
 guessed, and the agent takes a new snapshot.</li>
-<li><strong>Acting without the pointer.</strong> Agent Desktop's ref actions go through the
+<li><strong>Acting without the pointer (phase 2).</strong> Agent Desktop's ref actions go through the
 accessibility API without moving the pointer or taking focus.</li>
 </ul>
 <p>Issue #67 listed calling Agent Desktop from OpenAB Computer as one option, and weighed less code
@@ -160,9 +164,9 @@ ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot'
 window is the desktop itself, and the two images in it are the icons of two mounted drives. The
 tool returns a text form for the model:</p>
 <pre><code>{{text}}</code></pre>
-<p>and the same tree as JSON (excerpt):</p>
+<p>and the same tree as JSON (an excerpt; some fields are left out):</p>
 <pre><code>{{json}}</code></pre>
-<p>Four nodes, read in 46 ms. The drive names are replaced with generic ones here. To open the
+<p>Four nodes, read in 104 ms. The drive names are replaced with generic ones here. To open the
 “Data” drive, an agent can double-click the center of e3's frame, (1855, 177), without taking a
 screenshot to find it.</p>
 
@@ -190,8 +194,9 @@ collapsed content, other windows. So <code>ui_snapshot</code> is available only 
 </ul>
 
 <h2>Where we match Agent Desktop, and where we don't yet</h2>
-<p>The same: both read the macOS accessibility API and return JSON, not images. Both give each
-element a ref that is valid within one snapshot. Both return a partial tree instead of failing.
+<p>The same: both read the macOS accessibility API and return JSON, not images. Both give elements
+refs that are valid only within one snapshot. Ours label every node; Agent Desktop's label the
+elements an agent can act on. Both return a partial tree instead of failing.
 Neither has a model inside; the calling agent runs the loop.</p>
 <p>Different, today:</p>
 <ul>
@@ -212,8 +217,8 @@ server.</li>
 <p>A {a(MUSE, "research write-up on Muse")} compares {a(BROWSE, "OpenCode Browse")} with OpenAB
 Computer. Its main point: Browse lets an agent drive your real, logged-in browser on your own
 machine, while OpenAB Computer lends a whole machine to an agent somewhere else. With
-<code>ui_snapshot</code>, what that remote agent can read now reaches past the browser into native
-apps.</p>
+<code>ui_snapshot</code>, that remote agent can now read native apps as structured text, not only the
+browser.</p>
 
 <h2>What's next (not shipped)</h2>
 <p>Phase 2 is <code>ui_action(ref)</code>: press a button, set a field's value, move focus or open
@@ -240,7 +245,7 @@ profile.</p>
                 body=f"""
 <p class="lede">OpenAB Computer 0.9.0 新增了 <code>ui_snapshot</code> 這個 MCP 工具：讀取 Mac app
 的 accessibility tree，以 JSON 回傳。agent 現在可以直接用文字看到視窗裡的按鈕、欄位和標籤，
-連同它們在螢幕上的位置，不必再從截圖裡推敲。</p>
+連同它們在螢幕上的位置，不必再從截圖裡猜。</p>
 
 <h2>為什麼截圖迴圈不夠用</h2>
 <p>在這之前，agent 透過 OpenAB Computer 操作 Mac，走的是這樣的迴圈：截圖、猜按鈕在哪裡、用
@@ -248,18 +253,19 @@ profile.</p>
 <p>社群使用者 {a(TTMUSE, "ttmuse")} 在 {a(ISSUE67, "issue #67")} 寫下了這個迴圈的代價。
 這位使用者每天把 OpenAB Computer 當成雲端 agent 的手，遠端操作家裡的 Mac。每一步都要花圖片
 token，小目標常常點不到，agent 工作時，真正的游標也被搶走了。</p>
-<p>這個 issue 原本在等一個真正需要它的人。這則留言就是答案，於是我們調高了優先順序，先從 macOS
-開始做。</p>
+<p>這個 issue 原本在等一個真正需要它的人。這則留言說明了有人真的需要，於是我們調高了優先順序，
+先從 macOS 開始做。</p>
 
 <h2>從 Agent Desktop 學到的事</h2>
 <p>動手之前，我們仔細讀了 Vercel Labs 的 {a(AGENT_DESKTOP, "Agent Desktop")}：README、概念文件，
 還有 macOS 的程式碼。Agent Desktop 讀取桌面 app 的 accessibility tree，以 JSON 回傳，每個 agent
-能操作的元素都配有一個 ref。其中三個想法直接影響了 <code>ui_snapshot</code>。</p>
+能操作的元素都配有一個 ref。其中三個想法影響了我們的規劃：前兩個已經做進 <code>ui_snapshot</code>，
+第三個要等第二階段。</p>
 <ul>
 <li><strong>用結構化的文字取代圖片。</strong>模型讀的是角色、名稱和值，不用在像素裡找按鈕。</li>
 <li><strong>每個元素一個 ref，來自某一次快照。</strong>Agent Desktop 的 ref 只屬於產生它的那次快照。
 畫面一變，過期或對不上的 ref 會直接被拒絕，不會用猜的，agent 重新拍一次快照就好。</li>
-<li><strong>操作不靠游標。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，
+<li><strong>操作不靠游標（第二階段）。</strong>Agent Desktop 用 ref 執行的動作走 accessibility API，
 不移動游標，也不搶走焦點。</li>
 </ul>
 <p>issue #67 當初也列過另一個做法：讓 OpenAB Computer 直接呼叫 Agent Desktop，好處是自己要維護的
@@ -276,9 +282,9 @@ token，小目標常常點不到，agent 工作時，真正的游標也被搶走
 <p>下面是在一台 M4 Mac mini 上對 Finder 拍的真實快照，當時沒有開任何 Finder 視窗，所以這個「視窗」
 就是桌面本身，裡面兩張圖是兩顆已掛載磁碟的圖示。工具會回傳一份給模型讀的文字版：</p>
 <pre><code>{{text}}</code></pre>
-<p>以及同一棵樹的 JSON（節錄）：</p>
+<p>以及同一棵樹的 JSON（節錄，省略了部分欄位）：</p>
 <pre><code>{{json}}</code></pre>
-<p>四個節點，花了 46 ms。磁碟名稱在這裡換成了通用名稱。agent 想打開「Data」這顆磁碟，只要對 e3 的
+<p>四個節點，花了 104 ms。磁碟名稱在這裡換成了通用名稱。agent 想打開「Data」這顆磁碟，只要對 e3 的
 frame 中心 (1855, 177) 按兩下，不必先截圖找它在哪裡。</p>
 
 <h2>上限、逾時與隱私</h2>
@@ -301,8 +307,8 @@ frame 中心 (1855, 177) 按兩下，不必先截圖找它在哪裡。</p>
 </ul>
 
 <h2>和 Agent Desktop 一樣的地方，以及還不一樣的地方</h2>
-<p>一樣的：兩者都讀 macOS 的 accessibility API，回傳 JSON 而不是圖片；都替每個元素配一個只在單次
-快照內有效的 ref；讀不完時都回傳部分的樹，而不是直接失敗；兩者裡面都沒有模型，迴圈由呼叫它的
+<p>一樣的：兩者都讀 macOS 的 accessibility API，回傳 JSON 而不是圖片；都替元素配上只在單次快照內有效的
+ref，差別是我們替每個節點都配，Agent Desktop 只替 agent 能操作的元素配；讀不完時都回傳部分的樹，而不是直接失敗；兩者裡面都沒有模型，迴圈由呼叫它的
 agent 自己跑。</p>
 <p>目前不一樣的：</p>
 <ul>
@@ -320,8 +326,8 @@ macOS、Windows 和 Linux。</li>
 <h2>一篇值得一讀的比較</h2>
 <p>Muse 上有一篇{a(MUSE, "研究文章")}比較了 {a(BROWSE, "OpenCode Browse")} 和 OpenAB Computer。
 重點是：Browse 讓 agent 在你自己的電腦上操作你已經登入的那個瀏覽器，OpenAB Computer 則是把一整台
-機器借給在別處的 agent。有了 <code>ui_snapshot</code>，這個遠端 agent 能讀的範圍從瀏覽器延伸到了
-原生 app。</p>
+機器借給在別處的 agent。有了 <code>ui_snapshot</code>，這個遠端 agent 除了瀏覽器，也能用結構化的文字
+讀原生 app 了。</p>
 
 <h2>接下來（尚未推出）</h2>
 <p>第二階段是 <code>ui_action(ref)</code>：用 ref 按按鈕、設定欄位的值、移動焦點或打開選單，
@@ -355,21 +361,22 @@ macOS、Windows 和 Linux。</li>
 コストを書いてくれました。この方は OpenAB Computer を毎日、自宅の Mac を動かすクラウドの
 エージェントの手として使っています。一手ごとに画像のトークンがかかり、小さな対象は外れ、
 エージェントが動いている間は本物のカーソルを取られてしまう、というものです。</p>
-<p>この issue は、本当に必要とする人を待っていました。このコメントがその答えだったので、優先度を
-上げ、macOS から取りかかりました。</p>
+<p>この issue は、本当に必要とする人を待っていました。このコメントで実際に必要な人がいると
+わかったので、優先度を上げ、macOS から取りかかりました。</p>
 
 <h2>Agent Desktop から学んだこと</h2>
 <p>コードを書く前に、Vercel Labs の {a(AGENT_DESKTOP, "Agent Desktop")} をじっくり読みました。
 README、コンセプトの文書、そして macOS のコードです。Agent Desktop はデスクトップアプリの
 アクセシビリティツリーを読んで JSON で返し、エージェントが操作できる要素ごとに ref を付けます。
-そのうち三つの考え方が <code>ui_snapshot</code> の形を決めました。</p>
+そのうち三つの考え方が私たちの計画を形づくりました。最初の二つは今の <code>ui_snapshot</code> に
+入っていて、三つ目は第 2 段階で取り組みます。</p>
 <ul>
 <li><strong>画像ではなく構造化されたテキスト。</strong>モデルが読むのはロール、名前、値です。
 ピクセルの中からボタンを探す必要はありません。</li>
 <li><strong>要素ごとの ref は、一回のスナップショットのもの。</strong>Agent Desktop の ref は、
 それを作ったスナップショットに属します。UI が変われば、古い ref や曖昧な ref は推測せずに
 拒否され、エージェントは新しいスナップショットを撮ります。</li>
-<li><strong>ポインターを使わない操作。</strong>Agent Desktop の ref による操作はアクセシビリティ
+<li><strong>ポインターを使わない操作（第 2 段階）。</strong>Agent Desktop の ref による操作はアクセシビリティ
 API を通り、ポインターを動かさず、フォーカスも奪いません。</li>
 </ul>
 <p>issue #67 では、OpenAB Computer から Agent Desktop を呼び出す案も挙げていました。自分で持つコードが
@@ -389,9 +396,9 @@ API を通り、ポインターを動かさず、フォーカスも奪いませ�
 スナップショットです。この場合のウィンドウはデスクトップそのもので、中の二つの画像は
 マウントされた二台のドライブのアイコンです。ツールはモデル向けのテキスト版を返します。</p>
 <pre><code>{{text}}</code></pre>
-<p>同じツリーの JSON（抜粋）：</p>
+<p>同じツリーの JSON（抜粋。一部のフィールドは省いています）：</p>
 <pre><code>{{json}}</code></pre>
-<p>四つのノードを 46 ms で読みました。ドライブ名はここでは一般的な名前に置き換えています。
+<p>四つのノードを 104 ms で読みました。ドライブ名はここでは一般的な名前に置き換えています。
 「Data」ドライブを開きたければ、エージェントは e3 の frame の中心 (1855, 177) をダブルクリック
 すればよく、場所を探すためのスクリーンショットはいりません。</p>
 
@@ -420,7 +427,8 @@ API を通り、ポインターを動かさず、フォーカスも奪いませ�
 
 <h2>Agent Desktop と同じところ、まだ違うところ</h2>
 <p>同じところ：どちらも macOS のアクセシビリティ API を読み、画像ではなく JSON を返します。どちらも
-要素ごとに、一回のスナップショットの中で有効な ref を付けます。どちらも、読み切れないときは
+要素に、一回のスナップショットの中でだけ有効な ref を付けます。こちらはすべてのノードに、Agent Desktop
+はエージェントが操作できる要素に付けます。どちらも、読み切れないときは
 失敗せずに部分的なツリーを返します。どちらも中にモデルを持たず、ループは呼び出すエージェントが
 回します。</p>
 <p>今のところ違うところ：</p>
@@ -442,8 +450,8 @@ stdio の MCP サーバーとして動きます。</li>
 <p>Muse の{a(MUSE, "リサーチ記事")}が、{a(BROWSE, "OpenCode Browse")} と OpenAB Computer を比べて
 います。要点は、Browse はエージェントに自分のマシンにある、ログイン済みの本物のブラウザーを操作させ、
 OpenAB Computer はマシン一台を丸ごと別の場所のエージェントに貸す、ということです。
-<code>ui_snapshot</code> によって、そのリモートのエージェントが読める範囲はブラウザーの外、
-ネイティブアプリにまで広がりました。</p>
+<code>ui_snapshot</code> によって、そのリモートのエージェントはブラウザーだけでなく、
+ネイティブアプリも構造化されたテキストとして読めるようになりました。</p>
 
 <h2>次にやること（まだリリースしていません）</h2>
 <p>第 2 段階は <code>ui_action(ref)</code> です。ref を使って、ボタンを押す、入力欄に値を設定する、
@@ -478,21 +486,22 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
 적어 주었습니다. 이 사용자는 OpenAB Computer를 매일, 집에 있는 Mac을 움직이는 클라우드 에이전트의
 손으로 씁니다. 단계마다 이미지 토큰이 들고, 작은 대상은 빗나가고, 에이전트가 일하는 동안 실제
 커서를 빼앗긴다는 내용이었습니다.</p>
-<p>이 issue는 정말 필요로 하는 사람을 기다리고 있었습니다. 그 댓글이 답이었기에 우선순위를 올리고
-macOS부터 시작했습니다.</p>
+<p>이 issue는 정말 필요로 하는 사람을 기다리고 있었습니다. 그 댓글로 실제로 필요한 사람이 있다는
+것을 알게 되어 우선순위를 올리고 macOS부터 시작했습니다.</p>
 
 <h2>Agent Desktop에서 배운 것</h2>
 <p>코드를 쓰기 전에 Vercel Labs의 {a(AGENT_DESKTOP, "Agent Desktop")}을 꼼꼼히 읽었습니다.
 README, 개념 문서, 그리고 macOS 코드입니다. Agent Desktop은 데스크톱 앱의 접근성 트리를 읽어
 JSON으로 돌려주고, 에이전트가 조작할 수 있는 요소마다 ref를 붙입니다. 그중 세 가지 생각이
-<code>ui_snapshot</code>의 모양을 정했습니다.</p>
+우리 계획의 모양을 정했습니다. 앞의 두 가지는 지금의 <code>ui_snapshot</code>에 들어 있고, 세 번째는
+2단계에서 다룹니다.</p>
 <ul>
 <li><strong>이미지 대신 구조화된 텍스트.</strong> 모델은 역할, 이름, 값을 읽습니다. 픽셀 속에서
 버튼을 찾지 않아도 됩니다.</li>
 <li><strong>요소마다 하나의 ref, 한 번의 스냅샷에서.</strong> Agent Desktop의 ref는 그것을 만든
 스냅샷에 속합니다. UI가 바뀌면 오래되었거나 모호한 ref는 짐작하지 않고 거부되고, 에이전트는 새
 스냅샷을 찍습니다.</li>
-<li><strong>포인터 없이 조작하기.</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
+<li><strong>포인터 없이 조작하기(2단계).</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
 포인터를 움직이지 않고 포커스도 가져가지 않습니다.</li>
 </ul>
 <p>issue #67에는 OpenAB Computer에서 Agent Desktop을 호출하는 방안도 있었습니다. 직접 관리할
@@ -511,9 +520,9 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 데스크톱 자체이고, 그 안의 두 이미지는 마운트된 드라이브 두 개의 아이콘입니다. 도구는 모델이
 읽을 텍스트 형식을 돌려줍니다.</p>
 <pre><code>{{text}}</code></pre>
-<p>같은 트리의 JSON(발췌):</p>
+<p>같은 트리의 JSON(발췌, 일부 필드는 생략):</p>
 <pre><code>{{json}}</code></pre>
-<p>노드 네 개를 46 ms에 읽었습니다. 드라이브 이름은 여기서 일반적인 이름으로 바꿨습니다.
+<p>노드 네 개를 104 ms에 읽었습니다. 드라이브 이름은 여기서 일반적인 이름으로 바꿨습니다.
 “Data” 드라이브를 열려면 에이전트는 e3 frame의 중심 (1855, 177)을 더블클릭하면 되고, 위치를
 찾으려고 스크린샷을 찍을 필요가 없습니다.</p>
 
@@ -540,8 +549,9 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 </ul>
 
 <h2>Agent Desktop과 같은 점, 아직 다른 점</h2>
-<p>같은 점: 둘 다 macOS 접근성 API를 읽고 이미지 대신 JSON을 돌려줍니다. 둘 다 요소마다 한 번의
-스냅샷 안에서만 유효한 ref를 붙입니다. 둘 다 다 읽지 못하면 실패하는 대신 일부 트리를 돌려줍니다.
+<p>같은 점: 둘 다 macOS 접근성 API를 읽고 이미지 대신 JSON을 돌려줍니다. 둘 다 요소에 한 번의
+스냅샷 안에서만 유효한 ref를 붙입니다. 우리는 모든 노드에, Agent Desktop은 에이전트가 조작할 수 있는
+요소에 붙입니다. 둘 다 다 읽지 못하면 실패하는 대신 일부 트리를 돌려줍니다.
 둘 다 안에 모델이 없고, 루프는 호출하는 에이전트가 돌립니다.</p>
 <p>지금 다른 점:</p>
 <ul>
@@ -562,7 +572,7 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 <p>Muse의 {a(MUSE, "리서치 글")}이 {a(BROWSE, "OpenCode Browse")}와 OpenAB Computer를 비교합니다.
 요점은 이렇습니다. Browse는 에이전트가 내 기기에서 로그인된 실제 브라우저를 다루게 하고, OpenAB
 Computer는 기기 한 대를 통째로 다른 곳의 에이전트에게 빌려줍니다. <code>ui_snapshot</code> 덕분에
-그 원격 에이전트가 읽을 수 있는 범위가 브라우저 밖, 네이티브 앱까지 넓어졌습니다.</p>
+그 원격 에이전트는 이제 브라우저뿐 아니라 네이티브 앱도 구조화된 텍스트로 읽을 수 있습니다.</p>
 
 <h2>다음 단계(아직 출시 전)</h2>
 <p>2단계는 <code>ui_action(ref)</code>입니다. ref로 버튼 누르기, 입력란 값 설정, 포커스 이동,

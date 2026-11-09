@@ -235,7 +235,7 @@ T["ja"] = dict(
         ("Discord に参加",
          "OpenAB の Discord で質問やバグ報告をしたり、OpenAB を使っているほかの人と話したりできます。", "discord"),
         ("GitHub で issue や PR を",
-         "オープンソースのプロジェクトは GitHub の openabdev organization にあります。"
+         "オープンソースのプロジェクトは GitHub の openabdev 組織にあります。"
          "バグ報告、アイデア、プルリクエストを歓迎します。", "github"),
         ("自分の構成を共有",
          "デプロイや設定を Discord で共有して、ほかの人の参考にしてください。", "discord"),

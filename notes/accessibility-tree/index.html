@@ -71,21 +71,22 @@ where a button is, click it with <code>mouse</code>, then take another screensho
 <a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a>. They use OpenAB Computer every day as the hands of a cloud agent that
 drives a home Mac. Every step costs image tokens, small targets get missed, and the real cursor is
 taken over while the agent works.</p>
-<p>The issue had been waiting for someone who needed it. That comment was the answer, so we raised
-its priority and started with macOS.</p>
+<p>The issue had been waiting for a real user. The comment showed there was one, so we raised its
+priority and started with macOS.</p>
 
 <h2>What we learned from Agent Desktop</h2>
 <p>Before writing code we read Vercel Labs' <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> closely: its
 README, its concept docs and its macOS code. Agent Desktop reads the accessibility tree of a
 desktop app and returns it as JSON, with a ref for every element an agent can act on. Three of its
-ideas shaped <code>ui_snapshot</code>.</p>
+ideas shaped our plan: the first two are in <code>ui_snapshot</code> today, and the third waits for
+phase 2.</p>
 <ul>
 <li><strong>Structured text instead of images.</strong> The model reads roles, names and values.
 It does not have to find a button in pixels.</li>
 <li><strong>A ref per element, from one snapshot.</strong> Agent Desktop's refs belong to the
 snapshot that produced them. When the UI changes, a stale or ambiguous ref is rejected instead of
 guessed, and the agent takes a new snapshot.</li>
-<li><strong>Acting without the pointer.</strong> Agent Desktop's ref actions go through the
+<li><strong>Acting without the pointer (phase 2).</strong> Agent Desktop's ref actions go through the
 accessibility API without moving the pointer or taking focus.</li>
 </ul>
 <p>Issue #67 listed calling Agent Desktop from OpenAB Computer as one option, and weighed less code
@@ -103,35 +104,35 @@ ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot'
 <p>Here is a real snapshot of Finder on an M4 Mac mini, taken with no Finder window open. The
 window is the desktop itself, and the two images in it are the icons of two mounted drives. The
 tool returns a text form for the model:</p>
-<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
-[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
-  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+<pre><code>ui_snapshot snap-10661573 · Finder (com.apple.finder) · 4 nodes · 104 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) focused
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080) focused
     [e3] AXImage &quot;Data&quot; (1823,145 64×64)
     [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
-<p>and the same tree as JSON (excerpt):</p>
+<p>and the same tree as JSON (an excerpt; some fields are left out):</p>
 <pre><code>{
-  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;snapshot_id&quot;: &quot;snap-10661573&quot;,
   &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
   &quot;node_count&quot;: 4,
   &quot;truncated&quot;: false,
   &quot;timed_out&quot;: false,
-  &quot;elapsed_ms&quot;: 46,
-  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;elapsed_ms&quot;: 104,
   &quot;windows&quot;: [
     { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
-      &quot;enabled&quot;: false,
+      &quot;focused&quot;: true,
       &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
       &quot;children&quot;: [
         { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;focused&quot;: true,
+          &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
           &quot;children&quot;: [
-            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
-              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;title&quot;: &quot;Data&quot;,
               &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
           ] }
       ] }
   ]
 }</code></pre>
-<p>Four nodes, read in 46 ms. The drive names are replaced with generic ones here. To open the
+<p>Four nodes, read in 104 ms. The drive names are replaced with generic ones here. To open the
 “Data” drive, an agent can double-click the center of e3's frame, (1855, 177), without taking a
 screenshot to find it.</p>
 
@@ -159,8 +160,9 @@ collapsed content, other windows. So <code>ui_snapshot</code> is available only 
 </ul>
 
 <h2>Where we match Agent Desktop, and where we don't yet</h2>
-<p>The same: both read the macOS accessibility API and return JSON, not images. Both give each
-element a ref that is valid within one snapshot. Both return a partial tree instead of failing.
+<p>The same: both read the macOS accessibility API and return JSON, not images. Both give elements
+refs that are valid only within one snapshot. Ours label every node; Agent Desktop's label the
+elements an agent can act on. Both return a partial tree instead of failing.
 Neither has a model inside; the calling agent runs the loop.</p>
 <p>Different, today:</p>
 <ul>
@@ -181,8 +183,8 @@ server.</li>
 <p>A <a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">research write-up on Muse</a> compares <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> with OpenAB
 Computer. Its main point: Browse lets an agent drive your real, logged-in browser on your own
 machine, while OpenAB Computer lends a whole machine to an agent somewhere else. With
-<code>ui_snapshot</code>, what that remote agent can read now reaches past the browser into native
-apps.</p>
+<code>ui_snapshot</code>, that remote agent can now read native apps as structured text, not only the
+browser.</p>
 
 <h2>What's next (not shipped)</h2>
 <p>Phase 2 is <code>ui_action(ref)</code>: press a button, set a field's value, move focus or open

@@ -70,21 +70,22 @@ document.addEventListener("click", function (e) {
 적어 주었습니다. 이 사용자는 OpenAB Computer를 매일, 집에 있는 Mac을 움직이는 클라우드 에이전트의
 손으로 씁니다. 단계마다 이미지 토큰이 들고, 작은 대상은 빗나가고, 에이전트가 일하는 동안 실제
 커서를 빼앗긴다는 내용이었습니다.</p>
-<p>이 issue는 정말 필요로 하는 사람을 기다리고 있었습니다. 그 댓글이 답이었기에 우선순위를 올리고
-macOS부터 시작했습니다.</p>
+<p>이 issue는 정말 필요로 하는 사람을 기다리고 있었습니다. 그 댓글로 실제로 필요한 사람이 있다는
+것을 알게 되어 우선순위를 올리고 macOS부터 시작했습니다.</p>
 
 <h2>Agent Desktop에서 배운 것</h2>
 <p>코드를 쓰기 전에 Vercel Labs의 <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a>을 꼼꼼히 읽었습니다.
 README, 개념 문서, 그리고 macOS 코드입니다. Agent Desktop은 데스크톱 앱의 접근성 트리를 읽어
 JSON으로 돌려주고, 에이전트가 조작할 수 있는 요소마다 ref를 붙입니다. 그중 세 가지 생각이
-<code>ui_snapshot</code>의 모양을 정했습니다.</p>
+우리 계획의 모양을 정했습니다. 앞의 두 가지는 지금의 <code>ui_snapshot</code>에 들어 있고, 세 번째는
+2단계에서 다룹니다.</p>
 <ul>
 <li><strong>이미지 대신 구조화된 텍스트.</strong> 모델은 역할, 이름, 값을 읽습니다. 픽셀 속에서
 버튼을 찾지 않아도 됩니다.</li>
 <li><strong>요소마다 하나의 ref, 한 번의 스냅샷에서.</strong> Agent Desktop의 ref는 그것을 만든
 스냅샷에 속합니다. UI가 바뀌면 오래되었거나 모호한 ref는 짐작하지 않고 거부되고, 에이전트는 새
 스냅샷을 찍습니다.</li>
-<li><strong>포인터 없이 조작하기.</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
+<li><strong>포인터 없이 조작하기(2단계).</strong> Agent Desktop의 ref 동작은 접근성 API를 거치며
 포인터를 움직이지 않고 포커스도 가져가지 않습니다.</li>
 </ul>
 <p>issue #67에는 OpenAB Computer에서 Agent Desktop을 호출하는 방안도 있었습니다. 직접 관리할
@@ -102,35 +103,35 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 <p>아래는 M4 Mac mini에서 Finder 창을 하나도 열지 않은 상태로 찍은 실제 스냅샷입니다. 이때 창은
 데스크톱 자체이고, 그 안의 두 이미지는 마운트된 드라이브 두 개의 아이콘입니다. 도구는 모델이
 읽을 텍스트 형식을 돌려줍니다.</p>
-<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
-[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
-  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+<pre><code>ui_snapshot snap-10661573 · Finder (com.apple.finder) · 4 nodes · 104 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) focused
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080) focused
     [e3] AXImage &quot;Data&quot; (1823,145 64×64)
     [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
-<p>같은 트리의 JSON(발췌):</p>
+<p>같은 트리의 JSON(발췌, 일부 필드는 생략):</p>
 <pre><code>{
-  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;snapshot_id&quot;: &quot;snap-10661573&quot;,
   &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
   &quot;node_count&quot;: 4,
   &quot;truncated&quot;: false,
   &quot;timed_out&quot;: false,
-  &quot;elapsed_ms&quot;: 46,
-  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;elapsed_ms&quot;: 104,
   &quot;windows&quot;: [
     { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
-      &quot;enabled&quot;: false,
+      &quot;focused&quot;: true,
       &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
       &quot;children&quot;: [
         { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;focused&quot;: true,
+          &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
           &quot;children&quot;: [
-            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
-              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;title&quot;: &quot;Data&quot;,
               &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
           ] }
       ] }
   ]
 }</code></pre>
-<p>노드 네 개를 46 ms에 읽었습니다. 드라이브 이름은 여기서 일반적인 이름으로 바꿨습니다.
+<p>노드 네 개를 104 ms에 읽었습니다. 드라이브 이름은 여기서 일반적인 이름으로 바꿨습니다.
 “Data” 드라이브를 열려면 에이전트는 e3 frame의 중심 (1855, 177)을 더블클릭하면 되고, 위치를
 찾으려고 스크린샷을 찍을 필요가 없습니다.</p>
 
@@ -157,8 +158,9 @@ OpenAB Computer 자체 MCP 도구 중 하나로 만들기로 했고, <code>scree
 </ul>
 
 <h2>Agent Desktop과 같은 점, 아직 다른 점</h2>
-<p>같은 점: 둘 다 macOS 접근성 API를 읽고 이미지 대신 JSON을 돌려줍니다. 둘 다 요소마다 한 번의
-스냅샷 안에서만 유효한 ref를 붙입니다. 둘 다 다 읽지 못하면 실패하는 대신 일부 트리를 돌려줍니다.
+<p>같은 점: 둘 다 macOS 접근성 API를 읽고 이미지 대신 JSON을 돌려줍니다. 둘 다 요소에 한 번의
+스냅샷 안에서만 유효한 ref를 붙입니다. 우리는 모든 노드에, Agent Desktop은 에이전트가 조작할 수 있는
+요소에 붙입니다. 둘 다 다 읽지 못하면 실패하는 대신 일부 트리를 돌려줍니다.
 둘 다 안에 모델이 없고, 루프는 호출하는 에이전트가 돌립니다.</p>
 <p>지금 다른 점:</p>
 <ul>
@@ -179,7 +181,7 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 <p>Muse의 <a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">리서치 글</a>이 <a href="https://github.com/anomalyco/browse">OpenCode Browse</a>와 OpenAB Computer를 비교합니다.
 요점은 이렇습니다. Browse는 에이전트가 내 기기에서 로그인된 실제 브라우저를 다루게 하고, OpenAB
 Computer는 기기 한 대를 통째로 다른 곳의 에이전트에게 빌려줍니다. <code>ui_snapshot</code> 덕분에
-그 원격 에이전트가 읽을 수 있는 범위가 브라우저 밖, 네이티브 앱까지 넓어졌습니다.</p>
+그 원격 에이전트는 이제 브라우저뿐 아니라 네이티브 앱도 구조화된 텍스트로 읽을 수 있습니다.</p>
 
 <h2>다음 단계(아직 출시 전)</h2>
 <p>2단계는 <code>ui_action(ref)</code>입니다. ref로 버튼 누르기, 입력란 값 설정, 포커스 이동,
