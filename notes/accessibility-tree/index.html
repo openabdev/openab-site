@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB Computer can now read the macOS accessibility tree — OpenAB</title>
+<meta name="description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<link rel="canonical" href="https://openab.dev/notes/accessibility-tree/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
+<meta property="og:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta property="og:url" content="https://openab.dev/notes/accessibility-tree/">
+<meta property="og:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=d523386a">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB dev note: OpenAB Computer can now read the macOS accessibility tree">
+<meta property="article:published_time" content="2026-11-09">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB Computer can now read the macOS accessibility tree — OpenAB">
+<meta name="twitter:description" content="OpenAB Computer 0.9.0 adds ui_snapshot, an MCP tool that returns a Mac app&#x27;s accessibility tree as JSON. What it returns, what we learned from Vercel&#x27;s Agent Desktop, and what is still missing.">
+<meta name="twitter:image" content="https://openab.dev/notes/accessibility-tree/og-en.png?v=d523386a">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../style.css?v=c2cafc5b">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/accessibility-tree/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/accessibility-tree/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../assets/brand-64.png?v=99caab3e" srcset="../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">Projects</a>
+    <a href="../../#participate">Participate</a>
+    <a href="../../notes/">Dev notes</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../../zh/notes/accessibility-tree/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../../ja/notes/accessibility-tree/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../ko/notes/accessibility-tree/" data-lang="ko" hreflang="ko">한국어</a>|<a class="active" aria-current="page" href="../../notes/accessibility-tree/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← Dev notes</a></p>
+<h1>OpenAB Computer can now read the macOS accessibility tree</h1>
+<p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="lede">OpenAB Computer 0.9.0 adds <code>ui_snapshot</code>, an MCP tool that reads the
+accessibility tree of a Mac app and returns it as JSON. An agent can now see the buttons, fields
+and labels in a window as text, with their positions on screen, instead of working them out from
+a screenshot.</p>
+
+<h2>Why the screenshot loop was not enough</h2>
+<p>Until now, an agent using OpenAB Computer on a Mac worked in a loop: take a screenshot, guess
+where a button is, click it with <code>mouse</code>, then take another screenshot to check.</p>
+<p>A community user, <a href="https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810">ttmuse</a>, described the cost of that loop on
+<a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a>. They use OpenAB Computer every day as the hands of a cloud agent that
+drives a home Mac. Every step costs image tokens, small targets get missed, and the real cursor is
+taken over while the agent works.</p>
+<p>The issue had been waiting for someone who needed it. That comment was the answer, so we raised
+its priority and started with macOS.</p>
+
+<h2>What we learned from Agent Desktop</h2>
+<p>Before writing code we read Vercel Labs' <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> closely: its
+README, its concept docs and its macOS code. Agent Desktop reads the accessibility tree of a
+desktop app and returns it as JSON, with a ref for every element an agent can act on. Three of its
+ideas shaped <code>ui_snapshot</code>.</p>
+<ul>
+<li><strong>Structured text instead of images.</strong> The model reads roles, names and values.
+It does not have to find a button in pixels.</li>
+<li><strong>A ref per element, from one snapshot.</strong> Agent Desktop's refs belong to the
+snapshot that produced them. When the UI changes, a stale or ambiguous ref is rejected instead of
+guessed, and the agent takes a new snapshot.</li>
+<li><strong>Acting without the pointer.</strong> Agent Desktop's ref actions go through the
+accessibility API without moving the pointer or taking focus.</li>
+</ul>
+<p>Issue #67 listed calling Agent Desktop from OpenAB Computer as one option, and weighed less code
+to own against an external dependency and its release cadence. We decided to make the
+accessibility tree one of OpenAB Computer's own MCP tools, in the Swift daemon that already serves
+<code>screenshot</code>, <code>mouse</code> and <code>key</code> (<a href="https://github.com/openabdev/openab-computer/pull/93">PR #93</a>).</p>
+
+<h2>What ui_snapshot returns</h2>
+<p>By default it reads the focused window of the frontmost app. <code>app</code> (a bundle id or
+name), <code>pid</code>, <code>window</code> and <code>all_windows</code> pick another target.</p>
+<p>Each node carries its role, title, value and description, whether it is enabled or focused, and
+a frame. The frame uses the same display points as <code>screenshot</code> and <code>mouse</code>,
+so an agent can aim a click at a node without looking at the screen first. Every node also gets a
+ref (<code>e1</code>, <code>e2</code>, …) that is unique within that snapshot's id.</p>
+<p>Here is a real snapshot of Finder on an M4 Mac mini, taken with no Finder window open. The
+window is the desktop itself, and the two images in it are the icons of two mounted drives. The
+tool returns a text form for the model:</p>
+<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+    [e3] AXImage &quot;Data&quot; (1823,145 64×64)
+    [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
+<p>and the same tree as JSON (excerpt):</p>
+<pre><code>{
+  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
+  &quot;node_count&quot;: 4,
+  &quot;truncated&quot;: false,
+  &quot;timed_out&quot;: false,
+  &quot;elapsed_ms&quot;: 46,
+  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;windows&quot;: [
+    { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
+      &quot;enabled&quot;: false,
+      &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
+      &quot;children&quot;: [
+        { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;children&quot;: [
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
+              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+              &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
+          ] }
+      ] }
+  ]
+}</code></pre>
+<p>Four nodes, read in 46 ms. The drive names are replaced with generic ones here. To open the
+“Data” drive, an agent can double-click the center of e3's frame, (1855, 177), without taking a
+screenshot to find it.</p>
+
+<h2>Limits, timeouts and privacy</h2>
+<p>A snapshot is bounded. By default it stops at 20 levels deep or 300 nodes, and the whole call
+gets 3 seconds; a caller can raise these to 50 levels, 2,000 nodes and 10 seconds. Before every
+accessibility call the tool sets a messaging timeout of at most half a second, so an app that has
+stopped responding cannot block it.</p>
+<p>When a limit or the time budget runs out, the agent gets what was read so far, flagged with
+<code>truncated</code> or <code>timed_out</code>, and no error. Long text is read as a
+200-character prefix, so a large document is not copied whole.</p>
+<p>Password fields are always masked. For a secure text field the tool never asks for the value
+and does not look inside it. Other fields are not masked.</p>
+<p>That matters because the tree holds text a screenshot does not show: rows scrolled out of view,
+collapsed content, other windows. So <code>ui_snapshot</code> is available only to the
+<code>owner</code> profile, and it needs the macOS Accessibility permission, the same one
+<code>mouse</code> and <code>key</code> already use.</p>
+
+<h2>Which tool for which screen</h2>
+<ul>
+<li>Native Mac apps: <code>ui_snapshot</code>.</li>
+<li>Web pages: <code>browser_snapshot</code>, which reads the page structure from the browser.</li>
+<li>Custom-drawn content such as canvases, which has no accessibility tree:
+<code>screenshot</code> and <code>mouse</code>, as before.</li>
+</ul>
+
+<h2>Where we match Agent Desktop, and where we don't yet</h2>
+<p>The same: both read the macOS accessibility API and return JSON, not images. Both give each
+element a ref that is valid within one snapshot. Both return a partial tree instead of failing.
+Neither has a model inside; the calling agent runs the loop.</p>
+<p>Different, today:</p>
+<ul>
+<li><strong>OpenAB Computer only reads.</strong> Agent Desktop can already click, type, set values
+and move focus by ref without moving the pointer. An agent on OpenAB Computer still clicks with
+<code>mouse</code> at coordinates, and the real cursor still moves.</li>
+<li><strong>Refs.</strong> Our refs only label one snapshot; the tool keeps no state. Agent Desktop
+stores a map from each ref to evidence of the element's identity, and checks it is the same
+element before acting.</li>
+<li><strong>Platforms.</strong> OpenAB Computer reads the tree on macOS only. Agent Desktop covers
+macOS, Windows and Linux.</li>
+<li><strong>Shape.</strong> <code>ui_snapshot</code> is one tool in a remote MCP server, used by an
+agent on another machine. Agent Desktop runs locally as a CLI, a C library or a stdio MCP
+server.</li>
+</ul>
+
+<h2>A comparison worth reading</h2>
+<p>A <a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">research write-up on Muse</a> compares <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> with OpenAB
+Computer. Its main point: Browse lets an agent drive your real, logged-in browser on your own
+machine, while OpenAB Computer lends a whole machine to an agent somewhere else. With
+<code>ui_snapshot</code>, what that remote agent can read now reaches past the browser into native
+apps.</p>
+
+<h2>What's next (not shipped)</h2>
+<p>Phase 2 is <code>ui_action(ref)</code>: press a button, set a field's value, move focus or open
+a menu by ref, without moving the cursor. That is the part that ends the cursor takeover. It will
+also add the menu bar, which today's tree leaves out. Setting a value on a password field will be
+refused.</p>
+<p>After macOS, a Linux version based on AT-SPI is planned. Neither has a date. Issue #67 stays
+open to track both.</p>
+
+<p class="outro">To try it, update to <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.9.0">OpenAB Computer 0.9.0</a>, give it the Accessibility
+permission, and call <code>ui_snapshot</code> from an agent with the <code>owner</code>
+profile.</p>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>

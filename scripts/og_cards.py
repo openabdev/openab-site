@@ -82,7 +82,8 @@ def gradient():
     return im
 
 
-def build(lang):
+def build(lang, text=None, dest=None):
+    """Draw one card. Defaults are the home page card; notes pass their own text and path."""
     im = gradient()
     im = im.convert("RGBA")
     art = Image.open(ART).convert("RGBA").resize((ART_PX, ART_PX), Image.LANCZOS)
@@ -96,7 +97,7 @@ def build(lang):
     wy = ICON_XY[1] + ICON_PX // 2 - d.textbbox((0, 0), WORDMARK, font=wf)[3] // 2 - 3
     d.text((ICON_XY[0] + ICON_PX + 18, wy), WORDMARK, font=wf, fill=INK)
 
-    lines, sub = TEXT[lang]
+    lines, sub = text or TEXT[lang]
     hpath = HEAD_FACE.get(lang, FACE[lang])
     hf, hsize = fit(d, lines, hpath, 58 if lang == "en" else 54, 34, TEXT_R)
     d.text((MARGIN, HEAD_Y1), lines[0], font=hf, fill=INK)
@@ -110,7 +111,7 @@ def build(lang):
     d.text((MARGIN, SUB_Y), sub, font=sf, fill=MUTED)
     d.text((MARGIN, DOMAIN_Y), DOMAIN, font=font(MONO, 26), fill=ACCENT)
 
-    dest = ROOT / f"og-{lang}.png"
+    dest = dest or ROOT / f"og-{lang}.png"
     im.save(dest, optimize=True)
     over = [l for l in lines if MARGIN + width(d, l, hf) > TEXT_R]
     if MARGIN + width(d, sub, sf) > TEXT_R:
@@ -118,9 +119,22 @@ def build(lang):
     return dest, hsize, sf_size, "/".join(hf.getname()), over
 
 
-if __name__ == "__main__":
+def jobs():
+    """Every card: the home page, the notes index, and each note, one per language."""
+    from notes import INDEX, NOTES
     for lang in ("en", "zh", "ja", "ko"):
-        dest, hs, ss, name, over = build(lang)
+        lang_dir = ROOT / ("" if lang == "en" else lang)
+        yield lang, None, None
+        yield lang, INDEX[lang]["og"], lang_dir / "notes" / f"og-{lang}.png"
+        for n in NOTES:
+            yield lang, n["langs"][lang]["og"], lang_dir / "notes" / n["slug"] / f"og-{lang}.png"
+
+
+if __name__ == "__main__":
+    for lang, text, path in jobs():
+        if path:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        dest, hs, ss, name, over = build(lang, text, path)
         im = Image.open(dest)
-        print(f"  {lang:3} {dest.name:10} {im.size[0]}x{im.size[1]} {im.mode:4} "
+        print(f"  {lang:3} {str(dest.relative_to(ROOT)):40} {im.size[0]}x{im.size[1]} {im.mode:4} "
               f"head={hs}px sub={ss}px  {name}" + ("  OVERFLOW: %s" % over if over else ""))

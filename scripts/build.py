@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""openab.dev landing page, four languages, one template.
+"""openab.dev landing page and dev notes, four languages, one template.
 
-    python3 scripts/build.py          # writes index.html, zh/, ja/, ko/
+    python3 scripts/build.py          # writes index.html, zh/, ja/, ko/ and every notes/ page
+
+Dev note copy lives in scripts/notes.py.
 
 Never hand-edit the generated HTML: four near-identical files drift. Every link and
 asset path is relative, so the same files work at the GitHub Pages preview
@@ -12,6 +14,9 @@ import hashlib
 import html
 import os
 import pathlib
+import re
+
+from notes import INDEX, NOTES
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = os.environ.get("SITE", "https://openab.dev").rstrip("/")
@@ -533,6 +538,7 @@ def page(code):
   <div class="links">
     <a href="#projects">{t['nav'][0]}</a>
     <a href="#participate">{t['nav'][1]}</a>
+    <a href="notes/">{INDEX[code]['nav']}</a>
     <a href="{GITHUB_ORG}">GitHub</a>
     <span class="lang" aria-label="Language">
     {switcher(code)}
@@ -580,13 +586,184 @@ def page(code):
 """
 
 
+# ── Dev notes ─────────────────────────────────────────────────────────────────
+# One page per language, like the home page: notes/ (en), zh/notes/, ja/notes/, ko/notes/
+# for the index and notes/<slug>/ etc. for each note. Each page carries its own card
+# (notes/og-<lang>.png, notes/<slug>/og-<lang>.png, drawn by og_cards.py), so no share
+# pages are needed. `rel` is a page's path below its language root, e.g. "notes/".
+
+def lang_path(code, rel):
+    d = LANG[code]["dir"]
+    return f"{d}/{rel}" if d else rel
+
+
+def to_root(code, rel):
+    """Relative prefix from a notes page back to the site root."""
+    return "../" * lang_path(code, rel).count("/")
+
+
+def notes_head(code, rel, title, desc, og_alt, article_date=None):
+    d = LANG[code]
+    root = to_root(code, rel)
+    card = f"{lang_path(code, rel)}og-{code}.png"
+    og = f"{SITE}/{card}?v={rev(card)}"
+    url = f"{SITE}/{lang_path(code, rel)}"
+    alts = [f'<link rel="alternate" hreflang="{LANG[c]["htmllang"]}" href="{SITE}/{lang_path(c, rel)}">'
+            for c in ORDER]
+    alts.append(f'<link rel="alternate" hreflang="x-default" href="{SITE}/{rel}">')
+    tags = [
+        '<meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        f"<title>{esc(title)}</title>",
+        f'<meta name="description" content="{esc(desc)}">',
+        f'<link rel="canonical" href="{url}">',
+        f'<meta property="og:type" content="{"article" if article_date else "website"}">',
+        '<meta property="og:site_name" content="OpenAB">',
+        f'<meta property="og:locale" content="{d["og_locale"]}">',
+        f'<meta property="og:title" content="{esc(title)}">',
+        f'<meta property="og:description" content="{esc(desc)}">',
+        f'<meta property="og:url" content="{url}">',
+        f'<meta property="og:image" content="{og}">',
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        f'<meta property="og:image:alt" content="{esc(og_alt)}">',
+    ]
+    if article_date:
+        tags.append(f'<meta property="article:published_time" content="{article_date}">')
+    tags += [
+        '<meta name="twitter:card" content="summary_large_image">',
+        f'<meta name="twitter:title" content="{esc(title)}">',
+        f'<meta name="twitter:description" content="{esc(desc)}">',
+        f'<meta name="twitter:image" content="{og}">',
+        '<meta name="theme-color" content="#F7F4FC">',
+        *[f'<link rel="icon" type="image/png" sizes="{s}x{s}" href="{root}assets/favicon-{s}.png?v={rev(f"assets/favicon-{s}.png")}">'
+          for s in (16, 32, 64)],
+        f'<link rel="apple-touch-icon" href="{root}assets/apple-touch-icon.png?v={rev("assets/apple-touch-icon.png")}">',
+        f'<link rel="stylesheet" href="{root}style.css?v={rev("style.css")}">',
+        *alts,
+    ]
+    return "\n".join(tags)
+
+
+def notes_nav(code, rel):
+    """Nav for a notes page: brand and Projects go to this language's home page."""
+    t = T[code]
+    root = to_root(code, rel)
+    home = "../" * rel.count("/")          # this language's home page
+    brand = (f'src="{root}assets/brand-64.png?v={rev("assets/brand-64.png")}" '
+             f'srcset="{root}assets/brand-128.png?v={rev("assets/brand-128.png")} 2x"')
+    langs = []
+    for c in SWITCH_ORDER:
+        cls = ' class="active" aria-current="page"' if c == code else ""
+        langs.append(f'<a{cls} href="{root}{lang_path(c, rel)}" data-lang="{c}" '
+                     f'hreflang="{LANG[c]["htmllang"]}">{LANG[c]["label"]}</a>')
+    current = ' aria-current="page"' if rel == "notes/" else ""
+    return f"""<nav class="top">
+  <a class="brand" href="{home}"><img {brand} alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="{home}#projects">{t['nav'][0]}</a>
+    <a href="{home}#participate">{t['nav'][1]}</a>
+    <a href="{home}notes/"{current}>{INDEX[code]['nav']}</a>
+    <a href="{GITHUB_ORG}">GitHub</a>
+    <span class="lang" aria-label="Language">
+    {"|".join(langs)}
+    </span>
+  </div>
+</nav>
+{REMEMBER}"""
+
+
+def notes_foot(code):
+    t = T[code]
+    return f"""<footer>
+  <a href="{GITHUB_ORG}">{t['foot'][0]}</a>
+  <a href="{DISCORD}">{t['foot'][1]}</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>"""
+
+
+def doc(code, head_html, nav_html, main_html):
+    return f"""<!DOCTYPE html>
+<html lang="{LANG[code]['htmllang']}" data-lang="{code}">
+<head>
+{head_html}
+</head>
+<body>
+{nav_html}
+
+{main_html}
+
+{notes_foot(code)}
+</body>
+</html>
+"""
+
+
+def notes_index(code):
+    ix = INDEX[code]
+    rel = "notes/"
+    items = []
+    for n in NOTES:              # newest first
+        m = n["langs"][code]
+        items.append(f"""  <li>
+    <a class="card note-item" href="{n['slug']}/">
+      <time class="when" datetime="{n['date']}">{n['date']}</time>
+      <h2 class="note-title">{esc(m['title'])}</h2>
+      <p class="card-desc">{esc(m['desc'])}</p>
+      <span class="card-link">{esc(ix['read'])}</span>
+    </a>
+  </li>""")
+    main = f"""<main class="notes">
+  <h1>{esc(ix['h1'])}</h1>
+  <p class="intro">{esc(ix['desc'])}</p>
+  <ul class="note-list">
+{chr(10).join(items)}
+  </ul>
+</main>"""
+    return doc(code, notes_head(code, rel, ix["title"], ix["desc"], ix["og_alt"]),
+               notes_nav(code, rel), main)
+
+
+CJK_BREAK = re.compile(r"(?<=[\u3000-\u9fff\uff00-\uffef])\n(?=[\u3000-\u9fff\uff00-\uffef])")
+
+
+def note_page(code, n):
+    ix = INDEX[code]
+    m = n["langs"][code]
+    rel = f"notes/{n['slug']}/"
+    body = m["body"].strip()
+    if code in ("zh", "ja"):
+        # A source line break between two Han/kana characters would render as a space.
+        body = CJK_BREAK.sub("", body)
+    body = body.replace("{text}", esc(n["text"])).replace("{json}", esc(n["json"]))
+    main = f"""<main class="note">
+<article>
+<p class="back"><a href="../">← {esc(ix['h1'])}</a></p>
+<h1>{esc(m['title'])}</h1>
+<p class="byline"><time datetime="{n['date']}">{esc(m['byline'])}</time></p>
+{body}
+</article>
+</main>"""
+    return doc(code, notes_head(code, rel, f"{m['title']} — OpenAB", m["desc"], m["og_alt"],
+                                article_date=n["date"]),
+               notes_nav(code, rel), main)
+
+
+def write(rel_path, text):
+    dest = ROOT / rel_path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(text, encoding="utf-8")
+    print(f"  wrote {dest.relative_to(ROOT)}")
+
+
 def main():
     for code in ORDER:
         d = LANG[code]["dir"]
-        dest = ROOT / d / "index.html" if d else ROOT / "index.html"
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(page(code), encoding="utf-8")
-        print(f"  wrote {dest.relative_to(ROOT)}")
+        write(f"{d}/index.html" if d else "index.html", page(code))
+    for code in ORDER:
+        write(lang_path(code, "notes/index.html"), notes_index(code))
+        for n in NOTES:
+            write(lang_path(code, f"notes/{n['slug']}/index.html"), note_page(code, n))
 
 
 if __name__ == "__main__":

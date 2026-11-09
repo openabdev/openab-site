@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja" data-lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB</title>
+<meta name="description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<link rel="canonical" href="https://openab.dev/ja/notes/accessibility-tree/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB">
+<meta property="og:description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<meta property="og:url" content="https://openab.dev/ja/notes/accessibility-tree/">
+<meta property="og:image" content="https://openab.dev/ja/notes/accessibility-tree/og-ja.png?v=d39affef">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB 開発ノート：OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました">
+<meta property="article:published_time" content="2026-11-09">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました — OpenAB">
+<meta name="twitter:description" content="OpenAB Computer 0.9.0 で、Mac アプリのアクセシビリティツリーを JSON で返す MCP ツール ui_snapshot が加わりました。返す内容、Vercel の Agent Desktop から学んだこと、まだ足りないこと。">
+<meta name="twitter:image" content="https://openab.dev/ja/notes/accessibility-tree/og-ja.png?v=d39affef">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../../style.css?v=c2cafc5b">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/accessibility-tree/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/accessibility-tree/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../../assets/brand-64.png?v=99caab3e" srcset="../../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">プロジェクト</a>
+    <a href="../../#participate">参加する</a>
+    <a href="../../notes/">開発ノート</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../../../zh/notes/accessibility-tree/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a class="active" aria-current="page" href="../../../ja/notes/accessibility-tree/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../../ko/notes/accessibility-tree/" data-lang="ko" hreflang="ko">한국어</a>|<a href="../../../notes/accessibility-tree/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← 開発ノート</a></p>
+<h1>OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました</h1>
+<p class="byline"><time datetime="2026-11-09">2026-11-09 · OpenAB Computer 0.9.0</time></p>
+<p class="lede">OpenAB Computer 0.9.0 で、MCP ツール <code>ui_snapshot</code> が加わりました。Mac
+アプリのアクセシビリティツリーを読み、JSON で返します。エージェントは、ウィンドウの中のボタンや入力欄やラベルを、画面上の位置とあわせてテキストで受け取れます。スクリーンショットから読み解く必要はもうありません。</p>
+
+<h2>スクリーンショットのループでは足りなかった理由</h2>
+<p>これまで、OpenAB Computer で Mac を操作するエージェントはこう動いていました。スクリーンショットを撮り、ボタンの位置を推測し、<code>mouse</code> でクリックし、もう一度スクリーンショットで確かめる。</p>
+<p>コミュニティのユーザー <a href="https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810">ttmuse</a> さんが、<a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> でこのループのコストを書いてくれました。この方は OpenAB Computer を毎日、自宅の Mac を動かすクラウドのエージェントの手として使っています。一手ごとに画像のトークンがかかり、小さな対象は外れ、エージェントが動いている間は本物のカーソルを取られてしまう、というものです。</p>
+<p>この issue は、本当に必要とする人を待っていました。このコメントがその答えだったので、優先度を上げ、macOS から取りかかりました。</p>
+
+<h2>Agent Desktop から学んだこと</h2>
+<p>コードを書く前に、Vercel Labs の <a href="https://github.com/vercel-labs/agent-desktop">Agent Desktop</a> をじっくり読みました。
+README、コンセプトの文書、そして macOS のコードです。Agent Desktop はデスクトップアプリのアクセシビリティツリーを読んで JSON で返し、エージェントが操作できる要素ごとに ref を付けます。そのうち三つの考え方が <code>ui_snapshot</code> の形を決めました。</p>
+<ul>
+<li><strong>画像ではなく構造化されたテキスト。</strong>モデルが読むのはロール、名前、値です。ピクセルの中からボタンを探す必要はありません。</li>
+<li><strong>要素ごとの ref は、一回のスナップショットのもの。</strong>Agent Desktop の ref は、それを作ったスナップショットに属します。UI が変われば、古い ref や曖昧な ref は推測せずに拒否され、エージェントは新しいスナップショットを撮ります。</li>
+<li><strong>ポインターを使わない操作。</strong>Agent Desktop の ref による操作はアクセシビリティ
+API を通り、ポインターを動かさず、フォーカスも奪いません。</li>
+</ul>
+<p>issue #67 では、OpenAB Computer から Agent Desktop を呼び出す案も挙げていました。自分で持つコードが減る一方で、外部への依存とその更新のペースを抱えることになる、という比較です。最終的に、アクセシビリティツリーを OpenAB Computer 自身の MCP ツールの一つにすることにし、
+<code>screenshot</code>、<code>mouse</code>、<code>key</code> をすでに提供している Swift のデーモンに入れました（<a href="https://github.com/openabdev/openab-computer/pull/93">PR #93</a>）。</p>
+
+<h2>ui_snapshot が返すもの</h2>
+<p>既定では、最前面のアプリのフォーカスされたウィンドウを読みます。<code>app</code>（bundle id かアプリ名）、<code>pid</code>、<code>window</code>、<code>all_windows</code> で別の対象を選べます。</p>
+<p>各ノードには、ロール、タイトル、値、説明、有効かどうかとフォーカスの有無、そして frame が入ります。frame は <code>screenshot</code> や <code>mouse</code> と同じディスプレイのポイント座標なので、エージェントは画面を見なくてもノードを狙ってクリックできます。各ノードには ref
+（<code>e1</code>、<code>e2</code>…）も付き、同じスナップショット ID の中では重複しません。</p>
+<p>以下は、M4 Mac mini で Finder のウィンドウを一つも開いていないときに撮った、実際のスナップショットです。この場合のウィンドウはデスクトップそのもので、中の二つの画像はマウントされた二台のドライブのアイコンです。ツールはモデル向けのテキスト版を返します。</p>
+<pre><code>ui_snapshot snap-54785c06 · Finder (com.apple.finder) · 4 nodes · 46 ms
+[e1] AXScrollArea desc=&quot;desktop&quot; (0,0 1920×1080) disabled
+  [e2] AXGroup desc=&quot;desktop&quot; (0,0 1920×1080)
+    [e3] AXImage &quot;Data&quot; (1823,145 64×64)
+    [e4] AXImage &quot;Backup&quot; (1823,33 64×64)</code></pre>
+<p>同じツリーの JSON（抜粋）：</p>
+<pre><code>{
+  &quot;snapshot_id&quot;: &quot;snap-54785c06&quot;,
+  &quot;app&quot;: { &quot;name&quot;: &quot;Finder&quot;, &quot;bundle_id&quot;: &quot;com.apple.finder&quot; },
+  &quot;node_count&quot;: 4,
+  &quot;truncated&quot;: false,
+  &quot;timed_out&quot;: false,
+  &quot;elapsed_ms&quot;: 46,
+  &quot;limits&quot;: { &quot;max_depth&quot;: 20, &quot;max_nodes&quot;: 300, &quot;timeout_ms&quot;: 3000 },
+  &quot;windows&quot;: [
+    { &quot;ref&quot;: &quot;e1&quot;, &quot;role&quot;: &quot;AXScrollArea&quot;, &quot;description&quot;: &quot;desktop&quot;,
+      &quot;enabled&quot;: false,
+      &quot;frame&quot;: { &quot;x&quot;: 0, &quot;y&quot;: 0, &quot;width&quot;: 1920, &quot;height&quot;: 1080 },
+      &quot;children&quot;: [
+        { &quot;ref&quot;: &quot;e2&quot;, &quot;role&quot;: &quot;AXGroup&quot;, &quot;description&quot;: &quot;desktop&quot;,
+          &quot;children&quot;: [
+            { &quot;ref&quot;: &quot;e3&quot;, &quot;role&quot;: &quot;AXImage&quot;, &quot;role_description&quot;: &quot;image&quot;,
+              &quot;title&quot;: &quot;Data&quot;, &quot;description&quot;: &quot;Data&quot;, &quot;display&quot;: 0,
+              &quot;frame&quot;: { &quot;x&quot;: 1823, &quot;y&quot;: 145, &quot;width&quot;: 64, &quot;height&quot;: 64 } }
+          ] }
+      ] }
+  ]
+}</code></pre>
+<p>四つのノードを 46 ms で読みました。ドライブ名はここでは一般的な名前に置き換えています。「Data」ドライブを開きたければ、エージェントは e3 の frame の中心 (1855, 177) をダブルクリックすればよく、場所を探すためのスクリーンショットはいりません。</p>
+
+<h2>上限、タイムアウト、プライバシー</h2>
+<p>スナップショットには上限があります。既定では深さ 20 階層か 300 ノードで止まり、呼び出し全体に
+3 秒を割り当てます。呼び出し側は 50 階層、2,000 ノード、10 秒まで引き上げられます。アクセシビリティの呼び出しの前には毎回、最大 0.5 秒のメッセージタイムアウトを設定するので、応答しなくなったアプリに止められることはありません。</p>
+<p>上限や時間に達したときは、それまでに読めた分を <code>truncated</code> か <code>timed_out</code>
+の印付きで返し、エラーにはしません。長いテキストは先頭 200 文字だけを読むので、大きな文書が丸ごとコピーされることはありません。</p>
+<p>パスワード欄は必ずマスクします。セキュアテキストフィールドについては、ツールは値を一切問い合わせず、中も読みません。それ以外の入力欄はマスクしません。</p>
+<p>これが大事なのは、ツリーにはスクリーンショットに写らないテキストも入っているからです。スクロールで隠れた行、折りたたまれた内容、ほかのウィンドウ。そのため <code>ui_snapshot</code> は
+<code>owner</code> プロファイルでしか使えず、macOS のアクセシビリティ権限が必要です。
+<code>mouse</code> と <code>key</code> がすでに使っているのと同じ権限です。</p>
+
+<h2>どの画面にどのツールを使うか</h2>
+<ul>
+<li>ネイティブの Mac アプリ：<code>ui_snapshot</code>。</li>
+<li>Web ページ：<code>browser_snapshot</code>。ブラウザーからページの構造を読みます。</li>
+<li>canvas のように独自に描画された、アクセシビリティツリーのない内容：これまでどおり
+<code>screenshot</code> と <code>mouse</code>。</li>
+</ul>
+
+<h2>Agent Desktop と同じところ、まだ違うところ</h2>
+<p>同じところ：どちらも macOS のアクセシビリティ API を読み、画像ではなく JSON を返します。どちらも要素ごとに、一回のスナップショットの中で有効な ref を付けます。どちらも、読み切れないときは失敗せずに部分的なツリーを返します。どちらも中にモデルを持たず、ループは呼び出すエージェントが回します。</p>
+<p>今のところ違うところ：</p>
+<ul>
+<li><strong>OpenAB Computer は読むだけです。</strong>Agent Desktop はすでに、ref でクリック、入力、値の設定、フォーカスの移動ができ、ポインターも動かしません。OpenAB Computer のエージェントは今も
+<code>mouse</code> で座標をクリックするので、本物のカーソルは動きます。</li>
+<li><strong>ref。</strong>こちらの ref は一回のスナップショットのラベルにすぎず、ツールは状態を持ちません。Agent Desktop は ref ごとに要素を特定するための情報を保存し、操作の前に同じ要素であることを確かめます。</li>
+<li><strong>プラットフォーム。</strong>OpenAB Computer がツリーを読めるのは今のところ macOS だけです。
+Agent Desktop は macOS、Windows、Linux に対応しています。</li>
+<li><strong>形。</strong><code>ui_snapshot</code> はリモートの MCP サーバーにあるツールの一つで、別のマシンのエージェントが使います。Agent Desktop はローカルで、CLI、C ライブラリー、または
+stdio の MCP サーバーとして動きます。</li>
+</ul>
+
+<h2>読む価値のある比較記事</h2>
+<p>Muse の<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">リサーチ記事</a>が、<a href="https://github.com/anomalyco/browse">OpenCode Browse</a> と OpenAB Computer を比べています。要点は、Browse はエージェントに自分のマシンにある、ログイン済みの本物のブラウザーを操作させ、
+OpenAB Computer はマシン一台を丸ごと別の場所のエージェントに貸す、ということです。
+<code>ui_snapshot</code> によって、そのリモートのエージェントが読める範囲はブラウザーの外、ネイティブアプリにまで広がりました。</p>
+
+<h2>次にやること（まだリリースしていません）</h2>
+<p>第 2 段階は <code>ui_action(ref)</code> です。ref を使って、ボタンを押す、入力欄に値を設定する、フォーカスを移す、メニューを開く、といった操作をカーソルを動かさずに行います。カーソルを取られる問題を解消するのはこの部分です。今のツリーには入っていないメニューバーもここで加えます。パスワード欄への値の設定は拒否します。</p>
+<p>macOS の次は、AT-SPI を使った Linux 版を予定しています。どちらも日程は決まっていません。
+issue #67 は開いたままにして、両方を追いかけます。</p>
+
+<p class="outro">試すには、<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.9.0">OpenAB Computer 0.9.0</a> に更新してアクセシビリティ権限を与え、
+<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code> を呼んでください。</p>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>
