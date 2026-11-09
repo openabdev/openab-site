@@ -124,13 +124,17 @@ a screenshot.</p>
 
 <div class="callout">
 <h2>The research behind this</h2>
-<p>This work started with a research report we published for the community on Muse,
-{a(MUSE, "OpenCode Browse vs OpenAB Computer")}. It compares {a(BROWSE, "OpenCode Browse")}, which
-lets an agent drive your real, logged-in browser on your own machine, with OpenAB Computer, which
-lends a whole machine to an agent somewhere else. For that remote agent, the report found, the
-screenshot loop is what drives the cost.</p>
-<p><code>ui_snapshot</code> is our first answer: the remote agent can now read native apps as
-structured text, not only the browser.</p>
+<p>This work started with a {a(MUSE, "research report")} we published for the community on Muse.
+It compares three projects. {a(BROWSE, "OpenCode Browse")} lets an agent drive your own logged-in
+browser on your machine. {a(AGENT_DESKTOP, "Vercel Agent Desktop")} lets an agent drive desktop apps
+through the accessibility tree: it returns structured JSON with a ref for each element, and acts on
+those refs without moving the pointer or taking focus. OpenAB Computer lends a whole machine to an
+agent somewhere else. For that remote agent, the report found, the screenshot loop is the main
+cost.</p>
+<p>We took what Agent Desktop does well, reading the accessibility tree as structured data with
+refs instead of guessing from pixels, and made it an OpenAB Computer MCP tool,
+<code>ui_snapshot</code>. The remote agent can now read native apps as structured text, not only
+the browser.</p>
 </div>
 
 <h2>Why the screenshot loop was not enough</h2>
@@ -255,12 +259,12 @@ profile.</p>
 
 <div class="callout">
 <h2>這項工作背後的研究</h2>
-<p>這次的工作，起點是我們在 Muse 上為社群發表的一份研究報告：
-{a(MUSE, "OpenCode Browse vs OpenAB Computer")}。報告比較了 {a(BROWSE, "OpenCode Browse")} 和
-OpenAB Computer：Browse 讓 agent 在你自己的電腦上操作你已經登入的瀏覽器，OpenAB Computer 則是把
-一整台機器借給在別處的 agent。報告也指出，對這個遠端 agent 來說，成本主要花在截圖迴圈上。</p>
-<p><code>ui_snapshot</code> 是我們的第一步：遠端 agent 除了瀏覽器，現在也能用結構化的文字讀原生
-app。</p>
+<p>這次的工作，起點是我們在 Muse 上為社群發表的一份{a(MUSE, "研究報告")}。報告比較了三個專案。{a(BROWSE, "OpenCode Browse")} 讓 agent 在你自己的電腦上，操作你已經登入的瀏覽器。{a(AGENT_DESKTOP, "Vercel Agent Desktop")} 讓 agent 透過 accessibility tree 操作桌面 app：它回傳
+結構化的 JSON，每個元素都有一個 ref，用 ref 執行動作時不移動游標，也不搶走焦點。OpenAB Computer
+則是把一整台機器借給在別處的 agent。報告也指出，對這個遠端 agent 來說，主要的成本花在截圖迴圈上。</p>
+<p>我們把 Agent Desktop 的長處帶了過來：把 accessibility tree 當成帶有 ref 的結構化資料來讀，
+不再從像素裡猜，並做成 OpenAB Computer 的 MCP 工具 <code>ui_snapshot</code>。現在遠端 agent
+除了瀏覽器，也能用結構化的文字讀原生 app。</p>
 </div>
 
 <h2>為什麼截圖迴圈不夠用</h2>
@@ -369,14 +373,17 @@ macOS、Windows 和 Linux。</li>
 
 <div class="callout">
 <h2>この取り組みのもとになった調査</h2>
-<p>今回の取り組みは、私たちがコミュニティ向けに Muse で公開した調査レポート
-{a(MUSE, "OpenCode Browse vs OpenAB Computer")} から始まりました。レポートは
-{a(BROWSE, "OpenCode Browse")} と OpenAB Computer を比べています。Browse はエージェントに自分の
-マシンにある、ログイン済みの本物のブラウザーを操作させ、OpenAB Computer はマシン一台を丸ごと別の
+<p>今回の取り組みは、私たちがコミュニティ向けに Muse で公開した{a(MUSE, "調査レポート")}から
+始まりました。レポートは三つのプロジェクトを比べています。{a(BROWSE, "OpenCode Browse")} は、
+自分のマシンにあるログイン済みのブラウザーをエージェントに操作させます。{a(AGENT_DESKTOP, "Vercel Agent Desktop")} は、アクセシビリティツリーを通してエージェントに
+デスクトップアプリを操作させます。構造化された JSON を返して要素ごとに ref を付け、ref による
+操作ではポインターを動かさず、フォーカスも奪いません。OpenAB Computer は、マシン一台を丸ごと別の
 場所のエージェントに貸します。そのリモートのエージェントにとって、コストの大部分はスクリーンショットの
 ループから生じている、というのがレポートの指摘です。</p>
-<p><code>ui_snapshot</code> はその最初の答えです。リモートのエージェントは、ブラウザーだけでなく
-ネイティブアプリも構造化されたテキストとして読めるようになりました。</p>
+<p>私たちは Agent Desktop の長所を取り入れました。ピクセルから推測するのではなく、アクセシビリティ
+ツリーを ref 付きの構造化データとして読むことです。これを OpenAB Computer の MCP ツール
+<code>ui_snapshot</code> にしました。リモートのエージェントは、ブラウザーだけでなくネイティブアプリも
+構造化されたテキストとして読めるようになりました。</p>
 </div>
 
 <h2>スクリーンショットのループでは足りなかった理由</h2>
@@ -502,13 +509,17 @@ issue #67 は開いたままにして、両方を追いかけます。</p>
 
 <div class="callout">
 <h2>이 작업의 바탕이 된 리서치</h2>
-<p>이번 작업은 우리가 커뮤니티를 위해 Muse에 공개한 리서치 보고서
-{a(MUSE, "OpenCode Browse vs OpenAB Computer")}에서 시작했습니다. 보고서는
-{a(BROWSE, "OpenCode Browse")}와 OpenAB Computer를 비교합니다. Browse는 에이전트가 내 기기에서
-로그인된 실제 브라우저를 다루게 하고, OpenAB Computer는 기기 한 대를 통째로 다른 곳의 에이전트에게
-빌려줍니다. 보고서는 그 원격 에이전트에게 비용을 키우는 주된 원인이 스크린샷 루프라고 짚었습니다.</p>
-<p><code>ui_snapshot</code>은 그 첫 번째 답입니다. 이제 원격 에이전트는 브라우저뿐 아니라 네이티브
-앱도 구조화된 텍스트로 읽을 수 있습니다.</p>
+<p>이번 작업은 우리가 커뮤니티를 위해 Muse에 공개한 {a(MUSE, "리서치 보고서")}에서
+시작했습니다. 보고서는 세 프로젝트를 비교합니다. {a(BROWSE, "OpenCode Browse")}는 에이전트가 내
+기기에서 로그인된 브라우저를 다루게 합니다. {a(AGENT_DESKTOP, "Vercel Agent Desktop")}은
+에이전트가 접근성 트리를 통해 데스크톱 앱을 다루게 합니다. 구조화된 JSON을 돌려주고 요소마다 ref를
+붙이며, ref로 동작할 때는 포인터를 움직이지 않고 포커스도 가져가지 않습니다. OpenAB Computer는
+기기 한 대를 통째로 다른 곳의 에이전트에게 빌려줍니다. 보고서는 그 원격 에이전트에게 주된 비용이
+스크린샷 루프라고 짚었습니다.</p>
+<p>우리는 Agent Desktop의 장점을 가져왔습니다. 픽셀로 짐작하는 대신 접근성 트리를 ref가 붙은
+구조화된 데이터로 읽는 방식입니다. 이것을 OpenAB Computer의 MCP 도구 <code>ui_snapshot</code>으로
+만들었습니다. 이제 원격 에이전트는 브라우저뿐 아니라 네이티브 앱도 구조화된 텍스트로 읽을 수
+있습니다.</p>
 </div>
 
 <h2>스크린샷 루프로는 부족했던 이유</h2>

@@ -66,13 +66,17 @@ a screenshot.</p>
 
 <div class="callout">
 <h2>The research behind this</h2>
-<p>This work started with a research report we published for the community on Muse,
-<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">OpenCode Browse vs OpenAB Computer</a>. It compares <a href="https://github.com/anomalyco/browse">OpenCode Browse</a>, which
-lets an agent drive your real, logged-in browser on your own machine, with OpenAB Computer, which
-lends a whole machine to an agent somewhere else. For that remote agent, the report found, the
-screenshot loop is what drives the cost.</p>
-<p><code>ui_snapshot</code> is our first answer: the remote agent can now read native apps as
-structured text, not only the browser.</p>
+<p>This work started with a <a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">research report</a> we published for the community on Muse.
+It compares three projects. <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> lets an agent drive your own logged-in
+browser on your machine. <a href="https://github.com/vercel-labs/agent-desktop">Vercel Agent Desktop</a> lets an agent drive desktop apps
+through the accessibility tree: it returns structured JSON with a ref for each element, and acts on
+those refs without moving the pointer or taking focus. OpenAB Computer lends a whole machine to an
+agent somewhere else. For that remote agent, the report found, the screenshot loop is the main
+cost.</p>
+<p>We took what Agent Desktop does well, reading the accessibility tree as structured data with
+refs instead of guessing from pixels, and made it an OpenAB Computer MCP tool,
+<code>ui_snapshot</code>. The remote agent can now read native apps as structured text, not only
+the browser.</p>
 </div>
 
 <h2>Why the screenshot loop was not enough</h2>

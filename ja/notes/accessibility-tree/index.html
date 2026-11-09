@@ -64,10 +64,9 @@ document.addEventListener("click", function (e) {
 
 <div class="callout">
 <h2>この取り組みのもとになった調査</h2>
-<p>今回の取り組みは、私たちがコミュニティ向けに Muse で公開した調査レポート
-<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">OpenCode Browse vs OpenAB Computer</a> から始まりました。レポートは
-<a href="https://github.com/anomalyco/browse">OpenCode Browse</a> と OpenAB Computer を比べています。Browse はエージェントに自分のマシンにある、ログイン済みの本物のブラウザーを操作させ、OpenAB Computer はマシン一台を丸ごと別の場所のエージェントに貸します。そのリモートのエージェントにとって、コストの大部分はスクリーンショットのループから生じている、というのがレポートの指摘です。</p>
-<p><code>ui_snapshot</code> はその最初の答えです。リモートのエージェントは、ブラウザーだけでなくネイティブアプリも構造化されたテキストとして読めるようになりました。</p>
+<p>今回の取り組みは、私たちがコミュニティ向けに Muse で公開した<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">調査レポート</a>から始まりました。レポートは三つのプロジェクトを比べています。<a href="https://github.com/anomalyco/browse">OpenCode Browse</a> は、自分のマシンにあるログイン済みのブラウザーをエージェントに操作させます。<a href="https://github.com/vercel-labs/agent-desktop">Vercel Agent Desktop</a> は、アクセシビリティツリーを通してエージェントにデスクトップアプリを操作させます。構造化された JSON を返して要素ごとに ref を付け、ref による操作ではポインターを動かさず、フォーカスも奪いません。OpenAB Computer は、マシン一台を丸ごと別の場所のエージェントに貸します。そのリモートのエージェントにとって、コストの大部分はスクリーンショットのループから生じている、というのがレポートの指摘です。</p>
+<p>私たちは Agent Desktop の長所を取り入れました。ピクセルから推測するのではなく、アクセシビリティツリーを ref 付きの構造化データとして読むことです。これを OpenAB Computer の MCP ツール
+<code>ui_snapshot</code> にしました。リモートのエージェントは、ブラウザーだけでなくネイティブアプリも構造化されたテキストとして読めるようになりました。</p>
 </div>
 
 <h2>スクリーンショットのループでは足りなかった理由</h2>

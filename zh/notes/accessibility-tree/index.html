@@ -64,11 +64,10 @@ document.addEventListener("click", function (e) {
 
 <div class="callout">
 <h2>這項工作背後的研究</h2>
-<p>這次的工作，起點是我們在 Muse 上為社群發表的一份研究報告：
-<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">OpenCode Browse vs OpenAB Computer</a>。報告比較了 <a href="https://github.com/anomalyco/browse">OpenCode Browse</a> 和
-OpenAB Computer：Browse 讓 agent 在你自己的電腦上操作你已經登入的瀏覽器，OpenAB Computer 則是把一整台機器借給在別處的 agent。報告也指出，對這個遠端 agent 來說，成本主要花在截圖迴圈上。</p>
-<p><code>ui_snapshot</code> 是我們的第一步：遠端 agent 除了瀏覽器，現在也能用結構化的文字讀原生
-app。</p>
+<p>這次的工作，起點是我們在 Muse 上為社群發表的一份<a href="https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/7lEkIj9rBZ_cbTI4KbMuF5EQQySq8Himvw-fgz8ELfg">研究報告</a>。報告比較了三個專案。<a href="https://github.com/anomalyco/browse">OpenCode Browse</a> 讓 agent 在你自己的電腦上，操作你已經登入的瀏覽器。<a href="https://github.com/vercel-labs/agent-desktop">Vercel Agent Desktop</a> 讓 agent 透過 accessibility tree 操作桌面 app：它回傳結構化的 JSON，每個元素都有一個 ref，用 ref 執行動作時不移動游標，也不搶走焦點。OpenAB Computer
+則是把一整台機器借給在別處的 agent。報告也指出，對這個遠端 agent 來說，主要的成本花在截圖迴圈上。</p>
+<p>我們把 Agent Desktop 的長處帶了過來：把 accessibility tree 當成帶有 ref 的結構化資料來讀，不再從像素裡猜，並做成 OpenAB Computer 的 MCP 工具 <code>ui_snapshot</code>。現在遠端 agent
+除了瀏覽器，也能用結構化的文字讀原生 app。</p>
 </div>
 
 <h2>為什麼截圖迴圈不夠用</h2>
