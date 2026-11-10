@@ -188,24 +188,19 @@ use a switchboard, upgrade it to openab-sb 0.2.2 first. Previous note:
             og_alt="OpenAB 開發筆記：我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action",
             byline="2026-11-10 · OpenAB Computer 0.10.0",
             body=f"""
-<p class="hook">Agent 讀得到一個視窗的 accessibility tree 之後，要怎麼在不搶走你滑鼠的情況下，
-按下視窗裡的按鈕？按完之後，又要怎麼證明它真的沒碰到滑鼠？</p>
+<p class="hook">Agent 讀得到一個視窗的 accessibility tree 之後，要怎麼在不搶走你滑鼠的情況下，按下視窗裡的按鈕？按完之後，又要怎麼證明它真的沒碰到滑鼠？</p>
 
-<p class="lede">{a(REL10, "OpenAB Computer 0.10.0")} 新增了 <code>ui_action</code>。
-{a(NOTE1, "上一篇開發筆記")}介紹的 <code>ui_snapshot</code> 負責讀畫面，<code>ui_action</code>
-負責動手：拿快照裡的 ref，透過 accessibility API 按按鈕、填欄位，游標留在原地。這篇記錄它做了什麼，
-以及我們怎麼測它。</p>
+<p class="lede">{a(REL10, "OpenAB Computer 0.10.0")} 新增了 <code>ui_action</code>。{a(NOTE1, "上一篇開發筆記")}介紹的 <code>ui_snapshot</code> 負責讀畫面，<code>ui_action</code>
+負責動手：拿快照裡的 ref，透過 accessibility API 按按鈕、填欄位，游標留在原地。這篇記錄它做了什麼，以及我們怎麼測它。</p>
 
 <h2>ui_action 做什麼</h2>
 <p>呼叫方式是 <code>ui_action {{snapshot_id, ref, action}}</code>（{a(PR96, "PR #96")}）。動作有
 press、set_value、focus、show_menu、confirm、cancel，以及 increment、decrement，每個動作都對應一個
 accessibility 動作：press 是對元素執行 AXPress，set_value 是設定它的 AXValue，整個值換掉。元素不支援
 這個動作時，工具在動手之前就拒絕，並列出它支援哪些動作。</p>
-<p>建議的用法分三步：先 <code>ui_snapshot</code>，再對其中一個 ref 呼叫 <code>ui_action</code>，
-最後再拍一次 <code>ui_snapshot</code> 確認結果。</p>
+<p>建議的用法分三步：先 <code>ui_snapshot</code>，再對其中一個 ref 呼叫 <code>ui_action</code>，最後再拍一次 <code>ui_snapshot</code> 確認結果。</p>
 {{fig_press}}
-<p>它從不合成輸入事件，也從不移動游標，原始碼裡有一個掃描測試盯著這一點。預設也不會把 app 叫到前景、
-不會拉起視窗。真的需要時，例如要打開背景 app 的選單，呼叫端要明確傳 <code>activate: true</code>。</p>
+<p>它從不合成輸入事件，也從不移動游標，原始碼裡有一個掃描測試盯著這一點。預設也不會把 app 叫到前景、不會拉起視窗。真的需要時，例如要打開背景 app 的選單，呼叫端要明確傳 <code>activate: true</code>。</p>
 
 <h3>ref 只在自己的快照裡有效</h3>
 <p>工具會保留最近四次快照，每次五分鐘。動手之前，它會重新檢查這個 ref：還是同一個行程、角色和子角色
@@ -216,18 +211,14 @@ accessibility 動作：press 是對元素執行 AXPress，set_value 是設定它
 <h3>誰能用，以及密碼欄位</h3>
 <p><code>ui_action</code> 只開放給 <code>owner</code> profile，和 <code>mouse</code>、<code>key</code>
 同一級，也需要 macOS 的「輔助使用」權限。對密碼欄位 set_value 時，值不會被讀回、不會寫進紀錄，也不會
-出現在回應裡。對任何欄位，輸入的值都不會出現在錯誤訊息、紀錄或回應文字中。透過 switchboard 呼叫時，
-對密碼欄位 set_value 預設會被拒絕，除非那台電腦的管理者自己開啟。</p>
+出現在回應裡。對任何欄位，輸入的值都不會出現在錯誤訊息、紀錄或回應文字中。透過 switchboard 呼叫時，對密碼欄位 set_value 預設會被拒絕，除非那台電腦的管理者自己開啟。</p>
 
 <h2>我們怎麼測</h2>
 
 <h3>1. 單元測試：用假的 accessibility 提供者</h3>
 <p>CI 機器沒有圖形介面，所以測試不碰真的 app。<code>ui_snapshot</code> 原本就有一個假的
-accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。PR #96 新增三組共 52 個測試：
-<code>UIActionToolTests</code> 40 個、<code>UISnapshotCacheTests</code> 5 個、
-<code>UIActivateTests</code> 7 個。</p>
-<p>涵蓋的情況有：快照過期或被擠掉；ref 不存在；元素消失、角色改變、屬於別的行程，或離開了原本的視窗；
-不支援的動作，要列出支援的動作；每個動作背後呼叫的是哪個 accessibility 動作；密碼的值不出現在回應和
+accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。PR #96 新增三組共 52 個測試：<code>UIActionToolTests</code> 40 個、<code>UISnapshotCacheTests</code> 5 個、<code>UIActivateTests</code> 7 個。</p>
+<p>涵蓋的情況有：快照過期或被擠掉；ref 不存在；元素消失、角色改變、屬於別的行程，或離開了原本的視窗；不支援的動作，要列出支援的動作；每個動作背後呼叫的是哪個 accessibility 動作；密碼的值不出現在回應和
 任何一行紀錄裡；透過 switchboard 時密碼欄位預設拒絕；<code>activate</code> 預設是 false；以及 profile
 的權限劃分。</p>
 <p>在一台 M4 Mac mini 上，<code>swift test</code> 跑了 256 個測試，0 個失敗；PR 上的 CI 檢查全部
@@ -258,8 +249,7 @@ AXWindow 時，回的是 nil，而不是別的視窗。0.10.0 的檢查以為只
 這個 ref。按鈕的 AXParent 是 sheet，sheet 的 AXWindow 才是那個視窗。</p>
 {{fig_sheet}}
 <p>這件事開成了 {a(ISSUE98, "issue #98")}（標籤 bug、p2），由 {a(PR99, "PR #99")} 修正：元素沒有
-AXWindow，或它的 AXWindow 不在快照記錄的路徑上時，檢查改成沿著 AXParent 往上找最近的視窗、sheet、
-drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。往上最多找 50 步，會檢查有沒有繞圈，也受同一個
+AXWindow，或它的 AXWindow 不在快照記錄的路徑上時，檢查改成沿著 AXParent 往上找最近的視窗、sheet、drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。往上最多找 50 步，會檢查有沒有繞圈，也受同一個
 時間預算限制。行程或角色改變還是會先被拒絕，也不會猜替代的元素。</p>
 <p>PR #99 新增 8 個測試，總數 264 個，0 個失敗，CI 通過。它的實機檢查是唯讀的：把新規則套到 TextEdit
 真的儲存 sheet 上，sheet 裡 15 個控制項全部通過，包括「刪除」；用 0.10.0 的規則則一個也不通過。修正
@@ -274,8 +264,7 @@ drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。�
 Mac 那端拒絕了這次呼叫，那一行紀錄也已經寫下去了。這只能在 openab-sb 修，PR #96 因此一直等到修正合併
 並部署之後才合併。</p>
 <p>修正是 {a(SB022, "openab-sb 0.2.2")}（{a(SB16, "PR #16")}、{a(SB14, "issue #14")}）。它在稽核
-紀錄裡遮掉帶有祕密的參數，不管藏在多深的物件或陣列裡：<code>ui_action</code> 的 value、輸入的文字、
-名稱裡有 password、secret、token、credential 這類字眼的鍵，以及 env 和 headers 裡的每一個值。字串
+紀錄裡遮掉帶有祕密的參數，不管藏在多深的物件或陣列裡：<code>ui_action</code> 的 value、輸入的文字、名稱裡有 password、secret、token、credential 這類字眼的鍵，以及 env 和 headers 裡的每一個值。字串
 變成 <code>&lt;redacted:N chars&gt;</code>，其他型別變成 <code>&lt;redacted&gt;</code>。只有稽核
 紀錄裡那一份被遮，電腦收到的仍是原本的參數。自由格式的字串，例如 shell 指令、腳本內容或網址的查詢
 字串，不會被檢查。</p>
@@ -290,20 +279,17 @@ API_TOKEN 放一個假的 token。這個 canary 在稽核檔案裡出現 0 次�
 <h2>限制與接下來</h2>
 <ul>
 <li>set_value 會把整個值換掉。有些 app 要等確認或焦點移開，才會真正套用。</li>
-<li>會打開 sheet 或選單的 press，app 可能比較晚才回應。這時結果會標成 unconfirmed：動作可能已經發生，
-請重拍快照確認，不要直接再按一次。</li>
+<li>會打開 sheet 或選單的 press，app 可能比較晚才回應。這時結果會標成 unconfirmed：動作可能已經發生，請重拍快照確認，不要直接再按一次。</li>
 <li>拖曳和多步驟手勢還是用 <code>mouse</code>。沒有 accessibility 節點、自己繪製的內容，還是用
 <code>screenshot</code> 加 <code>mouse</code>。</li>
 <li>Linux：{a(ISSUE67, "issue #67")} 已經關閉，因為 macOS 的部分做完了。Linux 上用 AT-SPI 實作
-<code>ui_snapshot</code> 和 <code>ui_action</code> 先延後，列為 p3，記在 {a(ISSUE102, "issue #102")}，
-等有 Linux 機器真的需要時再做。在那之前，Linux 上請用 <code>screenshot</code>、<code>mouse</code> 和
+<code>ui_snapshot</code> 和 <code>ui_action</code> 先延後，列為 p3，記在 {a(ISSUE102, "issue #102")}，等有 Linux 機器真的需要時再做。在那之前，Linux 上請用 <code>screenshot</code>、<code>mouse</code> 和
 <code>key</code>。</li>
 </ul>
 
 <p class="outro">想試試看：更新到 {a(REL10, "OpenAB Computer 0.10.0")}，給它「輔助使用」權限，再從使用
 <code>owner</code> profile 的 agent 依序呼叫 <code>ui_snapshot</code>、<code>ui_action</code>，最後再
-<code>ui_snapshot</code> 一次。有用 switchboard 的話，先把它升級到 openab-sb 0.2.2。上一篇：
-{a(NOTE1, "OpenAB Computer 開始支援 macOS 的 accessibility tree")}。</p>
+<code>ui_snapshot</code> 一次。有用 switchboard 的話，先把它升級到 openab-sb 0.2.2。上一篇：{a(NOTE1, "OpenAB Computer 開始支援 macOS 的 accessibility tree")}。</p>
 """,
         ),
         "ja": dict(
@@ -320,28 +306,21 @@ API_TOKEN 放一個假的 token。這個 canary 在稽核檔案裡出現 0 次�
 奪わずに、どうやってそのウィンドウのボタンを押すのでしょうか。押したあと、マウスに触れていないことを
 どう証明すればいいのでしょうか。</p>
 
-<p class="lede">{a(REL10, "OpenAB Computer 0.10.0")} で <code>ui_action</code> が加わりました。
-{a(NOTE1, "前回の開発ノート")}で紹介した <code>ui_snapshot</code> は画面を読む道具で、
-<code>ui_action</code> は操作する道具です。スナップショットの ref を受け取り、アクセシビリティ API で
-ボタンを押したり入力欄を埋めたりし、カーソルはその場に残ります。このノートでは、何ができるのかと、
-どう試したのかをまとめます。</p>
+<p class="lede">{a(REL10, "OpenAB Computer 0.10.0")} で <code>ui_action</code> が加わりました。{a(NOTE1, "前回の開発ノート")}で紹介した <code>ui_snapshot</code> は画面を読む道具で、<code>ui_action</code> は操作する道具です。スナップショットの ref を受け取り、アクセシビリティ API で
+ボタンを押したり入力欄を埋めたりし、カーソルはその場に残ります。このノートでは、何ができるのかと、どう試したのかをまとめます。</p>
 
 <h2>ui_action でできること</h2>
 <p>呼び出しは <code>ui_action {{snapshot_id, ref, action}}</code> です（{a(PR96, "PR #96")}）。操作は
 press、set_value、focus、show_menu、confirm、cancel と、increment、decrement です。どれもアクセシビリティの
-アクションに対応していて、press は要素への AXPress、set_value は AXValue の設定で、値全体を置き換えます。
-要素がその操作に対応していなければ、ツールは何もする前に拒否し、対応している操作の一覧を返します。</p>
-<p>想定している流れは三段階です。<code>ui_snapshot</code>、その ref の一つに <code>ui_action</code>、
-最後にもう一度 <code>ui_snapshot</code> で結果を確かめます。</p>
+アクションに対応していて、press は要素への AXPress、set_value は AXValue の設定で、値全体を置き換えます。要素がその操作に対応していなければ、ツールは何もする前に拒否し、対応している操作の一覧を返します。</p>
+<p>想定している流れは三段階です。<code>ui_snapshot</code>、その ref の一つに <code>ui_action</code>、最後にもう一度 <code>ui_snapshot</code> で結果を確かめます。</p>
 {{fig_press}}
 <p>ツールは入力イベントを合成せず、ポインターも動かしません。ソースを走査するテストがこれを見張って
 います。既定ではアプリを前面に出さず、ウィンドウも手前に出しません。バックグラウンドのアプリでメニューを
 開くときなど、必要な場合は呼び出し側が <code>activate: true</code> を明示します。</p>
 
 <h3>ref は自分のスナップショットの中でだけ有効</h3>
-<p>ツールは直近四回のスナップショットを、それぞれ五分間保持します。操作の前に ref をもう一度確かめます。
-同じプロセスか、ロールとサブロールが変わっていないか、見つけたときのウィンドウの下にまだあるか。
-メニュー項目なら、メニューバーがまだ応答するか。どれか一つでも外れれば、答えは <code>stale ref: …
+<p>ツールは直近四回のスナップショットを、それぞれ五分間保持します。操作の前に ref をもう一度確かめます。同じプロセスか、ロールとサブロールが変わっていないか、見つけたときのウィンドウの下にまだあるか。メニュー項目なら、メニューバーがまだ応答するか。どれか一つでも外れれば、答えは <code>stale ref: …
 take a new ui_snapshot</code> です。似た要素を選んで代わりにすることはしません。</p>
 {{fig_stale}}
 
@@ -357,22 +336,17 @@ take a new ui_snapshot</code> です。似た要素を選んで代わりにす�
 <h3>1. 偽のアクセシビリティ提供元を使った単体テスト</h3>
 <p>CI のマシンには GUI がないので、テストは本物のアプリに触れません。<code>ui_snapshot</code> には
 もともと偽のアクセシビリティ提供元があり、<code>ui_action</code> のテストもその上で動きます。PR #96 では
-三つのスイートで 52 個のテストを加えました。<code>UIActionToolTests</code> が 40、
-<code>UISnapshotCacheTests</code> が 5、<code>UIActivateTests</code> が 7 です。</p>
+三つのスイートで 52 個のテストを加えました。<code>UIActionToolTests</code> が 40、<code>UISnapshotCacheTests</code> が 5、<code>UIActivateTests</code> が 7 です。</p>
 <p>扱っているのは次のようなケースです。期限切れや押し出されたスナップショット。存在しない ref。消えた
-要素、ロールが変わった要素、別のプロセスの要素、元のウィンドウを離れた要素。対応していない操作と、
-対応している操作の一覧。各操作の裏で呼ばれるアクセシビリティのアクション。応答にもログのどの行にも
-パスワードの値が出ないこと。スイッチボード経由ではパスワード欄が既定で拒否されること。
-<code>activate</code> の既定が false であること。プロファイルの権限の区分。</p>
+要素、ロールが変わった要素、別のプロセスの要素、元のウィンドウを離れた要素。対応していない操作と、対応している操作の一覧。各操作の裏で呼ばれるアクセシビリティのアクション。応答にもログのどの行にも
+パスワードの値が出ないこと。スイッチボード経由ではパスワード欄が既定で拒否されること。<code>activate</code> の既定が false であること。プロファイルの権限の区分。</p>
 <p>M4 Mac mini で <code>swift test</code> は 256 個のテストを実行し、失敗は 0 でした。PR の CI チェックも
 すべて通りました。</p>
-<p>マージの前に実機でも試しましたが、そのテスト用のビルドにはアクセシビリティ権限がなく、
-<code>ui_action</code> は権限がないというエラーを返すだけで、TextEdit の手順は動きませんでした。この部分は
+<p>マージの前に実機でも試しましたが、そのテスト用のビルドにはアクセシビリティ権限がなく、<code>ui_action</code> は権限がないというエラーを返すだけで、TextEdit の手順は動きませんでした。この部分は
 権限のあるリリース版を待ちました。</p>
 
 <h3>2. M4 Mac mini での実機テスト（スイッチボード経由）</h3>
-<p>0.10.0 のリリース後、リモートのエージェントからスイッチボード経由で M4 Mac mini を操作しました。
-一手ごとに MCP ツールを一回呼び、スイッチボードの監査ログに時刻が残っています。</p>
+<p>0.10.0 のリリース後、リモートのエージェントからスイッチボード経由で M4 Mac mini を操作しました。一手ごとに MCP ツールを一回呼び、スイッチボードの監査ログに時刻が残っています。</p>
 <ol>
 <li>マウス位置を読む（<code>osascript</code> で短い JXA を動かし、<code>NSEvent.mouseLocation</code>
 を読む）。</li>
@@ -391,12 +365,9 @@ take a new ui_snapshot</code> です。似た要素を選んで代わりにす�
 press を送ると、失敗しました。</p>
 <pre><code>stale ref: e63 has left its window; take a new ui_snapshot and use its refs</code></pre>
 <p>毎回スナップショットを撮り直して三回試し、三回とも同じでした。読み取り専用の Swift のプローブで原因を
-調べました。シートの中のコントロールに AXWindow を尋ねると、別のウィンドウではなく nil が返ります。
-0.10.0 のチェックは「AXWindow がない」のはメニュー項目だけだと考えていたので、この ref を拒否しました。
-ボタンの AXParent はシートで、AXWindow がそのウィンドウなのはシートのほうです。</p>
+調べました。シートの中のコントロールに AXWindow を尋ねると、別のウィンドウではなく nil が返ります。0.10.0 のチェックは「AXWindow がない」のはメニュー項目だけだと考えていたので、この ref を拒否しました。ボタンの AXParent はシートで、AXWindow がそのウィンドウなのはシートのほうです。</p>
 {{fig_sheet}}
-<p>これは {a(ISSUE98, "issue #98")}（ラベルは bug と p2）になり、{a(PR99, "PR #99")} で直しました。
-要素に AXWindow がない場合や、それがスナップショットに記録された経路にない場合、チェックは AXParent を
+<p>これは {a(ISSUE98, "issue #98")}（ラベルは bug と p2）になり、{a(PR99, "PR #99")} で直しました。要素に AXWindow がない場合や、それがスナップショットに記録された経路にない場合、チェックは AXParent を
 たどって最も近いウィンドウ、シート、ドロワー、ポップオーバーを探し、その入れ物が記録された経路にある
 ときだけ受け付けます。たどるのは最大 50 段で、循環を確かめ、同じ時間の予算の中で動きます。プロセスや
 ロールの変化は今までどおり先に拒否され、代わりの要素を推測することもありません。</p>
@@ -407,13 +378,10 @@ press を送ると、失敗しました。</p>
 していません。</p>
 
 <h3>4. 二人のレビュアーと、監査ログからの漏れ</h3>
-<p>すべての変更は、別々のモデルで動く二つの独立した AI レビュアーに渡します。二つは並行してレビューし、
-両方が同じコミットを承認したときだけマージします。PR #96 は五回のレビューと、最後の確認を経ました。</p>
+<p>すべての変更は、別々のモデルで動く二つの独立した AI レビュアーに渡します。二つは並行してレビューし、両方が同じコミットを承認したときだけマージします。PR #96 は五回のレビューと、最後の確認を経ました。</p>
 <p>最初の回で本当の問題が見つかりました。スイッチボード経由でパスワード欄に set_value すると、その値が
 スイッチボードの監査ログに残っていたのです。スイッチボード（openab-sb）は、ツールの呼び出しを
-コンピューターへ転送する前に、引数を audit.jsonl に書きます。そのため Mac 側が呼び出しを拒否しても、
-ログの行はもう書かれていました。直せるのは openab-sb だけなので、PR #96 は修正がマージされ、
-デプロイされるまでマージを待ちました。</p>
+コンピューターへ転送する前に、引数を audit.jsonl に書きます。そのため Mac 側が呼び出しを拒否しても、ログの行はもう書かれていました。直せるのは openab-sb だけなので、PR #96 は修正がマージされ、デプロイされるまでマージを待ちました。</p>
 <p>修正は {a(SB022, "openab-sb 0.2.2")}（{a(SB16, "PR #16")}、{a(SB14, "issue #14")}）です。監査ログの
 行で、秘密を含む引数を、オブジェクトや配列のどの深さにあっても伏せます。対象は <code>ui_action</code> の
 value、入力したテキスト、password、secret、token、credential のような語を名前に含むキー、そして env と
@@ -442,11 +410,8 @@ openab-sb 0.2.2 へ上げること、古い版が書いた監査ファイルの�
 <code>screenshot</code>、<code>mouse</code>、<code>key</code> を使ってください。</li>
 </ul>
 
-<p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、
-<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、<code>ui_action</code>、
-もう一度 <code>ui_snapshot</code> の順に呼んでください。スイッチボードを使っているなら、先に
-openab-sb 0.2.2 に上げてください。前回のノート：
-{a(NOTE1, "OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました")}。</p>
+<p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、<code>ui_action</code>、もう一度 <code>ui_snapshot</code> の順に呼んでください。スイッチボードを使っているなら、先に
+openab-sb 0.2.2 に上げてください。前回のノート：{a(NOTE1, "OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました")}。</p>
 """,
         ),
         "ko": dict(

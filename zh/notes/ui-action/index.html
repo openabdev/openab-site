@@ -61,8 +61,7 @@ document.addEventListener("click", function (e) {
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
 <p class="hook">Agent 讀得到一個視窗的 accessibility tree 之後，要怎麼在不搶走你滑鼠的情況下，按下視窗裡的按鈕？按完之後，又要怎麼證明它真的沒碰到滑鼠？</p>
 
-<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> 新增了 <code>ui_action</code>。
-<a href="../accessibility-tree/">上一篇開發筆記</a>介紹的 <code>ui_snapshot</code> 負責讀畫面，<code>ui_action</code>
+<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> 新增了 <code>ui_action</code>。<a href="../accessibility-tree/">上一篇開發筆記</a>介紹的 <code>ui_snapshot</code> 負責讀畫面，<code>ui_action</code>
 負責動手：拿快照裡的 ref，透過 accessibility API 按按鈕、填欄位，游標留在原地。這篇記錄它做了什麼，以及我們怎麼測它。</p>
 
 <h2>ui_action 做什麼</h2>
@@ -94,9 +93,7 @@ accessibility 動作：press 是對元素執行 AXPress，set_value 是設定它
 
 <h3>1. 單元測試：用假的 accessibility 提供者</h3>
 <p>CI 機器沒有圖形介面，所以測試不碰真的 app。<code>ui_snapshot</code> 原本就有一個假的
-accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。PR #96 新增三組共 52 個測試：
-<code>UIActionToolTests</code> 40 個、<code>UISnapshotCacheTests</code> 5 個、
-<code>UIActivateTests</code> 7 個。</p>
+accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。PR #96 新增三組共 52 個測試：<code>UIActionToolTests</code> 40 個、<code>UISnapshotCacheTests</code> 5 個、<code>UIActivateTests</code> 7 個。</p>
 <p>涵蓋的情況有：快照過期或被擠掉；ref 不存在；元素消失、角色改變、屬於別的行程，或離開了原本的視窗；不支援的動作，要列出支援的動作；每個動作背後呼叫的是哪個 accessibility 動作；密碼的值不出現在回應和任何一行紀錄裡；透過 switchboard 時密碼欄位預設拒絕；<code>activate</code> 預設是 false；以及 profile
 的權限劃分。</p>
 <p>在一台 M4 Mac mini 上，<code>swift test</code> 跑了 256 個測試，0 個失敗；PR 上的 CI 檢查全部通過。</p>
@@ -128,8 +125,7 @@ AXWindow 時，回的是 nil，而不是別的視窗。0.10.0 的檢查以為只
 <figcaption>動畫：sheet 的 bug。儲存用的 sheet 從視窗標題列滑下來。在樹裡，sheet（e50）位在視窗（e1）底下，「刪除」按鈕是 e63。按 e63 時，0.10.0 的檢查去問按鈕的 AXWindow，得到 nil，就把 ref 當成過期而拒絕。0.10.1 的修正改成從按鈕沿著 AXParent 往上找，找到 sheet，確認 sheet 在快照裡，於是接受。</figcaption>
 </figure>
 <p>這件事開成了 <a href="https://github.com/openabdev/openab-computer/issues/98">issue #98</a>（標籤 bug、p2），由 <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> 修正：元素沒有
-AXWindow，或它的 AXWindow 不在快照記錄的路徑上時，檢查改成沿著 AXParent 往上找最近的視窗、sheet、
-drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。往上最多找 50 步，會檢查有沒有繞圈，也受同一個時間預算限制。行程或角色改變還是會先被拒絕，也不會猜替代的元素。</p>
+AXWindow，或它的 AXWindow 不在快照記錄的路徑上時，檢查改成沿著 AXParent 往上找最近的視窗、sheet、drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。往上最多找 50 步，會檢查有沒有繞圈，也受同一個時間預算限制。行程或角色改變還是會先被拒絕，也不會猜替代的元素。</p>
 <p>PR #99 新增 8 個測試，總數 264 個，0 個失敗，CI 通過。它的實機檢查是唯讀的：把新規則套到 TextEdit
 真的儲存 sheet 上，sheet 裡 15 個控制項全部通過，包括「刪除」；用 0.10.0 的規則則一個也不通過。修正已經合併，會在 0.10.1 推出。在 sheet 裡真的按下按鈕這件事，目前由單元測試涵蓋，還沒有用
 <code>ui_action</code> 在實機上重跑。</p>
@@ -163,8 +159,7 @@ API_TOKEN 放一個假的 token。這個 canary 在稽核檔案裡出現 0 次�
 
 <p class="outro">想試試看：更新到 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a>，給它「輔助使用」權限，再從使用
 <code>owner</code> profile 的 agent 依序呼叫 <code>ui_snapshot</code>、<code>ui_action</code>，最後再
-<code>ui_snapshot</code> 一次。有用 switchboard 的話，先把它升級到 openab-sb 0.2.2。上一篇：
-<a href="../accessibility-tree/">OpenAB Computer 開始支援 macOS 的 accessibility tree</a>。</p>
+<code>ui_snapshot</code> 一次。有用 switchboard 的話，先把它升級到 openab-sb 0.2.2。上一篇：<a href="../accessibility-tree/">OpenAB Computer 開始支援 macOS 的 accessibility tree</a>。</p>
 <script>
 // Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
 // Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete

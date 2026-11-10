@@ -61,9 +61,7 @@ document.addEventListener("click", function (e) {
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
 <p class="hook">ウィンドウのアクセシビリティツリーを読めるようになったエージェントは、あなたのマウスを奪わずに、どうやってそのウィンドウのボタンを押すのでしょうか。押したあと、マウスに触れていないことをどう証明すればいいのでしょうか。</p>
 
-<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> で <code>ui_action</code> が加わりました。
-<a href="../accessibility-tree/">前回の開発ノート</a>で紹介した <code>ui_snapshot</code> は画面を読む道具で、
-<code>ui_action</code> は操作する道具です。スナップショットの ref を受け取り、アクセシビリティ API でボタンを押したり入力欄を埋めたりし、カーソルはその場に残ります。このノートでは、何ができるのかと、どう試したのかをまとめます。</p>
+<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> で <code>ui_action</code> が加わりました。<a href="../accessibility-tree/">前回の開発ノート</a>で紹介した <code>ui_snapshot</code> は画面を読む道具で、<code>ui_action</code> は操作する道具です。スナップショットの ref を受け取り、アクセシビリティ API でボタンを押したり入力欄を埋めたりし、カーソルはその場に残ります。このノートでは、何ができるのかと、どう試したのかをまとめます。</p>
 
 <h2>ui_action でできること</h2>
 <p>呼び出しは <code>ui_action {snapshot_id, ref, action}</code> です（<a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a>）。操作は
@@ -93,13 +91,10 @@ take a new ui_snapshot</code> です。似た要素を選んで代わりにす�
 <h2>どう試したか</h2>
 
 <h3>1. 偽のアクセシビリティ提供元を使った単体テスト</h3>
-<p>CI のマシンには GUI がないので、テストは本物のアプリに触れません。<code>ui_snapshot</code> にはもともと偽のアクセシビリティ提供元があり、<code>ui_action</code> のテストもその上で動きます。PR #96 では三つのスイートで 52 個のテストを加えました。<code>UIActionToolTests</code> が 40、
-<code>UISnapshotCacheTests</code> が 5、<code>UIActivateTests</code> が 7 です。</p>
-<p>扱っているのは次のようなケースです。期限切れや押し出されたスナップショット。存在しない ref。消えた要素、ロールが変わった要素、別のプロセスの要素、元のウィンドウを離れた要素。対応していない操作と、対応している操作の一覧。各操作の裏で呼ばれるアクセシビリティのアクション。応答にもログのどの行にもパスワードの値が出ないこと。スイッチボード経由ではパスワード欄が既定で拒否されること。
-<code>activate</code> の既定が false であること。プロファイルの権限の区分。</p>
+<p>CI のマシンには GUI がないので、テストは本物のアプリに触れません。<code>ui_snapshot</code> にはもともと偽のアクセシビリティ提供元があり、<code>ui_action</code> のテストもその上で動きます。PR #96 では三つのスイートで 52 個のテストを加えました。<code>UIActionToolTests</code> が 40、<code>UISnapshotCacheTests</code> が 5、<code>UIActivateTests</code> が 7 です。</p>
+<p>扱っているのは次のようなケースです。期限切れや押し出されたスナップショット。存在しない ref。消えた要素、ロールが変わった要素、別のプロセスの要素、元のウィンドウを離れた要素。対応していない操作と、対応している操作の一覧。各操作の裏で呼ばれるアクセシビリティのアクション。応答にもログのどの行にもパスワードの値が出ないこと。スイッチボード経由ではパスワード欄が既定で拒否されること。<code>activate</code> の既定が false であること。プロファイルの権限の区分。</p>
 <p>M4 Mac mini で <code>swift test</code> は 256 個のテストを実行し、失敗は 0 でした。PR の CI チェックもすべて通りました。</p>
-<p>マージの前に実機でも試しましたが、そのテスト用のビルドにはアクセシビリティ権限がなく、
-<code>ui_action</code> は権限がないというエラーを返すだけで、TextEdit の手順は動きませんでした。この部分は権限のあるリリース版を待ちました。</p>
+<p>マージの前に実機でも試しましたが、そのテスト用のビルドにはアクセシビリティ権限がなく、<code>ui_action</code> は権限がないというエラーを返すだけで、TextEdit の手順は動きませんでした。この部分は権限のあるリリース版を待ちました。</p>
 
 <h3>2. M4 Mac mini での実機テスト（スイッチボード経由）</h3>
 <p>0.10.0 のリリース後、リモートのエージェントからスイッチボード経由で M4 Mac mini を操作しました。一手ごとに MCP ツールを一回呼び、スイッチボードの監査ログに時刻が残っています。</p>
@@ -118,8 +113,7 @@ take a new ui_snapshot</code> です。似た要素を選んで代わりにす�
 <p>続けて TextEdit を終了すると、保存していない書類のために保存用のシートが出ました。ウィンドウのタイトルバーから下りてくる種類のダイアログです。シートの「削除」ボタンに <code>ui_action</code> の
 press を送ると、失敗しました。</p>
 <pre><code>stale ref: e63 has left its window; take a new ui_snapshot and use its refs</code></pre>
-<p>毎回スナップショットを撮り直して三回試し、三回とも同じでした。読み取り専用の Swift のプローブで原因を調べました。シートの中のコントロールに AXWindow を尋ねると、別のウィンドウではなく nil が返ります。
-0.10.0 のチェックは「AXWindow がない」のはメニュー項目だけだと考えていたので、この ref を拒否しました。ボタンの AXParent はシートで、AXWindow がそのウィンドウなのはシートのほうです。</p>
+<p>毎回スナップショットを撮り直して三回試し、三回とも同じでした。読み取り専用の Swift のプローブで原因を調べました。シートの中のコントロールに AXWindow を尋ねると、別のウィンドウではなく nil が返ります。0.10.0 のチェックは「AXWindow がない」のはメニュー項目だけだと考えていたので、この ref を拒否しました。ボタンの AXParent はシートで、AXWindow がそのウィンドウなのはシートのほうです。</p>
 <figure class="fig anim sheetfig" data-steps="5" data-ms="1400" aria-label="アニメーション：シートのバグ。保存用のシートがウィンドウのタイトルバーから下りてきます。ツリーではシート（e50）がウィンドウ（e1）の下にあり、「削除」ボタンは e63 です。e63 を押すと、0.10.0 のチェックはボタンに AXWindow を尋ね、nil が返るので、ref を古いものとして拒否します。0.10.1 の修正では、ボタンから AXParent をたどってシートを見つけ、シートがスナップショットにあることを確かめて受け付けます。">
 <p class="badge">0.10.1：修正は <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> でマージ済み、リリース待ち</p>
 <div class="pair"><svg viewBox="0 0 360 214" role="img" aria-label="名称未設定"><rect class="screen" x="0" y="0" width="360" height="214"/><rect class="win" x="20" y="8" width="320" height="198" rx="10"/><path class="winbar" d="M20 18 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="20" r="4"/><circle class="dot" cx="46" cy="20" r="4"/><circle class="dot" cx="58" cy="20" r="4"/><text class="fs2" x="180.0" y="25" text-anchor="middle">名称未設定</text><rect class="bar" x="40" y="48" width="230" height="8" rx="4"/><rect class="bar" x="40" y="64" width="190" height="8" rx="4"/><rect class="bar" x="40" y="80" width="210" height="8" rx="4"/><g class="sheet" data-show="1"><rect class="sheetbox" x="60" y="32" width="240" height="112" rx="10"/><rect class="bar" x="80" y="50" width="160" height="9" rx="4"/><rect class="bar" x="80" y="66" width="120" height="7" rx="3"/><g class="okbtn plain" data-hl="2"><rect class="btn2" x="72" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="105.0" y="124.0" text-anchor="middle">削除</text></g><g class="okbtn plain"><rect class="btn2" x="152" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="185.0" y="124.0" text-anchor="middle">キャンセル</text></g><g class="okbtn"><rect class="btnok" x="226" y="108" width="66" height="24" rx="6"/><text class="fok fbtn" x="259.0" y="124.0" text-anchor="middle">保存</text></g><circle class="ring" data-hl="2" cx="105" cy="120" r="22"/></g><g data-show="3"><path class="xmark" d="M62 158 l12 12 M74 158 l-12 12"/><text class="fmiss" x="82" y="169">0.10.0：拒否</text></g><g data-show="4"><path class="vmark" d="M62 184 l5 6 l10 -12"/><text class="fhit" x="82" y="191">0.10.1：受け付ける</text></g></svg><div class="treebox"><p class="treehead">ui_snapshot のテキスト形式</p><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;名称未設定&quot;</li><li data-show="1" data-hl="1" style="--lvl:1">[e50] AXSheet desc=&quot;save&quot;</li><li data-show="2" data-hl="2" style="--lvl:2">[e63] AXButton &quot;削除&quot;</li></ol><ol class="axtree axsteps calls"><li data-show="2" data-hl="2" style="--lvl:0">ui_action { ref: &quot;e63&quot;, action: &quot;press&quot; }</li><li class="err" data-show="3" data-hl="3" style="--lvl:0">0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">0.10.1 · AXParent(e63) → [e50] AXSheet、スナップショットにある → ✓ 受け付ける</li></ol></div></div>
@@ -159,10 +153,8 @@ openab-sb 0.2.2 へ上げること、古い版が書いた監査ファイルの�
 <code>screenshot</code>、<code>mouse</code>、<code>key</code> を使ってください。</li>
 </ul>
 
-<p class="outro">試すには、<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> に更新してアクセシビリティ権限を与え、
-<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、<code>ui_action</code>、もう一度 <code>ui_snapshot</code> の順に呼んでください。スイッチボードを使っているなら、先に
-openab-sb 0.2.2 に上げてください。前回のノート：
-<a href="../accessibility-tree/">OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました</a>。</p>
+<p class="outro">試すには、<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> に更新してアクセシビリティ権限を与え、<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、<code>ui_action</code>、もう一度 <code>ui_snapshot</code> の順に呼んでください。スイッチボードを使っているなら、先に
+openab-sb 0.2.2 に上げてください。前回のノート：<a href="../accessibility-tree/">OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました</a>。</p>
 <script>
 // Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
 // Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete
