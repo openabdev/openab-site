@@ -106,8 +106,7 @@ accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。P
 <li>讀一次滑鼠位置（透過 <code>osascript</code> 跑一小段 JXA，讀 <code>NSEvent.mouseLocation</code>）。</li>
 <li>打開 TextEdit，開一份新文件。</li>
 <li>對 TextEdit 拍 <code>ui_snapshot</code>，花了 96 ms。文字區是 <code>[e3] AXTextArea</code>。</li>
-<li>用 <code>ui_action</code> 對 e3 做 focus（8 ms），再 set_value 寫入 "hello from ui_action 0.10.0"
-（15 ms）。</li>
+<li>用 <code>ui_action</code> 對 e3 做 focus（8 ms），再 set_value 寫入 "hello from ui_action 0.10.0"（15 ms）。</li>
 <li>再拍一次快照確認：e3 的值是 "hello from ui_action 0.10.0"。</li>
 <li>再讀一次滑鼠位置。</li>
 </ol>
