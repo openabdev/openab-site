@@ -4,29 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB</title>
-<meta name="description" content="Agent 讀得到視窗的 accessibility tree 之後，要怎麼不搶你的滑鼠就按下按鈕？又要怎麼證明它沒碰滑鼠？OpenAB Computer 0.10.0 新增 ui_action，這篇記錄它做什麼，以及我們怎麼測。">
+<meta name="description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
 <link rel="canonical" href="https://openab.dev/zh/notes/ui-action/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:title" content="我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB">
-<meta property="og:description" content="Agent 讀得到視窗的 accessibility tree 之後，要怎麼不搶你的滑鼠就按下按鈕？又要怎麼證明它沒碰滑鼠？OpenAB Computer 0.10.0 新增 ui_action，這篇記錄它做什麼，以及我們怎麼測。">
+<meta property="og:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
 <meta property="og:url" content="https://openab.dev/zh/notes/ui-action/">
-<meta property="og:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=e05f69e0">
+<meta property="og:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=b0647a72">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="OpenAB 開發筆記：我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action">
 <meta property="article:published_time" content="2026-11-10">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB">
-<meta name="twitter:description" content="Agent 讀得到視窗的 accessibility tree 之後，要怎麼不搶你的滑鼠就按下按鈕？又要怎麼證明它沒碰滑鼠？OpenAB Computer 0.10.0 新增 ui_action，這篇記錄它做什麼，以及我們怎麼測。">
-<meta name="twitter:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=e05f69e0">
+<meta name="twitter:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
+<meta name="twitter:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=b0647a72">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=6d102f5b">
+<link rel="stylesheet" href="../../../style.css?v=63e2e405">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
@@ -59,106 +59,62 @@ document.addEventListener("click", function (e) {
 <p class="back"><a href="../">← 開發筆記</a></p>
 <h1>我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action</h1>
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
-<p class="hook">Agent 讀得到一個視窗的 accessibility tree 之後，要怎麼在不搶走你滑鼠的情況下，按下視窗裡的按鈕？按完之後，又要怎麼證明它真的沒碰到滑鼠？</p>
-
-<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> 新增了 <code>ui_action</code>。<a href="../accessibility-tree/">上一篇開發筆記</a>介紹的 <code>ui_snapshot</code> 負責讀畫面，<code>ui_action</code>
-負責動手：拿快照裡的 ref，透過 accessibility API 按按鈕、填欄位，游標留在原地。這篇記錄它做了什麼，以及我們怎麼測它。</p>
-
-<h2>ui_action 做什麼</h2>
-<p>呼叫方式是 <code>ui_action {snapshot_id, ref, action}</code>（<a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a>）。動作有
-press、set_value、focus、show_menu、confirm、cancel，以及 increment、decrement，每個動作都對應一個
-accessibility 動作：press 是對元素執行 AXPress，set_value 是設定它的 AXValue，整個值換掉。元素不支援這個動作時，工具在動手之前就拒絕，並列出它支援哪些動作。</p>
-<p>建議的用法分三步：先 <code>ui_snapshot</code>，再對其中一個 ref 呼叫 <code>ui_action</code>，最後再拍一次 <code>ui_snapshot</code> 確認結果。</p>
+<p class="lede"><a href="../accessibility-tree/">上一篇開發筆記</a>介紹了 <code>ui_snapshot</code>。那是第一階段（OpenAB Computer 0.9.0）：agent 讀得到 Mac app 的 accessibility tree，但還不能操作。這篇搭配 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> 的發布，新增的 <code>ui_action</code> 讓 agent 可以直接操作這棵樹：帶著快照的 <code>snapshot_id</code> 和 <code>ref</code>，做 press、set_value、focus、show_menu、confirm 或 cancel，游標不會移動。</p>
 <figure class="fig anim press" data-steps="4" data-ms="1400" aria-label="動畫：一個示意用的對話框。agent 拍快照，找到「儲存」按鈕是 ref e3。它先讀一次滑鼠位置，再帶著快照 id、ref e3 和 press 呼叫 ui_action，按鈕透過 accessibility API 被按下。接著再讀一次滑鼠位置：同一個點，因為游標從頭到尾沒有動。">
 <div class="pair"><svg viewBox="0 0 360 206" role="img" aria-label="要儲存變更嗎？"><rect class="screen" x="0" y="0" width="360" height="206"/><rect class="win" x="20" y="12" width="320" height="130" rx="10"/><path class="winbar" d="M20 22 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="24" r="4"/><circle class="dot" cx="46" cy="24" r="4"/><circle class="dot" cx="58" cy="24" r="4"/><text class="fs2" x="180.0" y="29" text-anchor="middle">未命名</text><text class="fs2" x="40" y="80">要儲存變更嗎？</text><g class="okbtn plain"><rect class="btn2" x="176" y="104" width="70" height="26" rx="6"/><text class="fbtn" x="211.0" y="121.0" text-anchor="middle">取消</text></g><g class="okbtn" data-hl="2"><rect class="btnok" x="256" y="104" width="70" height="26" rx="6"/><text class="fok fbtn" x="291.0" y="121.0" text-anchor="middle">儲存</text></g><rect class="frx" data-show="0" x="252" y="100" width="78" height="34" rx="8"/><circle class="ring" data-hl="2" cx="291" cy="117" r="22"/><path class="cursor" d="M40 160 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><text class="fs" x="30" y="190">游標</text><text class="fs2" data-show="1" data-hl="1" x="96" y="170">動手前的滑鼠位置：(40, 160)</text><text class="fs2 same" data-show="3" data-hl="3" x="96" y="190">動手後的滑鼠位置：(40, 160)，同一點</text></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → [e3] AXButton &quot;儲存&quot; (256,104 70×26)</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">→ 對 e3 執行 AXPress：成功</li></ol></div></div>
 <div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
 <figcaption>動畫：一個示意用的對話框。agent 拍快照，找到「儲存」按鈕是 ref e3。它先讀一次滑鼠位置，再帶著快照 id、ref e3 和 press 呼叫 ui_action，按鈕透過 accessibility API 被按下。接著再讀一次滑鼠位置：同一個點，因為游標從頭到尾沒有動。</figcaption>
 </figure>
-<p>它從不合成輸入事件，也從不移動游標，原始碼裡有一個掃描測試盯著這一點。預設也不會把 app 叫到前景、不會拉起視窗。真的需要時，例如要打開背景 app 的選單，呼叫端要明確傳 <code>activate: true</code>。</p>
-
-<h3>ref 只在自己的快照裡有效</h3>
-<p>工具會保留最近四次快照，每次五分鐘。動手之前，它會重新檢查這個 ref：還是同一個行程、角色和子角色沒變、還在當初找到它的那個視窗底下；如果是選單項目，選單列要還在回應。任何一項不符，就回傳
-<code>stale ref: … take a new ui_snapshot</code>。工具不會挑一個長得像的元素來頂替。</p>
-<figure class="fig anim stale" data-steps="5" data-ms="1300" aria-label="動畫：過期的 ref 會被拒絕。agent 拍了快照 snap-1，裡面「儲存」按鈕是 e3。之後對話框被關掉又重新打開，按鈕已經是新的元素。拿舊的 ref 呼叫 ui_action，得到「stale ref … take a new ui_snapshot」，什麼都沒按。agent 重拍快照，新的按鈕是 e4，這次按下成功。">
-<div class="pair"><svg viewBox="0 0 360 132" role="img" aria-label="動畫：過期的 ref 會被拒絕。agent 拍了快照 snap-1，裡面「儲存」按鈕是 e3。之後對話框被關掉又重新打開"><rect class="win" x="4" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M4 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="18" cy="20" r="4"/><circle class="dot" cx="30" cy="20" r="4"/><circle class="dot" cx="42" cy="20" r="4"/><text class="fs2" x="84.0" y="25" text-anchor="middle">snap-1</text><rect class="bar" x="18" y="48" width="96" height="8" rx="4"/><rect class="bar" x="18" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="34" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="62.0" y="89.0" text-anchor="middle">取消</text></g><g class="okbtn"><rect class="btnok" x="98" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="126.0" y="89.0" text-anchor="middle">儲存</text></g><rect class="frx" x="94" y="70" width="64" height="30" rx="7"/><text class="mono" x="100" y="120">e3</text><g data-show="2"><path class="xmark" d="M118 78 l16 16 M134 78 l-16 16"/></g><g data-show="1"><path class="arr" d="M168 56 h18"/><path class="arrh" d="M188 52 l7 4 l-7 4z"/><rect class="win" x="196" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M196 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="210" cy="20" r="4"/><circle class="dot" cx="222" cy="20" r="4"/><circle class="dot" cx="234" cy="20" r="4"/><text class="fs2" x="276.0" y="25" text-anchor="middle">改變之後</text><rect class="bar" x="210" y="48" width="96" height="8" rx="4"/><rect class="bar" x="210" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="226" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="254.0" y="89.0" text-anchor="middle">取消</text></g><g class="okbtn"><rect class="btnok" x="290" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="318.0" y="89.0" text-anchor="middle">儲存</text></g><text class="fs" x="196" y="120">新的元素</text></g><rect class="frx" data-show="3" x="286" y="70" width="64" height="30" rx="7"/><text class="mono" data-show="3" x="292" y="120">e4</text><circle class="ring" data-hl="4" cx="318" cy="85" r="20"/></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → snap-1 · [e3] AXButton &quot;儲存&quot;</li><li class="aside" data-show="1" data-hl="1" style="--lvl:0">對話框被關掉，又重新打開</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-1&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="err" data-show="2" data-hl="2" style="--lvl:0">✗ stale ref: e3 … take a new ui_snapshot</li><li data-show="3" data-hl="3" style="--lvl:0">ui_snapshot → snap-2 · [e4] AXButton &quot;儲存&quot;</li><li data-show="4" data-hl="4" style="--lvl:0">ui_action { snapshot_id: &quot;snap-2&quot;, ref: &quot;e4&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">✓ 對 e4 執行 AXPress</li></ol></div></div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
-<figcaption>動畫：過期的 ref 會被拒絕。agent 拍了快照 snap-1，裡面「儲存」按鈕是 e3。之後對話框被關掉又重新打開，按鈕已經是新的元素。拿舊的 ref 呼叫 ui_action，得到「stale ref … take a new ui_snapshot」，什麼都沒按。agent 重拍快照，新的按鈕是 e4，這次按下成功。</figcaption>
-</figure>
-
-<h3>誰能用，以及密碼欄位</h3>
-<p><code>ui_action</code> 只開放給 <code>owner</code> profile，和 <code>mouse</code>、<code>key</code>
-同一級，也需要 macOS 的「輔助使用」權限。對密碼欄位 set_value 時，值不會被讀回、不會寫進紀錄，也不會出現在回應裡。對任何欄位，輸入的值都不會出現在錯誤訊息、紀錄或回應文字中。透過 switchboard 呼叫時，對密碼欄位 set_value 預設會被拒絕，除非那台電腦的管理者自己開啟。</p>
+<p class="hook">那麼，從讀樹、動手到確認結果，整個操作過程要怎麼測？</p>
 
 <h2>我們怎麼測</h2>
 
-<h3>1. 單元測試：用假的 accessibility 提供者</h3>
-<p>CI 機器沒有圖形介面，所以測試不碰真的 app。<code>ui_snapshot</code> 原本就有一個假的
-accessibility 提供者，<code>ui_action</code> 的測試也跑在它上面。PR #96 新增三組共 52 個測試：<code>UIActionToolTests</code> 40 個、<code>UISnapshotCacheTests</code> 5 個、<code>UIActivateTests</code> 7 個。</p>
-<p>涵蓋的情況有：快照過期或被擠掉；ref 不存在；元素消失、角色改變、屬於別的行程，或離開了原本的視窗；不支援的動作，要列出支援的動作；每個動作背後呼叫的是哪個 accessibility 動作；密碼的值不出現在回應和任何一行紀錄裡；透過 switchboard 時密碼欄位預設拒絕；<code>activate</code> 預設是 false；以及 profile
-的權限劃分。</p>
-<p>在一台 M4 Mac mini 上，<code>swift test</code> 跑了 256 個測試，0 個失敗；PR 上的 CI 檢查全部通過。</p>
-<p>合併之前我們也試過實機測試，但那個測試版程式沒有「輔助使用」權限，<code>ui_action</code> 只回了沒有權限的錯誤，TextEdit 那段沒跑成。這段留到發布後，用已經授權的版本來做。</p>
-
-<h3>2. 實機測試：一台 M4 Mac mini，經過 switchboard</h3>
-<p>0.10.0 發布之後，我們讓遠端的 agent 經過 switchboard 操作一台 M4 Mac mini。每一步都是一次 MCP
-工具呼叫，switchboard 的稽核紀錄記下了時間：</p>
-<ol>
-<li>讀一次滑鼠位置（透過 <code>osascript</code> 跑一小段 JXA，讀 <code>NSEvent.mouseLocation</code>）。</li>
-<li>打開 TextEdit，開一份新文件。</li>
-<li>對 TextEdit 拍 <code>ui_snapshot</code>，花了 96 ms。文字區是 <code>[e3] AXTextArea</code>。</li>
-<li>用 <code>ui_action</code> 對 e3 做 focus（8 ms），再 set_value 寫入 "hello from ui_action 0.10.0"（15 ms）。</li>
-<li>再拍一次快照確認：e3 的值是 "hello from ui_action 0.10.0"。</li>
-<li>再讀一次滑鼠位置。</li>
-</ol>
-<p>兩次讀到的是同一個點：(284, 88)。文字寫進去了，游標沒有動。</p>
-
-<h3>3. 實機測試抓到的問題：sheet 裡的按鈕</h3>
-<p>接著我們結束 TextEdit。還沒儲存的文件跳出了儲存用的 sheet，也就是從視窗標題列往下滑出來的那種對話框。對 sheet 上的「刪除」按鈕呼叫 <code>ui_action</code> press，失敗了：</p>
-<pre><code>stale ref: e63 has left its window; take a new ui_snapshot and use its refs</code></pre>
-<p>每次都重拍快照，連試三次都一樣。我們用一段唯讀的 Swift 探測程式查原因：sheet 裡的控制項被問到
-AXWindow 時，回的是 nil，而不是別的視窗。0.10.0 的檢查以為只有選單項目才會沒有 AXWindow，所以拒絕了這個 ref。按鈕的 AXParent 是 sheet，sheet 的 AXWindow 才是那個視窗。</p>
-<figure class="fig anim sheetfig" data-steps="5" data-ms="1400" aria-label="動畫：sheet 的 bug。儲存用的 sheet 從視窗標題列滑下來。在樹裡，sheet（e50）位在視窗（e1）底下，「刪除」按鈕是 e63。按 e63 時，0.10.0 的檢查去問按鈕的 AXWindow，得到 nil，就把 ref 當成過期而拒絕。0.10.1 的修正改成從按鈕沿著 AXParent 往上找，找到 sheet，確認 sheet 在快照裡，於是接受。">
-<p class="badge">0.10.1：修正已在 <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> 合併，尚未發布</p>
-<div class="pair"><svg viewBox="0 0 360 214" role="img" aria-label="未命名"><rect class="screen" x="0" y="0" width="360" height="214"/><rect class="win" x="20" y="8" width="320" height="198" rx="10"/><path class="winbar" d="M20 18 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="20" r="4"/><circle class="dot" cx="46" cy="20" r="4"/><circle class="dot" cx="58" cy="20" r="4"/><text class="fs2" x="180.0" y="25" text-anchor="middle">未命名</text><rect class="bar" x="40" y="48" width="230" height="8" rx="4"/><rect class="bar" x="40" y="64" width="190" height="8" rx="4"/><rect class="bar" x="40" y="80" width="210" height="8" rx="4"/><g class="sheet" data-show="1"><rect class="sheetbox" x="60" y="32" width="240" height="112" rx="10"/><rect class="bar" x="80" y="50" width="160" height="9" rx="4"/><rect class="bar" x="80" y="66" width="120" height="7" rx="3"/><g class="okbtn plain" data-hl="2"><rect class="btn2" x="72" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="105.0" y="124.0" text-anchor="middle">刪除</text></g><g class="okbtn plain"><rect class="btn2" x="152" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="185.0" y="124.0" text-anchor="middle">取消</text></g><g class="okbtn"><rect class="btnok" x="226" y="108" width="66" height="24" rx="6"/><text class="fok fbtn" x="259.0" y="124.0" text-anchor="middle">儲存</text></g><circle class="ring" data-hl="2" cx="105" cy="120" r="22"/></g><g data-show="3"><path class="xmark" d="M62 158 l12 12 M74 158 l-12 12"/><text class="fmiss" x="82" y="169">0.10.0：拒絕</text></g><g data-show="4"><path class="vmark" d="M62 184 l5 6 l10 -12"/><text class="fhit" x="82" y="191">0.10.1：接受</text></g></svg><div class="treebox"><p class="treehead">ui_snapshot 的文字版</p><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;未命名&quot;</li><li data-show="1" data-hl="1" style="--lvl:1">[e50] AXSheet desc=&quot;save&quot;</li><li data-show="2" data-hl="2" style="--lvl:2">[e63] AXButton &quot;刪除&quot;</li></ol><ol class="axtree axsteps calls"><li data-show="2" data-hl="2" style="--lvl:0">ui_action { ref: &quot;e63&quot;, action: &quot;press&quot; }</li><li class="err" data-show="3" data-hl="3" style="--lvl:0">0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">0.10.1 · AXParent(e63) → [e50] AXSheet，在快照裡 → ✓ 接受</li></ol></div></div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
-<figcaption>動畫：sheet 的 bug。儲存用的 sheet 從視窗標題列滑下來。在樹裡，sheet（e50）位在視窗（e1）底下，「刪除」按鈕是 e63。按 e63 時，0.10.0 的檢查去問按鈕的 AXWindow，得到 nil，就把 ref 當成過期而拒絕。0.10.1 的修正改成從按鈕沿著 AXParent 往上找，找到 sheet，確認 sheet 在快照裡，於是接受。</figcaption>
-</figure>
-<p>這件事開成了 <a href="https://github.com/openabdev/openab-computer/issues/98">issue #98</a>（標籤 bug、p2），由 <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> 修正：元素沒有
-AXWindow，或它的 AXWindow 不在快照記錄的路徑上時，檢查改成沿著 AXParent 往上找最近的視窗、sheet、drawer 或 popover，而且只有這個容器在記錄的路徑上才接受。往上最多找 50 步，會檢查有沒有繞圈，也受同一個時間預算限制。行程或角色改變還是會先被拒絕，也不會猜替代的元素。</p>
-<p>PR #99 新增 8 個測試，總數 264 個，0 個失敗，CI 通過。它的實機檢查是唯讀的：把新規則套到 TextEdit
-真的儲存 sheet 上，sheet 裡 15 個控制項全部通過，包括「刪除」；用 0.10.0 的規則則一個也不通過。修正已經合併，會在 0.10.1 推出。在 sheet 裡真的按下按鈕這件事，目前由單元測試涵蓋，還沒有用
-<code>ui_action</code> 在實機上重跑。</p>
-
-<h3>4. 兩個審查者，以及稽核紀錄的外洩</h3>
-<p>每一個變更都交給兩個獨立的 AI 審查者，用的是不同的模型。它們平行審查，兩邊都核准同一個 commit 才會合併。PR #96 審了五輪，最後再加一次確認。</p>
-<p>第一輪就抓到一個真的問題：透過 switchboard 對密碼欄位 set_value 時，那個值會寫進 switchboard 的稽核紀錄。switchboard（openab-sb）在把工具呼叫轉給電腦之前，就先把參數寫進 audit.jsonl。所以就算
-Mac 那端拒絕了這次呼叫，那一行紀錄也已經寫下去了。這只能在 openab-sb 修，PR #96 因此一直等到修正合併並部署之後才合併。</p>
-<p>修正是 <a href="https://github.com/openabdev/openab-sb/releases/tag/v0.2.2">openab-sb 0.2.2</a>（<a href="https://github.com/openabdev/openab-sb/pull/16">PR #16</a>、<a href="https://github.com/openabdev/openab-sb/issues/14">issue #14</a>）。它在稽核紀錄裡遮掉帶有祕密的參數，不管藏在多深的物件或陣列裡：<code>ui_action</code> 的 value、輸入的文字、名稱裡有 password、secret、token、credential 這類字眼的鍵，以及 env 和 headers 裡的每一個值。字串變成 <code>&lt;redacted:N chars&gt;</code>，其他型別變成 <code>&lt;redacted&gt;</code>。只有稽核紀錄裡那一份被遮，電腦收到的仍是原本的參數。自由格式的字串，例如 shell 指令、腳本內容或網址的查詢字串，不會被檢查。</p>
-<figure class="fig anim redact" data-steps="5" data-ms="1400" aria-label="動畫：openab-sb 稽核紀錄的遮蔽。一次呼叫帶著一個值經過 switchboard。switchboard 會先把呼叫寫進稽核紀錄，再轉送出去，所以 0.2.2 之前，這個值會原封不動寫進 audit.jsonl。0.2.2 起，那一行改成「&lt;redacted:8 chars&gt;」，電腦收到的仍是真正的值。canary 測試在一次 exec 呼叫的 env 裡放了假的 token，紀錄裡那一行顯示「&lt;redacted:31 chars&gt;」，那個 token 本身在稽核檔案裡出現 0 次。">
-<div class="pair"><svg viewBox="0 0 360 150" role="img" aria-label="switchboard"><g data-hl="0"><rect class="box" x="6" y="14" width="80" height="40" rx="9"/><text class="fm" x="46" y="39" text-anchor="middle">agent</text></g><path class="arr" d="M86 34 h40"/><path class="arrh" d="M128 30 l7 4 l-7 4z"/><g data-hl="1 2"><rect class="box" x="136" y="8" width="96" height="52" rx="9"/><text class="fm" x="184" y="30" text-anchor="middle">openab-sb</text><text class="fs" x="184" y="47" text-anchor="middle">switchboard</text></g><g data-show="3"><path class="arr" d="M232 34 h34"/><path class="arrh" d="M268 30 l7 4 l-7 4z"/><text class="fs" x="236" y="26">2 轉送</text></g><g data-hl="3"><rect class="box" x="276" y="14" width="78" height="40" rx="9"/><text class="fm" x="315" y="39" text-anchor="middle">電腦</text></g><g data-show="1"><path class="arr" d="M184 60 v30"/><path class="arrh" d="M180 92 l4 7 l4 -7z"/><text class="fs" x="192" y="80">1 寫紀錄</text></g><g data-hl="1 2 4"><path class="filebox" d="M146 102 h64 l12 12 v30 h-76z"/><text class="fs2" x="184" y="130" text-anchor="middle">audit.jsonl</text></g></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_action { ref: &quot;e4&quot;, action: &quot;set_value&quot;, value: &quot;••••••••&quot; }</li><li class="err" data-show="1" data-hl="1" style="--lvl:0">0.2.2 之前 · audit.jsonl：&quot;value&quot;:&quot;••••••••&quot;（原封不動）</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">openab-sb 0.2.2 · audit.jsonl：&quot;value&quot;:&quot;&lt;redacted:8 chars&gt;&quot;</li><li data-show="3" data-hl="3" style="--lvl:0">→ 電腦收到的仍是真正的值</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">canary · exec env API_TOKEN → &quot;&lt;redacted:31 chars&gt;&quot; · 檔案裡的 canary：0 次</li></ol></div></div>
-<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
-<figcaption>動畫：openab-sb 稽核紀錄的遮蔽。一次呼叫帶著一個值經過 switchboard。switchboard 會先把呼叫寫進稽核紀錄，再轉送出去，所以 0.2.2 之前，這個值會原封不動寫進 audit.jsonl。0.2.2 起，那一行改成「&lt;redacted:8 chars&gt;」，電腦收到的仍是真正的值。canary 測試在一次 exec 呼叫的 env 裡放了假的 token，紀錄裡那一行顯示「&lt;redacted:31 chars&gt;」，那個 token 本身在稽核檔案裡出現 0 次。</figcaption>
-</figure>
-<p>我們用一個 canary 驗證：經過部署好的 switchboard 送出一次 <code>exec</code> 呼叫，在 env 的
-API_TOKEN 放一個假的 token。這個 canary 在稽核檔案裡出現 0 次，那次呼叫的紀錄在 token 原本的位置寫的是
-<code>&lt;redacted:31 chars&gt;</code>。後來實機測試 TextEdit 的 set_value，在紀錄裡也是
-<code>"value":"&lt;redacted:27 chars&gt;"</code>，27 正好是 "hello from ui_action 0.10.0" 的長度。</p>
-<p>0.10.0 的發布說明也提醒使用 switchboard 的人：透過 <code>ui_action</code> 傳任何敏感內容之前，先升級到 openab-sb 0.2.2，並考慮輪替舊版本寫下的稽核檔案。</p>
-
-<h2>限制與接下來</h2>
+<h3>單元測試：用假的 accessibility 提供者</h3>
+<p>CI 機器沒有螢幕，所以單元測試從不碰真的 app，而是跑在一個假的 accessibility 提供者上。它模擬出視窗、按鈕和文字欄位，讓測試逐條檢查 <code>ui_action</code> 的規則：</p>
 <ul>
-<li>set_value 會把整個值換掉。有些 app 要等確認或焦點移開，才會真正套用。</li>
-<li>會打開 sheet 或選單的 press，app 可能比較晚才回應。這時結果會標成 unconfirmed：動作可能已經發生，請重拍快照確認，不要直接再按一次。</li>
-<li>拖曳和多步驟手勢還是用 <code>mouse</code>。沒有 accessibility 節點、自己繪製的內容，還是用
-<code>screenshot</code> 加 <code>mouse</code>。</li>
-<li>Linux：<a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> 已經關閉，因為 macOS 的部分做完了。Linux 上用 AT-SPI 實作
-<code>ui_snapshot</code> 和 <code>ui_action</code> 先延後，列為 p3，記在 <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>，等有 Linux 機器真的需要時再做。在那之前，Linux 上請用 <code>screenshot</code>、<code>mouse</code> 和
-<code>key</code>。</li>
+<li>ref 只在產生它的那次快照裡有效。快照過期、被擠出快取，或 ref 不存在，都會被拒絕。</li>
+<li>快照之後元素變了（消失、角色改變、換了行程，或離開原本的視窗），這個 ref 就過期了。工具會拒絕，請 agent 重拍快照，不會挑一個長得像的元素代替。</li>
+<li>元素不支援的動作，在動手前就拒絕，並列出它支援哪些動作。</li>
+<li>密碼欄位的值不會被讀回，也不會寫進紀錄或出現在回應裡。</li>
+<li>除非呼叫端傳 <code>activate: true</code>，否則不會把 app 叫到前景。</li>
+<li>只有 <code>owner</code> profile 能呼叫 <code>ui_action</code>。</li>
 </ul>
+<p><a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a> 新增了 52 個這類測試。在一台 M4 Mac mini 上，整套 <code>swift test</code> 跑了 256 個測試，0 個失敗，PR 上的 CI 檢查也全部通過。</p>
 
-<p class="outro">想試試看：更新到 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a>，給它「輔助使用」權限，再從使用
-<code>owner</code> profile 的 agent 依序呼叫 <code>ui_snapshot</code>、<code>ui_action</code>，最後再
-<code>ui_snapshot</code> 一次。有用 switchboard 的話，先把它升級到 openab-sb 0.2.2。上一篇：<a href="../accessibility-tree/">OpenAB Computer 開始支援 macOS 的 accessibility tree</a>。</p>
+<h3>實機端到端測試：一台 M4 Mac mini</h3>
+<p>單元測試確認規則沒錯，實機測試則確認整件事在真的 app 上做得到。我們讓 agent 經過 switchboard 操作一台 M4 Mac mini，走的是遠端 agent 平常用的同一條網路路徑：</p>
+<ol>
+<li>讀一次滑鼠位置。</li>
+<li>打開 TextEdit，開一份新文件。</li>
+<li>呼叫 <code>ui_snapshot</code>，在樹裡找到文字區（<code>AXTextArea</code>）和它的 ref。</li>
+<li>用 <code>ui_action</code> 對這個 ref 做 focus，再用 set_value 寫入一句話。</li>
+<li>再呼叫一次 <code>ui_snapshot</code>，確認文字區的值就是那句話。</li>
+<li>再讀一次滑鼠位置，和第一次比對。</li>
+</ol>
+<p>兩次讀到的是同一個點：文字寫進去了，游標沒有動。下面的效能測試又把 tree 路徑跑了 10 次，每次文字都寫進文件，游標也都沒動。</p>
+<p>此外，每個變更都交給兩個使用不同模型的獨立 AI 審查者，兩邊都核准同一個 commit 才會合併。</p>
+
+<h2>效能改進有多少</h2>
+<p>我們拿同一件事，用兩種方式各做 10 次：在新的空白 TextEdit 文件裡輸入 <code>The quick brown fox jumps over the lazy dog.</code>（44 個字元），再確認它寫進去了。</p>
+<ul>
+<li><strong>A) 截圖迴圈：</strong><code>screenshot</code> → 用 <code>mouse</code> 點文字區 → 用 <code>key</code> 輸入 → 再 <code>screenshot</code> 確認。</li>
+<li><strong>B) tree 路徑：</strong><code>ui_snapshot</code> → <code>ui_action</code> focus → <code>ui_action</code> set_value → 再 <code>ui_snapshot</code> 確認。</li>
+</ul>
+<figure class="fig anim cmpfig" data-steps="4" data-ms="1500" aria-label="動畫：同一件事用兩種方式做，在新的 TextEdit 文件裡輸入一句話並確認。兩邊都是四次工具呼叫，計數器隨每次呼叫累加。A 截圖迴圈最後是 1.70 秒、1.0 MB 的圖片、約 3,165 個輸入 token（高解析度模型約 5,427），游標移動了。B tree 路徑最後是 0.36 秒、5.8 KB 的文字、約 1,435 個 token，游標沒動。數字是一台 M4 Mac mini 經過 switchboard、各跑 10 次的中位數。">
+<div class="panels"><div class="panel sidea"><p class="treehead">A) 截圖迴圈</p><ol class="axtree axsteps"><li data-show="0" data-hl="0">screenshot → JPEG 1920×1080，約 500 KB</li><li data-show="1" data-hl="1">mouse 點一下文字區</li><li data-show="2" data-hl="2">key 輸入 &quot;The quick brown fox…&quot;（44 個按鍵）</li><li data-show="3" data-hl="3">screenshot → 確認文字</li></ol><dl class="meters"><div><dt>工具呼叫</dt><dd><span class="val" data-hl="0">1</span><span class="val" data-hl="1">2</span><span class="val" data-hl="2">3</span><span class="val fin" data-hl="3">4</span></dd></div><div><dt>時間</dt><dd><span class="val" data-hl="0">0.33 s</span><span class="val" data-hl="1">0.44 s</span><span class="val" data-hl="2">1.32 s</span><span class="val fin" data-hl="3">1.70 s</span></dd></div><div><dt>回傳給 agent</dt><dd><span class="val" data-hl="0">500 KB</span><span class="val" data-hl="1">500 KB</span><span class="val" data-hl="2">500 KB</span><span class="val fin" data-hl="3">1.0 MB</span></dd></div><div><dt>估計輸入 token</dt><dd><span class="val" data-hl="0">1,578</span><span class="val" data-hl="1">1,582</span><span class="val" data-hl="2">1,588</span><span class="val fin" data-hl="3">3,165</span></dd></div><div><dt>游標</dt><dd><span class="val" data-hl="0"><b class="still">沒動</b></span><span class="val" data-hl="1"><b class="moved">移動了</b></span><span class="val" data-hl="2"><b class="moved">移動了</b></span><span class="val fin" data-hl="3"><b class="moved">移動了</b></span></dd></div></dl><div class="tbar" aria-hidden="true"><i class="" data-hl="0" style="width:49.9%"></i><i class="" data-hl="1" style="width:50.0%"></i><i class="" data-hl="2" style="width:50.2%"></i><i class="fin" data-hl="3" style="width:100.0%"></i></div></div><div class="panel sideb"><p class="treehead">B) tree 路徑</p><ol class="axtree axsteps"><li data-show="0" data-hl="0">ui_snapshot {app: &quot;TextEdit&quot;} → 約 2.8 KB 文字</li><li data-show="1" data-hl="1">ui_action focus → 文字區</li><li data-show="2" data-hl="2">ui_action set_value &quot;The quick brown fox…&quot;</li><li data-show="3" data-hl="3">ui_snapshot → 確認值</li></ol><dl class="meters"><div><dt>工具呼叫</dt><dd><span class="val" data-hl="0">1</span><span class="val" data-hl="1">2</span><span class="val" data-hl="2">3</span><span class="val fin" data-hl="3">4</span></dd></div><div><dt>時間</dt><dd><span class="val" data-hl="0">0.10 s</span><span class="val" data-hl="1">0.17 s</span><span class="val" data-hl="2">0.24 s</span><span class="val fin" data-hl="3">0.36 s</span></dd></div><div><dt>回傳給 agent</dt><dd><span class="val" data-hl="0">2.8 KB</span><span class="val" data-hl="1">2.9 KB</span><span class="val" data-hl="2">3.0 KB</span><span class="val fin" data-hl="3">5.8 KB</span></dd></div><div><dt>估計輸入 token</dt><dd><span class="val" data-hl="0">685</span><span class="val" data-hl="1">709</span><span class="val" data-hl="2">738</span><span class="val fin" data-hl="3">1,435</span></dd></div><div><dt>游標</dt><dd><span class="val" data-hl="0"><b class="still">沒動</b></span><span class="val" data-hl="1"><b class="still">沒動</b></span><span class="val" data-hl="2"><b class="still">沒動</b></span><span class="val fin" data-hl="3"><b class="still">沒動</b></span></dd></div></dl><div class="tbar" aria-hidden="true"><i class="" data-hl="0" style="width:21.6%"></i><i class="" data-hl="1" style="width:22.4%"></i><i class="" data-hl="2" style="width:23.3%"></i><i class="fin" data-hl="3" style="width:45.3%"></i></div></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="播放" data-pause="暫停">暫停</button></div>
+<figcaption>動畫：同一件事用兩種方式做，在新的 TextEdit 文件裡輸入一句話並確認。兩邊都是四次工具呼叫，計數器隨每次呼叫累加。A 截圖迴圈最後是 1.70 秒、1.0 MB 的圖片、約 3,165 個輸入 token（高解析度模型約 5,427），游標移動了。B tree 路徑最後是 0.36 秒、5.8 KB 的文字、約 1,435 個 token，游標沒動。數字是一台 M4 Mac mini 經過 switchboard、各跑 10 次的中位數。</figcaption>
+</figure>
+<div class="cmp-wrap"><table class="cmp perf"><caption>實測：每種方式 10 次，同一個 TextEdit 任務</caption><thead><tr><th scope="col"></th><th scope="col">A) 截圖迴圈</th><th scope="col">B) tree 路徑</th></tr></thead><tbody><tr><th scope="row">每個任務的工具呼叫</th><td data-label="A) 截圖迴圈">4</td><td data-label="B) tree 路徑">4</td></tr><tr><th scope="row">每個任務的時間（中位數 / p90）</th><td data-label="A) 截圖迴圈">1.70 s / 1.83 s</td><td data-label="B) tree 路徑">0.36 s / 0.42 s</td></tr><tr><th scope="row">每次呼叫的時間（中位數）</th><td data-label="A) 截圖迴圈">333 ms</td><td data-label="B) tree 路徑">101 ms</td></tr><tr><th scope="row">回傳的圖片</th><td data-label="A) 截圖迴圈">1,001,879 B（2 張 1920×1080 JPEG）</td><td data-label="B) tree 路徑">0</td></tr><tr><th scope="row">回傳的文字</th><td data-label="A) 截圖迴圈">188 B</td><td data-label="B) tree 路徑">5,846 B（2 次快照，各約 2.8 KB）</td></tr><tr><th scope="row">估計輸入 token（一般模型）</th><td data-label="A) 截圖迴圈">3,165</td><td data-label="B) tree 路徑">1,435</td></tr><tr><th scope="row">估計輸入 token（高解析度模型）</th><td data-label="A) 截圖迴圈">5,427</td><td data-label="B) tree 路徑">1,435</td></tr><tr><th scope="row">游標移動</th><td data-label="A) 截圖迴圈">10 次中 10 次</td><td data-label="B) tree 路徑">10 次中 0 次</td></tr><tr><th scope="row">文字寫進文件</th><td data-label="A) 截圖迴圈">10 次中 10 次</td><td data-label="B) tree 路徑">10 次中 10 次</td></tr></tbody></table></div>
+<p>在這個任務上，A 用掉的輸入 token 在一般模型上約是 B 的 2.2 倍（3,165 對 1,435），在高解析度模型上約是 3.8 倍（5,427 對 1,435）。B 花 0.36 秒做完，A 要 1.70 秒，B 約快 4.7 倍，而且游標從頭到尾沒動。</p>
+<p>A 的時間主要花在用鍵盤送出 44 個按鍵（877 ms），以及兩張各約 500 KB 的截圖經過 switchboard 傳回來。B 的每次 <code>ui_action</code> 呼叫端到端約 67 ms，大部分是網路往返。</p>
+<p class="cmp-note">token 怎麼算：圖片用 <a href="https://platform.claude.com/docs/en/build-with-claude/vision">Anthropic vision 指南</a>的公式，先把圖縮到模型的上限內，再算 ⌈寬/28⌉ × ⌈高/28⌉。一般模型（長邊上限 1,568 px）會把 1920×1080 的截圖縮成 1456×819，約 1,560 個 token；高解析度模型（長邊上限 2,576 px）不縮，約 2,691 個 token。文字以約 4 個字元算 1 個 token，沒有跑 tokenizer。只算模型實際會看到的內容，不含工具定義和模型自己的輸出。</p>
+<p class="cmp-note">測試條件：一台 M4 Mac mini（16 GB、macOS 15.7），一個 1920×1080 的螢幕，裝的是 OpenAB Computer 0.10.0。agent 經 tailnet 用 HTTPS 連到 switchboard，再轉到這台 Mac mini，每次呼叫都要付這段往返。A、B 各跑 10 次，交錯進行，最前面一組暖身不計。只計四次工具呼叫的時間。A 點擊的座標取自已知的視窗位置，真的模型得先從第一張截圖裡找出來。這些數字來自一台機器、一個任務，也不包含模型看截圖或快照、思考下一步的時間。</p>
+
+<h2>接下來</h2>
+<p>Linux（AT-SPI）上的 <code>ui_snapshot</code> 和 <code>ui_action</code> 先延後，列為 p3，記在 <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>。沒有 accessibility 節點、自己繪製的介面，還是可以用 <code>screenshot</code> 加 <code>mouse</code>。</p>
+
+<p class="outro">上一篇：<a href="../accessibility-tree/">OpenAB Computer 開始支援 macOS 的 accessibility tree</a>。</p>
 <script>
 // Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
 // Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete

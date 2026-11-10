@@ -3,15 +3,10 @@
 Same conventions as figures.py (data-show / data-hl, played by scripts/figs.js, complete static
 state without JS or with prefers-reduced-motion). Every visible word comes from F[code].
 
-The dialogs are made-up examples. The sheet figure uses the refs and roles of the real TextEdit
-repro from issue #98 (e1 AXWindow → e50 AXSheet → e63 AXButton "Delete"); the error strings are
-the tool's own wording. The redaction figure's "••••••••" is illustrative (8 characters).
+fig_press: a made-up dialog pressed by ref, the cursor untouched. fig_cmp and perf_table: the
+measured screenshot loop vs tree path comparison (numbers in RUN and C below).
 """
 from figures import S, controls, esc
-
-# State of the 0.10.1 release when this note was built: False = the sheet fix is merged but
-# 0.10.1 is not published yet. Flip it (and the note text in notes.py) once it is published.
-REL101_PUBLISHED = False
 
 F = {
     "en": dict(
@@ -26,44 +21,6 @@ F = {
                   "ref e3 and press, and the button is pressed through the accessibility API. Then "
                   "it reads the mouse location again: the same point, because the cursor never "
                   "moved.",
-        snap1="snap-1", changed="after the change", new_el="a new element",
-        stale_lines=[('ui_snapshot → snap-1 · [e3] AXButton "{save}"', ""),
-                     ("the dialog is closed and opened again", "aside"),
-                     ('ui_action {{ snapshot_id: "snap-1", ref: "e3", action: "press" }}', ""),
-                     ("✗ stale ref: e3 … take a new ui_snapshot", "err"),
-                     ('ui_snapshot → snap-2 · [e4] AXButton "{save}"', ""),
-                     ('ui_action {{ snapshot_id: "snap-2", ref: "e4", action: "press" }}', ""),
-                     ("✓ AXPress on e4", "okl")],
-        stale_cap="Animation: a stale ref is refused. The agent takes snapshot snap-1, in which "
-                  "the Save button is e3. The dialog is then closed and opened again, so its "
-                  "button is a new element. ui_action with the old ref is refused with “stale "
-                  "ref … take a new ui_snapshot”, and nothing is pressed. The agent takes a new "
-                  "snapshot, gets ref e4 for the new button, and the press succeeds.",
-        sheet_head="ui_snapshot, text form",
-        sheet_calls=['ui_action {{ ref: "e63", action: "press" }}',
-                     "0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window",
-                     "0.10.1 · AXParent(e63) → [e50] AXSheet, in the snapshot → ✓ accepted"],
-        refused="0.10.0: refused", accepted="0.10.1: accepted",
-        badge_pending="0.10.1: fix merged in {pr}, release pending",
-        badge_out="0.10.1: fix released in {rel}",
-        sheet_cap="Animation: the sheet bug. A save sheet slides down from the window's title bar. "
-                  "In the tree the sheet (e50) sits under the window (e1), and its Delete button is "
-                  "e63. Pressing e63: the 0.10.0 check asks the button for its AXWindow, gets nil, "
-                  "and refuses the ref as stale. The fix for 0.10.1 walks up AXParent from the "
-                  "button, finds the sheet, sees that the sheet is in the snapshot, and accepts it.",
-        agent="agent", sb="openab-sb", sb2="switchboard", mac="computer", audit="audit.jsonl",
-        w1="1 log line", w2="2 forward",
-        red_lines=[('ui_action {{ ref: "e4", action: "set_value", value: "••••••••" }}', ""),
-                   ('before 0.2.2 · audit.jsonl: "value":"••••••••" (as typed)', "err"),
-                   ('openab-sb 0.2.2 · audit.jsonl: "value":"<redacted:8 chars>"', "okl"),
-                   ("→ the computer still gets the real value", ""),
-                   ('canary · exec env API_TOKEN → "<redacted:31 chars>" · canary in the file: 0 times', "okl")],
-        red_cap="Animation: audit redaction in openab-sb. A call carries a value through the "
-                "switchboard. The switchboard writes the call to its audit log before it forwards "
-                "it, so before 0.2.2 the value landed in audit.jsonl as typed. In 0.2.2 the log "
-                "line holds “<redacted:8 chars>” instead, and the computer still receives the real "
-                "value. The canary run sent a fake token in an exec call's env; its log line shows "
-                "“<redacted:31 chars>”, and the token itself appears 0 times in the audit file.",
     ),
     "zh": dict(
         title="未命名", msg="要儲存變更嗎？", cancel="取消", save="儲存", delete="刪除",
@@ -75,39 +32,6 @@ F = {
         press_cap="動畫：一個示意用的對話框。agent 拍快照，找到「儲存」按鈕是 ref e3。它先讀一次"
                   "滑鼠位置，再帶著快照 id、ref e3 和 press 呼叫 ui_action，按鈕透過 accessibility "
                   "API 被按下。接著再讀一次滑鼠位置：同一個點，因為游標從頭到尾沒有動。",
-        snap1="snap-1", changed="改變之後", new_el="新的元素",
-        stale_lines=[('ui_snapshot → snap-1 · [e3] AXButton "{save}"', ""),
-                     ("對話框被關掉，又重新打開", "aside"),
-                     ('ui_action {{ snapshot_id: "snap-1", ref: "e3", action: "press" }}', ""),
-                     ("✗ stale ref: e3 … take a new ui_snapshot", "err"),
-                     ('ui_snapshot → snap-2 · [e4] AXButton "{save}"', ""),
-                     ('ui_action {{ snapshot_id: "snap-2", ref: "e4", action: "press" }}', ""),
-                     ("✓ 對 e4 執行 AXPress", "okl")],
-        stale_cap="動畫：過期的 ref 會被拒絕。agent 拍了快照 snap-1，裡面「儲存」按鈕是 e3。之後對話框"
-                  "被關掉又重新打開，按鈕已經是新的元素。拿舊的 ref 呼叫 ui_action，得到「stale ref … "
-                  "take a new ui_snapshot」，什麼都沒按。agent 重拍快照，新的按鈕是 e4，這次按下成功。",
-        sheet_head="ui_snapshot 的文字版",
-        sheet_calls=['ui_action {{ ref: "e63", action: "press" }}',
-                     "0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window",
-                     "0.10.1 · AXParent(e63) → [e50] AXSheet，在快照裡 → ✓ 接受"],
-        refused="0.10.0：拒絕", accepted="0.10.1：接受",
-        badge_pending="0.10.1：修正已在 {pr} 合併，尚未發布",
-        badge_out="0.10.1：修正已在 {rel} 發布",
-        sheet_cap="動畫：sheet 的 bug。儲存用的 sheet 從視窗標題列滑下來。在樹裡，sheet（e50）位在視窗"
-                  "（e1）底下，「刪除」按鈕是 e63。按 e63 時，0.10.0 的檢查去問按鈕的 AXWindow，得到 "
-                  "nil，就把 ref 當成過期而拒絕。0.10.1 的修正改成從按鈕沿著 AXParent 往上找，找到 "
-                  "sheet，確認 sheet 在快照裡，於是接受。",
-        agent="agent", sb="openab-sb", sb2="switchboard", mac="電腦", audit="audit.jsonl",
-        w1="1 寫紀錄", w2="2 轉送",
-        red_lines=[('ui_action {{ ref: "e4", action: "set_value", value: "••••••••" }}', ""),
-                   ('0.2.2 之前 · audit.jsonl："value":"••••••••"（原封不動）', "err"),
-                   ('openab-sb 0.2.2 · audit.jsonl："value":"<redacted:8 chars>"', "okl"),
-                   ("→ 電腦收到的仍是真正的值", ""),
-                   ('canary · exec env API_TOKEN → "<redacted:31 chars>" · 檔案裡的 canary：0 次', "okl")],
-        red_cap="動畫：openab-sb 稽核紀錄的遮蔽。一次呼叫帶著一個值經過 switchboard。switchboard 會先把"
-                "呼叫寫進稽核紀錄，再轉送出去，所以 0.2.2 之前，這個值會原封不動寫進 audit.jsonl。"
-                "0.2.2 起，那一行改成「<redacted:8 chars>」，電腦收到的仍是真正的值。canary 測試在一次 "
-                "exec 呼叫的 env 裡放了假的 token，紀錄裡那一行顯示「<redacted:31 chars>」，那個 token 本身在稽核檔案裡出現 0 次。",
     ),
     "ja": dict(
         title="名称未設定", msg="変更を保存しますか？", cancel="キャンセル", save="保存", delete="削除",
@@ -120,43 +44,6 @@ F = {
                   "ボタンが ref e3 だと見つけます。マウス位置を読み、スナップショット ID、ref e3、"
                   "press を渡して ui_action を呼ぶと、ボタンはアクセシビリティ API で押されます。"
                   "そのあともう一度マウス位置を読むと同じ点です。カーソルは一度も動いていません。",
-        snap1="snap-1", changed="変化のあと", new_el="新しい要素",
-        stale_lines=[('ui_snapshot → snap-1 · [e3] AXButton "{save}"', ""),
-                     ("ダイアログを閉じて、もう一度開く", "aside"),
-                     ('ui_action {{ snapshot_id: "snap-1", ref: "e3", action: "press" }}', ""),
-                     ("✗ stale ref: e3 … take a new ui_snapshot", "err"),
-                     ('ui_snapshot → snap-2 · [e4] AXButton "{save}"', ""),
-                     ('ui_action {{ snapshot_id: "snap-2", ref: "e4", action: "press" }}', ""),
-                     ("✓ e4 に AXPress", "okl")],
-        stale_cap="アニメーション：古い ref は拒否されます。エージェントはスナップショット snap-1 を撮り、"
-                  "そこでは「保存」ボタンが e3 です。そのあとダイアログが閉じてまた開き、ボタンは新しい"
-                  "要素になります。古い ref で ui_action を呼ぶと「stale ref … take a new ui_snapshot」"
-                  "で拒否され、何も押されません。撮り直したスナップショットで新しいボタンは e4 になり、"
-                  "今度は押せます。",
-        sheet_head="ui_snapshot のテキスト形式",
-        sheet_calls=['ui_action {{ ref: "e63", action: "press" }}',
-                     "0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window",
-                     "0.10.1 · AXParent(e63) → [e50] AXSheet、スナップショットにある → ✓ 受け付ける"],
-        refused="0.10.0：拒否", accepted="0.10.1：受け付ける",
-        badge_pending="0.10.1：修正は {pr} でマージ済み、リリース待ち",
-        badge_out="0.10.1：修正は {rel} でリリース",
-        sheet_cap="アニメーション：シートのバグ。保存用のシートがウィンドウのタイトルバーから下りてきます。"
-                  "ツリーではシート（e50）がウィンドウ（e1）の下にあり、「削除」ボタンは e63 です。e63 を"
-                  "押すと、0.10.0 のチェックはボタンに AXWindow を尋ね、nil が返るので、ref を古いものと"
-                  "して拒否します。0.10.1 の修正では、ボタンから AXParent をたどってシートを見つけ、"
-                  "シートがスナップショットにあることを確かめて受け付けます。",
-        agent="エージェント", sb="openab-sb", sb2="スイッチボード", mac="コンピューター",
-        audit="audit.jsonl", w1="1 ログを書く", w2="2 転送",
-        red_lines=[('ui_action {{ ref: "e4", action: "set_value", value: "••••••••" }}', ""),
-                   ('0.2.2 より前 · audit.jsonl："value":"••••••••"（そのまま）', "err"),
-                   ('openab-sb 0.2.2 · audit.jsonl："value":"<redacted:8 chars>"', "okl"),
-                   ("→ コンピューターには本当の値が届く", ""),
-                   ('canary · exec env API_TOKEN → "<redacted:31 chars>" · ファイル内の canary：0 回', "okl")],
-        red_cap="アニメーション：openab-sb の監査ログの伏せ字。値を持った呼び出しがスイッチボードを"
-                "通ります。スイッチボードは転送する前に呼び出しを監査ログに書くので、0.2.2 より前は値が"
-                "そのまま audit.jsonl に残りました。0.2.2 ではその行が「<redacted:8 chars>」になり、"
-                "コンピューターには本当の値が届きます。canary のテストでは exec 呼び出しの env に偽の"
-                "トークンを入れ、ログの行は「<redacted:31 chars>」で、監査ファイルにトークンそのものは 0 回でした。",
     ),
     "ko": dict(
         title="제목 없음", msg="변경 사항을 저장할까요?", cancel="취소", save="저장", delete="삭제",
@@ -169,49 +56,12 @@ F = {
                   "찾습니다. 마우스 위치를 읽고, 스냅샷 ID, ref e3, press를 넘겨 ui_action을 호출하면 "
                   "버튼이 접근성 API로 눌립니다. 그다음 마우스 위치를 다시 읽으면 같은 점입니다. "
                   "커서는 한 번도 움직이지 않았습니다.",
-        snap1="snap-1", changed="바뀐 뒤", new_el="새 요소",
-        stale_lines=[('ui_snapshot → snap-1 · [e3] AXButton "{save}"', ""),
-                     ("대화상자가 닫혔다가 다시 열림", "aside"),
-                     ('ui_action {{ snapshot_id: "snap-1", ref: "e3", action: "press" }}', ""),
-                     ("✗ stale ref: e3 … take a new ui_snapshot", "err"),
-                     ('ui_snapshot → snap-2 · [e4] AXButton "{save}"', ""),
-                     ('ui_action {{ snapshot_id: "snap-2", ref: "e4", action: "press" }}', ""),
-                     ("✓ e4에 AXPress", "okl")],
-        stale_cap="애니메이션: 오래된 ref는 거부됩니다. 에이전트가 스냅샷 snap-1을 찍었고, 거기서 \"저장\" "
-                  "버튼은 e3입니다. 그 뒤 대화상자가 닫혔다가 다시 열려 버튼은 새 요소가 됩니다. 옛 ref로 "
-                  "ui_action을 호출하면 \"stale ref … take a new ui_snapshot\"으로 거부되고 아무것도 "
-                  "눌리지 않습니다. 새로 찍은 스냅샷에서 새 버튼은 e4이고, 이번에는 눌립니다.",
-        sheet_head="ui_snapshot 텍스트 형식",
-        sheet_calls=['ui_action {{ ref: "e63", action: "press" }}',
-                     "0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window",
-                     "0.10.1 · AXParent(e63) → [e50] AXSheet, 스냅샷에 있음 → ✓ 수락"],
-        refused="0.10.0: 거부", accepted="0.10.1: 수락",
-        badge_pending="0.10.1: 수정은 {pr}에서 병합됨, 릴리스 대기",
-        badge_out="0.10.1: 수정은 {rel}에서 릴리스",
-        sheet_cap="애니메이션: 시트 버그. 저장용 시트가 창의 제목 막대에서 내려옵니다. 트리에서 시트(e50)는 "
-                  "창(e1) 아래에 있고 \"삭제\" 버튼은 e63입니다. e63을 누르면 0.10.0의 검사는 버튼에 "
-                  "AXWindow를 묻고 nil을 받아 ref를 오래된 것으로 거부합니다. 0.10.1의 수정은 버튼에서 "
-                  "AXParent를 따라 올라가 시트를 찾고, 시트가 스냅샷에 있음을 확인한 뒤 수락합니다.",
-        agent="에이전트", sb="openab-sb", sb2="스위치보드", mac="컴퓨터", audit="audit.jsonl",
-        w1="1 로그 기록", w2="2 전달",
-        red_lines=[('ui_action {{ ref: "e4", action: "set_value", value: "••••••••" }}', ""),
-                   ('0.2.2 이전 · audit.jsonl: "value":"••••••••" (입력 그대로)', "err"),
-                   ('openab-sb 0.2.2 · audit.jsonl: "value":"<redacted:8 chars>"', "okl"),
-                   ("→ 컴퓨터는 여전히 진짜 값을 받음", ""),
-                   ('canary · exec env API_TOKEN → "<redacted:31 chars>" · 파일 속 canary: 0번', "okl")],
-        red_cap="애니메이션: openab-sb 감사 로그의 가림 처리. 값을 담은 호출이 스위치보드를 지나갑니다. "
-                "스위치보드는 전달하기 전에 호출을 감사 로그에 쓰기 때문에, 0.2.2 이전에는 값이 입력 그대로 "
-                "audit.jsonl에 남았습니다. 0.2.2에서는 그 줄에 \"<redacted:8 chars>\"가 남고, 컴퓨터는 "
-                "여전히 진짜 값을 받습니다. canary 시험에서는 exec 호출의 env에 가짜 토큰을 넣었고, 로그 "
-                "줄에는 \"<redacted:31 chars>\"가 찍혔으며 감사 파일에 토큰 자체는 0번 나왔습니다.",
     ),
 }
 
 for _c in F:                      # Pause/Play labels shared with the first note
     F[_c]["ctl"] = S[_c]["ctl"]
 
-PR99 = "https://github.com/openabdev/openab-computer/pull/99"
-REL101 = "https://github.com/openabdev/openab-computer/releases/tag/v0.10.1"
 
 
 def _cursor(x, y):
@@ -283,102 +133,175 @@ def fig_press(code):
     return _figure("press", 4, 1400, t["press_cap"], inner, t)
 
 
-def _mini(x, title, save, cancel, cls_btn=""):
-    return (_window(x, 8, 160, 96, title) +
-            f'<rect class="bar" x="{x + 14}" y="48" width="96" height="8" rx="4"/>'
-            f'<rect class="bar" x="{x + 14}" y="62" width="64" height="8" rx="4"/>' +
-            _btn(x + 30, 74, 56, 22, cancel) +
-            _btn(x + 94, 74, 56, 22, save, ok=True))
+# ---- Screenshot loop (A) vs tree path (B): measured on one TextEdit task -------------------
+# Source: the perf run for this note (bench.py, calls.csv, trials.csv, summary.json, kept outside
+# this repo). 10 trials per approach on an M4 Mac mini through the switchboard. The running
+# counters use the per-step medians; the last value of each counter is the measured per-task
+# total (median). Tokens: images by Anthropic's vision guide (standard tier, 1,560 per 1920×1080
+# screenshot), text at about 4 characters per token.
+VISION = "https://platform.claude.com/docs/en/build-with-claude/vision"
+TOK_MAX = 3165
+RUN = {
+    "A": dict(calls=["1", "2", "3", "4"],
+              time=["0.33 s", "0.44 s", "1.32 s", "1.70 s"],
+              bytes=["500 KB", "500 KB", "500 KB", "1.0 MB"],
+              tokens=[1578, 1582, 1588, 3165],
+              moved=[False, True, True, True]),
+    "B": dict(calls=["1", "2", "3", "4"],
+              time=["0.10 s", "0.17 s", "0.24 s", "0.36 s"],
+              bytes=["2.8 KB", "2.9 KB", "3.0 KB", "5.8 KB"],
+              tokens=[685, 709, 738, 1435],
+              moved=[False, False, False, False]),
+}
+SENT = "The quick brown fox…"
+
+C = {
+    "en": dict(
+        head_a="A) Screenshot loop", head_b="B) Tree path",
+        steps_a=["screenshot → JPEG 1920×1080, ~500 KB", "mouse click on the text area",
+                 f'key type "{SENT}" (44 keys)', "screenshot → check the text"],
+        steps_b=['ui_snapshot {app: "TextEdit"} → ~2.8 KB text', "ui_action focus → text area",
+                 f'ui_action set_value "{SENT}"', "ui_snapshot → value confirmed"],
+        calls="tool calls", time="time", bytes="returned to the agent", tokens="est. input tokens",
+        pointer="pointer", moved="moved", still="not moved",
+        cap="Animation: the same task done two ways, typing a sentence into a new TextEdit document "
+            "and checking it. Both sides make four tool calls; the counters add up each call. "
+            "A, the screenshot loop, ends at 1.70 s, 1.0 MB of images and about 3,165 input "
+            "tokens (5,427 on a high-resolution model), and the pointer moves. B, the tree path, "
+            "ends at 0.36 s, 5.8 KB of text and about 1,435 tokens, and the pointer stays put. "
+            "Medians of 10 runs each on an M4 Mac mini through the switchboard.",
+        tcap="Measured: 10 runs per approach, one TextEdit task",
+        cols=["", "A) Screenshot loop", "B) Tree path"],
+        rows=[["Tool calls per task", "4", "4"],
+              ["Time per task, median / p90", "1.70 s / 1.83 s", "0.36 s / 0.42 s"],
+              ["Time per call, median", "333 ms", "101 ms"],
+              ["Images returned", "1,001,879 B (2 JPEGs, 1920×1080)", "0"],
+              ["Text returned", "188 B", "5,846 B (2 snapshots, ~2.8 KB each)"],
+              ["Est. input tokens, standard model", "3,165", "1,435"],
+              ["Est. input tokens, high-res model", "5,427", "1,435"],
+              ["Pointer moved", "10 of 10 runs", "0 of 10 runs"],
+              ["Text landed in the document", "10 of 10", "10 of 10"]],
+    ),
+    "zh": dict(
+        head_a="A) 截圖迴圈", head_b="B) tree 路徑",
+        steps_a=["screenshot → JPEG 1920×1080，約 500 KB", "mouse 點一下文字區",
+                 f'key 輸入 "{SENT}"（44 個按鍵）', "screenshot → 確認文字"],
+        steps_b=['ui_snapshot {app: "TextEdit"} → 約 2.8 KB 文字', "ui_action focus → 文字區",
+                 f'ui_action set_value "{SENT}"', "ui_snapshot → 確認值"],
+        calls="工具呼叫", time="時間", bytes="回傳給 agent", tokens="估計輸入 token",
+        pointer="游標", moved="移動了", still="沒動",
+        cap="動畫：同一件事用兩種方式做，在新的 TextEdit 文件裡輸入一句話並確認。兩邊都是四次工具呼叫，"
+            "計數器隨每次呼叫累加。A 截圖迴圈最後是 1.70 秒、1.0 MB 的圖片、約 3,165 個輸入 token"
+            "（高解析度模型約 5,427），游標移動了。B tree 路徑最後是 0.36 秒、5.8 KB 的文字、約 1,435 "
+            "個 token，游標沒動。數字是一台 M4 Mac mini 經過 switchboard、各跑 10 次的中位數。",
+        tcap="實測：每種方式 10 次，同一個 TextEdit 任務",
+        cols=["", "A) 截圖迴圈", "B) tree 路徑"],
+        rows=[["每個任務的工具呼叫", "4", "4"],
+              ["每個任務的時間（中位數 / p90）", "1.70 s / 1.83 s", "0.36 s / 0.42 s"],
+              ["每次呼叫的時間（中位數）", "333 ms", "101 ms"],
+              ["回傳的圖片", "1,001,879 B（2 張 1920×1080 JPEG）", "0"],
+              ["回傳的文字", "188 B", "5,846 B（2 次快照，各約 2.8 KB）"],
+              ["估計輸入 token（一般模型）", "3,165", "1,435"],
+              ["估計輸入 token（高解析度模型）", "5,427", "1,435"],
+              ["游標移動", "10 次中 10 次", "10 次中 0 次"],
+              ["文字寫進文件", "10 次中 10 次", "10 次中 10 次"]],
+    ),
+    "ja": dict(
+        head_a="A) スクリーンショットの繰り返し", head_b="B) ツリーを使う",
+        steps_a=["screenshot → JPEG 1920×1080、約 500 KB", "mouse でテキスト領域をクリック",
+                 f'key で "{SENT}" を入力（44 キー）', "screenshot → 文字を確かめる"],
+        steps_b=['ui_snapshot {app: "TextEdit"} → 約 2.8 KB のテキスト', "ui_action focus → テキスト領域",
+                 f'ui_action set_value "{SENT}"', "ui_snapshot → 値を確かめる"],
+        calls="ツール呼び出し", time="時間", bytes="エージェントに返る量", tokens="推定入力トークン",
+        pointer="ポインター", moved="動いた", still="動かない",
+        cap="アニメーション：同じ作業を二つのやり方で行います。新しい TextEdit の書類に一文を入力して"
+            "確かめる作業です。どちらもツール呼び出しは四回で、カウンターは呼び出しごとに増えます。"
+            "A のスクリーンショットの繰り返しは 1.70 秒、画像 1.0 MB、入力トークン約 3,165"
+            "（高解像度モデルでは約 5,427）で終わり、ポインターが動きます。B のツリーを使うやり方は "
+            "0.36 秒、テキスト 5.8 KB、約 1,435 トークンで終わり、ポインターは動きません。M4 Mac mini "
+            "でスイッチボード経由、各 10 回の中央値です。",
+        tcap="実測：やり方ごとに 10 回、同じ TextEdit の作業",
+        cols=["", "A) スクリーンショットの繰り返し", "B) ツリーを使う"],
+        rows=[["作業あたりのツール呼び出し", "4", "4"],
+              ["作業あたりの時間（中央値 / p90）", "1.70 s / 1.83 s", "0.36 s / 0.42 s"],
+              ["呼び出しあたりの時間（中央値）", "333 ms", "101 ms"],
+              ["返ってきた画像", "1,001,879 B（1920×1080 の JPEG 2 枚）", "0"],
+              ["返ってきたテキスト", "188 B", "5,846 B（スナップショット 2 回、各約 2.8 KB）"],
+              ["推定入力トークン（標準モデル）", "3,165", "1,435"],
+              ["推定入力トークン（高解像度モデル）", "5,427", "1,435"],
+              ["ポインターが動いた", "10 回中 10 回", "10 回中 0 回"],
+              ["文字が書類に入った", "10 回中 10 回", "10 回中 10 回"]],
+    ),
+    "ko": dict(
+        head_a="A) 스크린샷 반복", head_b="B) 트리 경로",
+        steps_a=["screenshot → JPEG 1920×1080, 약 500 KB", "mouse로 텍스트 영역 클릭",
+                 f'key로 "{SENT}" 입력(키 44개)', "screenshot → 글자 확인"],
+        steps_b=['ui_snapshot {app: "TextEdit"} → 약 2.8 KB 텍스트', "ui_action focus → 텍스트 영역",
+                 f'ui_action set_value "{SENT}"', "ui_snapshot → 값 확인"],
+        calls="도구 호출", time="시간", bytes="에이전트가 받은 양", tokens="추정 입력 토큰",
+        pointer="포인터", moved="움직임", still="그대로",
+        cap="애니메이션: 같은 작업을 두 가지 방식으로 합니다. 새 TextEdit 문서에 문장 하나를 입력하고 "
+            "확인하는 작업입니다. 양쪽 모두 도구 호출은 네 번이고, 카운터는 호출마다 늘어납니다. "
+            "A 스크린샷 반복은 1.70초, 이미지 1.0 MB, 입력 토큰 약 3,165개(고해상도 모델은 약 5,427개)로 "
+            "끝나고 포인터가 움직입니다. B 트리 경로는 0.36초, 텍스트 5.8 KB, 약 1,435개 토큰으로 끝나고 "
+            "포인터는 그대로입니다. M4 Mac mini에서 스위치보드를 거쳐 각각 10번 돌린 중앙값입니다.",
+        tcap="실측: 방식마다 10번, 같은 TextEdit 작업",
+        cols=["", "A) 스크린샷 반복", "B) 트리 경로"],
+        rows=[["작업당 도구 호출", "4", "4"],
+              ["작업당 시간(중앙값 / p90)", "1.70 s / 1.83 s", "0.36 s / 0.42 s"],
+              ["호출당 시간(중앙값)", "333 ms", "101 ms"],
+              ["돌아온 이미지", "1,001,879 B(1920×1080 JPEG 2장)", "0"],
+              ["돌아온 텍스트", "188 B", "5,846 B(스냅샷 2번, 각 약 2.8 KB)"],
+              ["추정 입력 토큰(표준 모델)", "3,165", "1,435"],
+              ["추정 입력 토큰(고해상도 모델)", "5,427", "1,435"],
+              ["포인터가 움직임", "10번 중 10번", "10번 중 0번"],
+              ["문서에 글자가 들어감", "10번 중 10번", "10번 중 10번"]],
+    ),
+}
 
 
-def fig_stale(code):
-    """A stale ref is refused; a new snapshot gives a new ref that works."""
-    t = F[code]
-    save, cancel = t["save"], t["cancel"]
-    svg = ['<svg viewBox="0 0 360 132" role="img" aria-label="' + esc(t["stale_cap"][:60]) + '">',
-           _mini(4, t["snap1"], save, cancel),
-           '<rect class="frx" x="94" y="70" width="64" height="30" rx="7"/>',
-           f'<text class="mono" x="100" y="120">e3</text>',
-           f'<g data-show="2"><path class="xmark" d="M118 78 l16 16 M134 78 l-16 16"/></g>',
-           f'<g data-show="1"><path class="arr" d="M168 56 h18"/><path class="arrh" d="M188 52 l7 4 l-7 4z"/>',
-           _mini(196, t["changed"], save, cancel),
-           f'<text class="fs" x="196" y="120">{esc(t["new_el"])}</text></g>',
-           '<rect class="frx" data-show="3" x="286" y="70" width="64" height="30" rx="7"/>',
-           '<text class="mono" data-show="3" x="292" y="120">e4</text>',
-           '<circle class="ring" data-hl="4" cx="318" cy="85" r="20"/>',
-           "</svg>"]
-    sl = t["stale_lines"]
-    steps = [0, 1, 2, 2, 3, 4, 4]
-    lines = [(s, txt.replace("{save}", save).replace("{{", "{").replace("}}", "}"), kind, 0)
-             for s, (txt, kind) in zip(steps, sl)]
-    inner = f'<div class="pair">{"".join(svg)}<div class="treebox">{_steps(lines)}</div></div>'
-    return _figure("stale", 5, 1300, t["stale_cap"], inner, t)
+def _vals(values, cls="val"):
+    """One element per step; CSS shows the current step's, or the last one when not playing."""
+    n = len(values)
+    return "".join(f'<span class="{cls}{" fin" if i == n - 1 else ""}" data-hl="{i}">{v}</span>'
+                   for i, v in enumerate(values))
 
 
-def fig_sheet(code):
-    """The sheet bug: AXWindow is nil inside an AXSheet; 0.10.1 walks AXParent instead."""
-    t = F[code]
-    svg = ['<svg viewBox="0 0 360 214" role="img" aria-label="' + esc(t["title"]) + '">',
-           '<rect class="screen" x="0" y="0" width="360" height="214"/>',
-           _window(20, 8, 320, 198, t["title"]),
-           '<rect class="bar" x="40" y="48" width="230" height="8" rx="4"/>',
-           '<rect class="bar" x="40" y="64" width="190" height="8" rx="4"/>',
-           '<rect class="bar" x="40" y="80" width="210" height="8" rx="4"/>',
-           '<g class="sheet" data-show="1">',
-           '<rect class="sheetbox" x="60" y="32" width="240" height="112" rx="10"/>',
-           '<rect class="bar" x="80" y="50" width="160" height="9" rx="4"/>',
-           '<rect class="bar" x="80" y="66" width="120" height="7" rx="3"/>',
-           _btn(72, 108, 66, 24, t["delete"], hl="2"),
-           _btn(152, 108, 66, 24, t["cancel"]),
-           _btn(226, 108, 66, 24, t["save"], ok=True),
-           '<circle class="ring" data-hl="2" cx="105" cy="120" r="22"/>',
-           "</g>",
-           f'<g data-show="3"><path class="xmark" d="M62 158 l12 12 M74 158 l-12 12"/>'
-           f'<text class="fmiss" x="82" y="169">{esc(t["refused"])}</text></g>',
-           f'<g data-show="4"><path class="vmark" d="M62 184 l5 6 l10 -12"/>'
-           f'<text class="fhit" x="82" y="191">{esc(t["accepted"])}</text></g>',
-           "</svg>"]
-    title, delete = t["title"], t["delete"]
-    tree = [(0, f'[e1] AXWindow "{title}"', "", 0),
-            (1, '[e50] AXSheet desc="save"', "", 1),
-            (2, f'[e63] AXButton "{delete}"', "", 2)]
-    sc = [c.replace("{{", "{").replace("}}", "}") for c in t["sheet_calls"]]
-    calls = [(2, sc[0], "", 0), (3, sc[1], "err", 0), (4, sc[2], "okl", 0)]
-    if REL101_PUBLISHED:
-        badge = t["badge_out"].format(rel=f'<a href="{REL101}">OpenAB Computer 0.10.1</a>')
-    else:
-        badge = t["badge_pending"].format(pr=f'<a href="{PR99}">PR #99</a>')
-    badge_html = f'<p class="badge">{badge}</p>\n'
-    inner = (f'<div class="pair">{"".join(svg)}<div class="treebox">'
-             f'<p class="treehead">{esc(t["sheet_head"])}</p>{_steps(tree)}'
-             f'{_steps(calls, "axtree axsteps calls")}</div></div>')
-    return _figure("sheetfig", 5, 1400, t["sheet_cap"], inner, t, badge_html)
+def _panel(side, t):
+    r = RUN[side]
+    steps = t["steps_a"] if side == "A" else t["steps_b"]
+    lis = "".join(f'<li data-show="{i}" data-hl="{i}">{esc(x)}</li>' for i, x in enumerate(steps))
+    mv = [f'<b class="{"moved" if m else "still"}">{esc(t["moved"] if m else t["still"])}</b>'
+          for m in r["moved"]]
+    toks = [f"{v:,}" for v in r["tokens"]]
+    bars = "".join(f'<i class="{"fin" if i == 3 else ""}" data-hl="{i}" '
+                   f'style="width:{v / TOK_MAX * 100:.1f}%"></i>' for i, v in enumerate(r["tokens"]))
+    rows = [(t["calls"], r["calls"]), (t["time"], r["time"]), (t["bytes"], r["bytes"]),
+            (t["tokens"], toks), (t["pointer"], mv)]
+    meters = "".join(f'<div><dt>{esc(k)}</dt><dd>{_vals(v)}</dd></div>' for k, v in rows)
+    head = t["head_a"] if side == "A" else t["head_b"]
+    return (f'<div class="panel side{side.lower()}"><p class="treehead">{esc(head)}</p>'
+            f'<ol class="axtree axsteps">{lis}</ol><dl class="meters">{meters}</dl>'
+            f'<div class="tbar" aria-hidden="true">{bars}</div></div>')
 
 
-def fig_redact(code):
-    """openab-sb writes the audit line before forwarding; 0.2.2 redacts the value in it."""
-    t = F[code]
-    svg = ['<svg viewBox="0 0 360 150" role="img" aria-label="' + esc(t["sb2"]) + '">',
-           '<g data-hl="0"><rect class="box" x="6" y="14" width="80" height="40" rx="9"/>'
-           f'<text class="fm" x="46" y="39" text-anchor="middle">{esc(t["agent"])}</text></g>',
-           '<path class="arr" d="M86 34 h40"/><path class="arrh" d="M128 30 l7 4 l-7 4z"/>',
-           '<g data-hl="1 2"><rect class="box" x="136" y="8" width="96" height="52" rx="9"/>'
-           f'<text class="fm" x="184" y="30" text-anchor="middle">{esc(t["sb"])}</text>'
-           f'<text class="fs" x="184" y="47" text-anchor="middle">{esc(t["sb2"])}</text></g>',
-           '<g data-show="3"><path class="arr" d="M232 34 h34"/><path class="arrh" d="M268 30 l7 4 l-7 4z"/>'
-           f'<text class="fs" x="236" y="26">{esc(t["w2"])}</text></g>',
-           '<g data-hl="3"><rect class="box" x="276" y="14" width="78" height="40" rx="9"/>'
-           f'<text class="fm" x="315" y="39" text-anchor="middle">{esc(t["mac"])}</text></g>',
-           '<g data-show="1"><path class="arr" d="M184 60 v30"/><path class="arrh" d="M180 92 l4 7 l4 -7z"/>'
-           f'<text class="fs" x="192" y="80">{esc(t["w1"])}</text></g>',
-           '<g data-hl="1 2 4"><path class="filebox" d="M146 102 h64 l12 12 v30 h-76z"/>'
-           f'<text class="fs2" x="184" y="130" text-anchor="middle">{esc(t["audit"])}</text></g>',
-           "</svg>"]
-    rl = t["red_lines"]
-    lines = [(i, txt.replace("{{", "{").replace("}}", "}"), kind, 0) for i, (txt, kind) in enumerate(rl)]
-    inner = f'<div class="pair">{"".join(svg)}<div class="treebox">{_steps(lines)}</div></div>'
-    return _figure("redact", 5, 1400, t["red_cap"], inner, t)
+def fig_cmp(code):
+    """Screenshot loop vs tree path: calls, time, bytes and tokens add up to the measured totals."""
+    t = {**C[code], "ctl": S[code]["ctl"]}
+    inner = f'<div class="panels">{_panel("A", t)}{_panel("B", t)}</div>'
+    return _figure("cmpfig", 4, 1500, t["cap"], inner, t)
 
 
-FIGS = {"fig_press": fig_press, "fig_stale": fig_stale, "fig_sheet": fig_sheet,
-        "fig_redact": fig_redact}
+def perf_table(code):
+    c = C[code]
+    head = "".join(f'<th scope="col">{esc(h)}</th>' for h in c["cols"])
+    body = []
+    for row in c["rows"]:
+        cells = "".join(f'<td data-label="{esc(h)}">{esc(v)}</td>'
+                        for h, v in zip(c["cols"][1:], row[1:]))
+        body.append(f'<tr><th scope="row">{esc(row[0])}</th>{cells}</tr>')
+    return (f'<div class="cmp-wrap"><table class="cmp perf"><caption>{esc(c["tcap"])}</caption>'
+            f'<thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>')
+
+
+FIGS = {"fig_press": fig_press, "fig_cmp": fig_cmp, "perf_table": perf_table}

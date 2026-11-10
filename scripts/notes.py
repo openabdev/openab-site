@@ -347,8 +347,8 @@ and without moving the cursor. That is the part that ends the cursor takeover. P
 a switchboard, setting a value on a password field is refused unless the owner opts in.</p>
 {{fig_action}}
 <p>Linux (AT-SPI) is deferred as p3 in {a(ISSUE102, "issue #102")}, to be picked up when a Linux
-machine needs it; #67 is closed now that the macOS part is done. How we tested
-<code>ui_action</code>, and what the tests caught, is in the next note:
+machine needs it; #67 is closed now that the macOS part is done. How we test
+<code>ui_action</code>, and how much faster it is than a screenshot loop, is in the next note:
 {a(NOTE2, "How we tested ui_action in OpenAB Computer 0.10.0")}.</p>
 
 <p class="outro">To try it, update to {a(REL10, "OpenAB Computer 0.10.0")}, give it the
@@ -532,7 +532,7 @@ macOS、Windows 和 Linux。</li>
 時，對密碼欄位設定值預設會被拒絕，除非擁有者自己開啟。</p>
 {{fig_action}}
 <p>Linux（AT-SPI）先延後，列為 p3，記在 {a(ISSUE102, "issue #102")}，等有 Linux 機器真的需要時再做；
-macOS 的部分做完了，#67 已經關閉。我們怎麼測 <code>ui_action</code>、測出了什麼，寫在下一篇：
+macOS 的部分做完了，#67 已經關閉。我們怎麼測 <code>ui_action</code>，以及它比截圖迴圈快多少，寫在下一篇：
 {a(NOTE2, "我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action")}。</p>
 
 <p class="outro">想試試看的話：更新到 {a(REL10, "OpenAB Computer 0.10.0")}，給它「輔助使用」權限，
@@ -764,7 +764,7 @@ stdio の MCP サーバーとして動きます。</li>
 {{fig_action}}
 <p>Linux（AT-SPI）は p3 として {a(ISSUE102, "issue #102")} で後回しにし、Linux のマシンで必要に
 なったら取りかかります。macOS の部分が終わったので #67 は閉じました。<code>ui_action</code> をどう試し、
-何が見つかったかは次のノートにあります：
+スクリーンショットの繰り返しと比べてどれだけ速いかは次のノートにあります：
 {a(NOTE2, "OpenAB Computer 0.10.0 の ui_action をどう試したか")}。</p>
 
 <p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、
@@ -984,8 +984,8 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 입력란에 값을 설정하는 것이 거부됩니다.</p>
 {{fig_action}}
 <p>Linux(AT-SPI)는 p3로 {a(ISSUE102, "issue #102")}에 미뤄 두었고, Linux 기기에서 필요해지면
-시작합니다. macOS 부분이 끝나서 #67은 닫혔습니다. <code>ui_action</code>을 어떻게 시험했고 무엇을
-찾았는지는 다음 노트에 있습니다: {a(NOTE2, "OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나")}.</p>
+시작합니다. macOS 부분이 끝나서 #67은 닫혔습니다. <code>ui_action</code>을 어떻게 시험했고 스크린샷
+반복보다 얼마나 빠른지는 다음 노트에 있습니다: {a(NOTE2, "OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나")}.</p>
 
 <p class="outro">써 보려면 {a(REL10, "OpenAB Computer 0.10.0")}으로 업데이트하고 손쉬운 사용 권한을 준 뒤,
 <code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하고 이어서
