@@ -339,6 +339,27 @@ html[data-lang="ja"] .note p, html[data-lang="ja"] .note li { line-height: 1.9; 
 .fig .thumbbtn { fill: var(--accent); }
 .fig .treebg { fill: var(--bg); stroke: var(--border); }
 
+/* ui_action note (figures_ui_action.py). */
+.fig .axsteps li.err { color: #C2410C; font-weight: 600; }
+.fig .axsteps li.okl { color: #2B8A3E; font-weight: 600; }
+.fig .axsteps li.aside { color: var(--muted); font-style: italic; }
+@media (prefers-color-scheme: dark) {
+  .fig .axsteps li.err { color: #FF9466; }
+  .fig .axsteps li.okl { color: #76D98A; }
+}
+.fig .axsteps.calls { margin-top: 8px; }
+.fig .ring { fill: none; stroke: var(--accent); stroke-width: 3; opacity: 0; transition: opacity .3s; }
+.fig .ring.hl { opacity: .9; }
+.fig .bar { fill: var(--accent-tint); }
+.fig .xmark { fill: none; stroke: #D9480F; stroke-width: 3; stroke-linecap: round; }
+.fig .vmark { fill: none; stroke: #2F9E44; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fig .sheetbox { fill: var(--card); stroke: var(--accent); stroke-width: 1.4; }
+.fig .sheet { transition: transform .5s ease, opacity .35s; }
+.fig .sheet.off { transform: translateY(-26px); }
+.fig .filebox { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; transition: fill .3s, stroke .3s; }
+.fig g.hl .filebox { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 2; }
+.fig g.okbtn.plain.hl .btn2 { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 3; }
+
 /* Comparison table (figures.cmp_table). Cards on narrow screens, see the media query. */
 .note .cmp-wrap { margin: 1.4rem 0 0.4rem; overflow-x: auto; }
 .note table.cmp {

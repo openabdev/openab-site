@@ -8,6 +8,8 @@ Bodies are authored HTML. `{text}` and `{json}` in a body are replaced with the 
 escaped code samples, which are the same in every language. NOTES is newest first.
 """
 
+from notes_ui_action import NOTE as UI_ACTION_NOTE
+
 INDEX = {
     "en": dict(
         nav="Dev notes",
@@ -55,6 +57,8 @@ INDEX = {
 REL10 = "https://github.com/openabdev/openab-computer/releases/tag/v0.10.0"
 PR93 = "https://github.com/openabdev/openab-computer/pull/93"
 ISSUE67 = "https://github.com/openabdev/openab-computer/issues/67"
+ISSUE102 = "https://github.com/openabdev/openab-computer/issues/102"
+NOTE2 = "../ui-action/"   # same language, the newer note
 TTMUSE = "https://github.com/openabdev/openab-computer/issues/67#issuecomment-6726398810"
 AGENT_DESKTOP = "https://github.com/vercel-labs/agent-desktop"
 MUSE = ("https://muse.ai/s/opencode-browse-vs-openab-computer-lxc6yxwxmxpk7iz/"
@@ -114,6 +118,7 @@ def a(href, label):
 
 
 NOTES = [
+    UI_ACTION_NOTE,
     dict(
         slug="accessibility-tree",
         date="2026-11-09",
@@ -341,8 +346,10 @@ and without moving the cursor. That is the part that ends the cursor takeover. P
 <code>include_menu_bar</code> to <code>ui_snapshot</code> and menu bar items get refs too. Through
 a switchboard, setting a value on a password field is refused unless the owner opts in.</p>
 {{fig_action}}
-<p>Next is a Linux version based on AT-SPI. It has no date yet. Issue #67 stays open to track
-it.</p>
+<p>Linux (AT-SPI) is deferred as p3 in {a(ISSUE102, "issue #102")}, to be picked up when a Linux
+machine needs it; #67 is closed now that the macOS part is done. How we tested
+<code>ui_action</code>, and what the tests caught, is in the next note:
+{a(NOTE2, "How we tested ui_action in OpenAB Computer 0.10.0")}.</p>
 
 <p class="outro">To try it, update to {a(REL10, "OpenAB Computer 0.10.0")}, give it the
 Accessibility permission, and call <code>ui_snapshot</code> and then <code>ui_action</code> from an
@@ -524,7 +531,9 @@ macOS、Windows 和 Linux。</li>
 <code>ui_snapshot</code> 加上 <code>include_menu_bar</code>，選單列的項目也會有 ref。透過 switchboard
 時，對密碼欄位設定值預設會被拒絕，除非擁有者自己開啟。</p>
 {{fig_action}}
-<p>接下來是以 AT-SPI 為基礎的 Linux 版本，還沒有時程，issue #67 會繼續開著追蹤。</p>
+<p>Linux（AT-SPI）先延後，列為 p3，記在 {a(ISSUE102, "issue #102")}，等有 Linux 機器真的需要時再做；
+macOS 的部分做完了，#67 已經關閉。我們怎麼測 <code>ui_action</code>、測出了什麼，寫在下一篇：
+{a(NOTE2, "我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action")}。</p>
 
 <p class="outro">想試試看的話：更新到 {a(REL10, "OpenAB Computer 0.10.0")}，給它「輔助使用」權限，
 再從使用 <code>owner</code> profile 的 agent 先呼叫 <code>ui_snapshot</code>，再呼叫
@@ -753,8 +762,10 @@ stdio の MCP サーバーとして動きます。</li>
 <code>ui_snapshot</code> に <code>include_menu_bar</code> を付ければ、メニューバーの項目にも ref が
 付きます。スイッチボード経由では、パスワード欄への値の設定は、所有者が有効にしない限り拒否されます。</p>
 {{fig_action}}
-<p>次は AT-SPI を使った Linux 版です。日程はまだ決まっていません。issue #67 は開いたままにして
-追いかけます。</p>
+<p>Linux（AT-SPI）は p3 として {a(ISSUE102, "issue #102")} で後回しにし、Linux のマシンで必要に
+なったら取りかかります。macOS の部分が終わったので #67 は閉じました。<code>ui_action</code> をどう試し、
+何が見つかったかは次のノートにあります：
+{a(NOTE2, "OpenAB Computer 0.10.0 の ui_action をどう試したか")}。</p>
 
 <p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、
 <code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、続けて
@@ -972,8 +983,9 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 메뉴 막대 항목에도 ref가 붙습니다. 스위치보드를 거칠 때는 소유자가 직접 켜지 않는 한 비밀번호
 입력란에 값을 설정하는 것이 거부됩니다.</p>
 {{fig_action}}
-<p>다음은 AT-SPI 기반의 Linux 버전입니다. 아직 일정은 정해지지 않았고, issue #67을 열어 둔 채
-추적합니다.</p>
+<p>Linux(AT-SPI)는 p3로 {a(ISSUE102, "issue #102")}에 미뤄 두었고, Linux 기기에서 필요해지면
+시작합니다. macOS 부분이 끝나서 #67은 닫혔습니다. <code>ui_action</code>을 어떻게 시험했고 무엇을
+찾았는지는 다음 노트에 있습니다: {a(NOTE2, "OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나")}.</p>
 
 <p class="outro">써 보려면 {a(REL10, "OpenAB Computer 0.10.0")}으로 업데이트하고 손쉬운 사용 권한을 준 뒤,
 <code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하고 이어서

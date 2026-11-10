@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja" data-lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB</title>
+<meta name="description" content="ウィンドウのアクセシビリティツリーを読めるようになったエージェントは、マウスを奪わずにどうボタンを押すのか。そして触っていないことをどう証明するのか。OpenAB Computer 0.10.0 で加わった ui_action と、その試し方の記録です。">
+<link rel="canonical" href="https://openab.dev/ja/notes/ui-action/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB">
+<meta property="og:description" content="ウィンドウのアクセシビリティツリーを読めるようになったエージェントは、マウスを奪わずにどうボタンを押すのか。そして触っていないことをどう証明するのか。OpenAB Computer 0.10.0 で加わった ui_action と、その試し方の記録です。">
+<meta property="og:url" content="https://openab.dev/ja/notes/ui-action/">
+<meta property="og:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=e27f8825">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB 開発ノート：OpenAB Computer 0.10.0 の ui_action をどう試したか">
+<meta property="article:published_time" content="2026-11-10">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB">
+<meta name="twitter:description" content="ウィンドウのアクセシビリティツリーを読めるようになったエージェントは、マウスを奪わずにどうボタンを押すのか。そして触っていないことをどう証明するのか。OpenAB Computer 0.10.0 で加わった ui_action と、その試し方の記録です。">
+<meta name="twitter:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=e27f8825">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../../style.css?v=6d102f5b">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/ui-action/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/ui-action/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../../assets/brand-64.png?v=99caab3e" srcset="../../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">プロジェクト</a>
+    <a href="../../#participate">参加する</a>
+    <a href="../../notes/">開発ノート</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../../../zh/notes/ui-action/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a class="active" aria-current="page" href="../../../ja/notes/ui-action/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../../ko/notes/ui-action/" data-lang="ko" hreflang="ko">한국어</a>|<a href="../../../notes/ui-action/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← 開発ノート</a></p>
+<h1>OpenAB Computer 0.10.0 の ui_action をどう試したか</h1>
+<p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
+<p class="hook">ウィンドウのアクセシビリティツリーを読めるようになったエージェントは、あなたのマウスを奪わずに、どうやってそのウィンドウのボタンを押すのでしょうか。押したあと、マウスに触れていないことをどう証明すればいいのでしょうか。</p>
+
+<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> で <code>ui_action</code> が加わりました。
+<a href="../accessibility-tree/">前回の開発ノート</a>で紹介した <code>ui_snapshot</code> は画面を読む道具で、
+<code>ui_action</code> は操作する道具です。スナップショットの ref を受け取り、アクセシビリティ API でボタンを押したり入力欄を埋めたりし、カーソルはその場に残ります。このノートでは、何ができるのかと、どう試したのかをまとめます。</p>
+
+<h2>ui_action でできること</h2>
+<p>呼び出しは <code>ui_action {snapshot_id, ref, action}</code> です（<a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a>）。操作は
+press、set_value、focus、show_menu、confirm、cancel と、increment、decrement です。どれもアクセシビリティのアクションに対応していて、press は要素への AXPress、set_value は AXValue の設定で、値全体を置き換えます。要素がその操作に対応していなければ、ツールは何もする前に拒否し、対応している操作の一覧を返します。</p>
+<p>想定している流れは三段階です。<code>ui_snapshot</code>、その ref の一つに <code>ui_action</code>、最後にもう一度 <code>ui_snapshot</code> で結果を確かめます。</p>
+<figure class="fig anim press" data-steps="4" data-ms="1400" aria-label="アニメーション：説明用のダイアログ。エージェントはスナップショットを撮り、「保存」ボタンが ref e3 だと見つけます。マウス位置を読み、スナップショット ID、ref e3、press を渡して ui_action を呼ぶと、ボタンはアクセシビリティ API で押されます。そのあともう一度マウス位置を読むと同じ点です。カーソルは一度も動いていません。">
+<div class="pair"><svg viewBox="0 0 360 206" role="img" aria-label="変更を保存しますか？"><rect class="screen" x="0" y="0" width="360" height="206"/><rect class="win" x="20" y="12" width="320" height="130" rx="10"/><path class="winbar" d="M20 22 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="24" r="4"/><circle class="dot" cx="46" cy="24" r="4"/><circle class="dot" cx="58" cy="24" r="4"/><text class="fs2" x="180.0" y="29" text-anchor="middle">名称未設定</text><text class="fs2" x="40" y="80">変更を保存しますか？</text><g class="okbtn plain"><rect class="btn2" x="176" y="104" width="70" height="26" rx="6"/><text class="fbtn" x="211.0" y="121.0" text-anchor="middle">キャンセル</text></g><g class="okbtn" data-hl="2"><rect class="btnok" x="256" y="104" width="70" height="26" rx="6"/><text class="fok fbtn" x="291.0" y="121.0" text-anchor="middle">保存</text></g><rect class="frx" data-show="0" x="252" y="100" width="78" height="34" rx="8"/><circle class="ring" data-hl="2" cx="291" cy="117" r="22"/><path class="cursor" d="M40 160 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><text class="fs" x="30" y="190">カーソル</text><text class="fs2" data-show="1" data-hl="1" x="96" y="170">操作前のマウス位置：(40, 160)</text><text class="fs2 same" data-show="3" data-hl="3" x="96" y="190">操作後のマウス位置：(40, 160)、同じ点</text></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → [e3] AXButton &quot;保存&quot; (256,104 70×26)</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">→ e3 に AXPress：成功</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="再生" data-pause="一時停止">一時停止</button></div>
+<figcaption>アニメーション：説明用のダイアログ。エージェントはスナップショットを撮り、「保存」ボタンが ref e3 だと見つけます。マウス位置を読み、スナップショット ID、ref e3、press を渡して ui_action を呼ぶと、ボタンはアクセシビリティ API で押されます。そのあともう一度マウス位置を読むと同じ点です。カーソルは一度も動いていません。</figcaption>
+</figure>
+<p>ツールは入力イベントを合成せず、ポインターも動かしません。ソースを走査するテストがこれを見張っています。既定ではアプリを前面に出さず、ウィンドウも手前に出しません。バックグラウンドのアプリでメニューを開くときなど、必要な場合は呼び出し側が <code>activate: true</code> を明示します。</p>
+
+<h3>ref は自分のスナップショットの中でだけ有効</h3>
+<p>ツールは直近四回のスナップショットを、それぞれ五分間保持します。操作の前に ref をもう一度確かめます。同じプロセスか、ロールとサブロールが変わっていないか、見つけたときのウィンドウの下にまだあるか。メニュー項目なら、メニューバーがまだ応答するか。どれか一つでも外れれば、答えは <code>stale ref: …
+take a new ui_snapshot</code> です。似た要素を選んで代わりにすることはしません。</p>
+<figure class="fig anim stale" data-steps="5" data-ms="1300" aria-label="アニメーション：古い ref は拒否されます。エージェントはスナップショット snap-1 を撮り、そこでは「保存」ボタンが e3 です。そのあとダイアログが閉じてまた開き、ボタンは新しい要素になります。古い ref で ui_action を呼ぶと「stale ref … take a new ui_snapshot」で拒否され、何も押されません。撮り直したスナップショットで新しいボタンは e4 になり、今度は押せます。">
+<div class="pair"><svg viewBox="0 0 360 132" role="img" aria-label="アニメーション：古い ref は拒否されます。エージェントはスナップショット snap-1 を撮り、そこでは「保存」ボタ"><rect class="win" x="4" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M4 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="18" cy="20" r="4"/><circle class="dot" cx="30" cy="20" r="4"/><circle class="dot" cx="42" cy="20" r="4"/><text class="fs2" x="84.0" y="25" text-anchor="middle">snap-1</text><rect class="bar" x="18" y="48" width="96" height="8" rx="4"/><rect class="bar" x="18" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="34" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="62.0" y="89.0" text-anchor="middle">キャンセル</text></g><g class="okbtn"><rect class="btnok" x="98" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="126.0" y="89.0" text-anchor="middle">保存</text></g><rect class="frx" x="94" y="70" width="64" height="30" rx="7"/><text class="mono" x="100" y="120">e3</text><g data-show="2"><path class="xmark" d="M118 78 l16 16 M134 78 l-16 16"/></g><g data-show="1"><path class="arr" d="M168 56 h18"/><path class="arrh" d="M188 52 l7 4 l-7 4z"/><rect class="win" x="196" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M196 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="210" cy="20" r="4"/><circle class="dot" cx="222" cy="20" r="4"/><circle class="dot" cx="234" cy="20" r="4"/><text class="fs2" x="276.0" y="25" text-anchor="middle">変化のあと</text><rect class="bar" x="210" y="48" width="96" height="8" rx="4"/><rect class="bar" x="210" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="226" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="254.0" y="89.0" text-anchor="middle">キャンセル</text></g><g class="okbtn"><rect class="btnok" x="290" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="318.0" y="89.0" text-anchor="middle">保存</text></g><text class="fs" x="196" y="120">新しい要素</text></g><rect class="frx" data-show="3" x="286" y="70" width="64" height="30" rx="7"/><text class="mono" data-show="3" x="292" y="120">e4</text><circle class="ring" data-hl="4" cx="318" cy="85" r="20"/></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → snap-1 · [e3] AXButton &quot;保存&quot;</li><li class="aside" data-show="1" data-hl="1" style="--lvl:0">ダイアログを閉じて、もう一度開く</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-1&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="err" data-show="2" data-hl="2" style="--lvl:0">✗ stale ref: e3 … take a new ui_snapshot</li><li data-show="3" data-hl="3" style="--lvl:0">ui_snapshot → snap-2 · [e4] AXButton &quot;保存&quot;</li><li data-show="4" data-hl="4" style="--lvl:0">ui_action { snapshot_id: &quot;snap-2&quot;, ref: &quot;e4&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">✓ e4 に AXPress</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="再生" data-pause="一時停止">一時停止</button></div>
+<figcaption>アニメーション：古い ref は拒否されます。エージェントはスナップショット snap-1 を撮り、そこでは「保存」ボタンが e3 です。そのあとダイアログが閉じてまた開き、ボタンは新しい要素になります。古い ref で ui_action を呼ぶと「stale ref … take a new ui_snapshot」で拒否され、何も押されません。撮り直したスナップショットで新しいボタンは e4 になり、今度は押せます。</figcaption>
+</figure>
+
+<h3>使える人と、パスワード欄</h3>
+<p><code>ui_action</code> を使えるのは <code>owner</code> プロファイルだけで、<code>mouse</code> や
+<code>key</code> と同じ扱いです。macOS のアクセシビリティ権限も必要です。パスワード欄に set_value
+するとき、値は読み戻されず、ログにも応答にも出ません。どの欄でも、入力した値はエラー、ログの行、応答のテキストに出ません。スイッチボード経由では、パスワード欄への set_value は既定で拒否され、そのコンピューターの管理者が有効にした場合だけ通ります。</p>
+
+<h2>どう試したか</h2>
+
+<h3>1. 偽のアクセシビリティ提供元を使った単体テスト</h3>
+<p>CI のマシンには GUI がないので、テストは本物のアプリに触れません。<code>ui_snapshot</code> にはもともと偽のアクセシビリティ提供元があり、<code>ui_action</code> のテストもその上で動きます。PR #96 では三つのスイートで 52 個のテストを加えました。<code>UIActionToolTests</code> が 40、
+<code>UISnapshotCacheTests</code> が 5、<code>UIActivateTests</code> が 7 です。</p>
+<p>扱っているのは次のようなケースです。期限切れや押し出されたスナップショット。存在しない ref。消えた要素、ロールが変わった要素、別のプロセスの要素、元のウィンドウを離れた要素。対応していない操作と、対応している操作の一覧。各操作の裏で呼ばれるアクセシビリティのアクション。応答にもログのどの行にもパスワードの値が出ないこと。スイッチボード経由ではパスワード欄が既定で拒否されること。
+<code>activate</code> の既定が false であること。プロファイルの権限の区分。</p>
+<p>M4 Mac mini で <code>swift test</code> は 256 個のテストを実行し、失敗は 0 でした。PR の CI チェックもすべて通りました。</p>
+<p>マージの前に実機でも試しましたが、そのテスト用のビルドにはアクセシビリティ権限がなく、
+<code>ui_action</code> は権限がないというエラーを返すだけで、TextEdit の手順は動きませんでした。この部分は権限のあるリリース版を待ちました。</p>
+
+<h3>2. M4 Mac mini での実機テスト（スイッチボード経由）</h3>
+<p>0.10.0 のリリース後、リモートのエージェントからスイッチボード経由で M4 Mac mini を操作しました。一手ごとに MCP ツールを一回呼び、スイッチボードの監査ログに時刻が残っています。</p>
+<ol>
+<li>マウス位置を読む（<code>osascript</code> で短い JXA を動かし、<code>NSEvent.mouseLocation</code>
+を読む）。</li>
+<li>TextEdit を開き、新しい書類を作る。</li>
+<li>TextEdit の <code>ui_snapshot</code>、96 ms。テキスト領域は <code>[e3] AXTextArea</code>。</li>
+<li><code>ui_action</code> で e3 に focus（8 ms）、続けて set_value で "hello from ui_action 0.10.0" を入れる（15 ms）。</li>
+<li>もう一度スナップショットを撮って確かめる。e3 の値は "hello from ui_action 0.10.0"。</li>
+<li>もう一度マウス位置を読む。</li>
+</ol>
+<p>二回の読み取りは同じ点、(284, 88) でした。文字は入り、カーソルは動いていません。</p>
+
+<h3>3. 実機テストで見つかったこと：シートの中のボタン</h3>
+<p>続けて TextEdit を終了すると、保存していない書類のために保存用のシートが出ました。ウィンドウのタイトルバーから下りてくる種類のダイアログです。シートの「削除」ボタンに <code>ui_action</code> の
+press を送ると、失敗しました。</p>
+<pre><code>stale ref: e63 has left its window; take a new ui_snapshot and use its refs</code></pre>
+<p>毎回スナップショットを撮り直して三回試し、三回とも同じでした。読み取り専用の Swift のプローブで原因を調べました。シートの中のコントロールに AXWindow を尋ねると、別のウィンドウではなく nil が返ります。
+0.10.0 のチェックは「AXWindow がない」のはメニュー項目だけだと考えていたので、この ref を拒否しました。ボタンの AXParent はシートで、AXWindow がそのウィンドウなのはシートのほうです。</p>
+<figure class="fig anim sheetfig" data-steps="5" data-ms="1400" aria-label="アニメーション：シートのバグ。保存用のシートがウィンドウのタイトルバーから下りてきます。ツリーではシート（e50）がウィンドウ（e1）の下にあり、「削除」ボタンは e63 です。e63 を押すと、0.10.0 のチェックはボタンに AXWindow を尋ね、nil が返るので、ref を古いものとして拒否します。0.10.1 の修正では、ボタンから AXParent をたどってシートを見つけ、シートがスナップショットにあることを確かめて受け付けます。">
+<p class="badge">0.10.1：修正は <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> でマージ済み、リリース待ち</p>
+<div class="pair"><svg viewBox="0 0 360 214" role="img" aria-label="名称未設定"><rect class="screen" x="0" y="0" width="360" height="214"/><rect class="win" x="20" y="8" width="320" height="198" rx="10"/><path class="winbar" d="M20 18 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="20" r="4"/><circle class="dot" cx="46" cy="20" r="4"/><circle class="dot" cx="58" cy="20" r="4"/><text class="fs2" x="180.0" y="25" text-anchor="middle">名称未設定</text><rect class="bar" x="40" y="48" width="230" height="8" rx="4"/><rect class="bar" x="40" y="64" width="190" height="8" rx="4"/><rect class="bar" x="40" y="80" width="210" height="8" rx="4"/><g class="sheet" data-show="1"><rect class="sheetbox" x="60" y="32" width="240" height="112" rx="10"/><rect class="bar" x="80" y="50" width="160" height="9" rx="4"/><rect class="bar" x="80" y="66" width="120" height="7" rx="3"/><g class="okbtn plain" data-hl="2"><rect class="btn2" x="72" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="105.0" y="124.0" text-anchor="middle">削除</text></g><g class="okbtn plain"><rect class="btn2" x="152" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="185.0" y="124.0" text-anchor="middle">キャンセル</text></g><g class="okbtn"><rect class="btnok" x="226" y="108" width="66" height="24" rx="6"/><text class="fok fbtn" x="259.0" y="124.0" text-anchor="middle">保存</text></g><circle class="ring" data-hl="2" cx="105" cy="120" r="22"/></g><g data-show="3"><path class="xmark" d="M62 158 l12 12 M74 158 l-12 12"/><text class="fmiss" x="82" y="169">0.10.0：拒否</text></g><g data-show="4"><path class="vmark" d="M62 184 l5 6 l10 -12"/><text class="fhit" x="82" y="191">0.10.1：受け付ける</text></g></svg><div class="treebox"><p class="treehead">ui_snapshot のテキスト形式</p><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;名称未設定&quot;</li><li data-show="1" data-hl="1" style="--lvl:1">[e50] AXSheet desc=&quot;save&quot;</li><li data-show="2" data-hl="2" style="--lvl:2">[e63] AXButton &quot;削除&quot;</li></ol><ol class="axtree axsteps calls"><li data-show="2" data-hl="2" style="--lvl:0">ui_action { ref: &quot;e63&quot;, action: &quot;press&quot; }</li><li class="err" data-show="3" data-hl="3" style="--lvl:0">0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">0.10.1 · AXParent(e63) → [e50] AXSheet、スナップショットにある → ✓ 受け付ける</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="再生" data-pause="一時停止">一時停止</button></div>
+<figcaption>アニメーション：シートのバグ。保存用のシートがウィンドウのタイトルバーから下りてきます。ツリーではシート（e50）がウィンドウ（e1）の下にあり、「削除」ボタンは e63 です。e63 を押すと、0.10.0 のチェックはボタンに AXWindow を尋ね、nil が返るので、ref を古いものとして拒否します。0.10.1 の修正では、ボタンから AXParent をたどってシートを見つけ、シートがスナップショットにあることを確かめて受け付けます。</figcaption>
+</figure>
+<p>これは <a href="https://github.com/openabdev/openab-computer/issues/98">issue #98</a>（ラベルは bug と p2）になり、<a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a> で直しました。要素に AXWindow がない場合や、それがスナップショットに記録された経路にない場合、チェックは AXParent をたどって最も近いウィンドウ、シート、ドロワー、ポップオーバーを探し、その入れ物が記録された経路にあるときだけ受け付けます。たどるのは最大 50 段で、循環を確かめ、同じ時間の予算の中で動きます。プロセスやロールの変化は今までどおり先に拒否され、代わりの要素を推測することもありません。</p>
+<p>PR #99 ではテストを 8 個加えて合計 264 個、失敗は 0 で、CI も通りました。実機での確認は読み取り専用でした。TextEdit の本物の保存シートに新しい規則を当てると、「削除」を含むシート内の 15 個のコントロールがすべて通り、0.10.0 の規則では一つも通りませんでした。修正はマージ済みで、0.10.1 で出ます。シートの中で実際にボタンを押す動作は単体テストで確かめていて、<code>ui_action</code> による実機での押し直しはまだしていません。</p>
+
+<h3>4. 二人のレビュアーと、監査ログからの漏れ</h3>
+<p>すべての変更は、別々のモデルで動く二つの独立した AI レビュアーに渡します。二つは並行してレビューし、両方が同じコミットを承認したときだけマージします。PR #96 は五回のレビューと、最後の確認を経ました。</p>
+<p>最初の回で本当の問題が見つかりました。スイッチボード経由でパスワード欄に set_value すると、その値がスイッチボードの監査ログに残っていたのです。スイッチボード（openab-sb）は、ツールの呼び出しをコンピューターへ転送する前に、引数を audit.jsonl に書きます。そのため Mac 側が呼び出しを拒否しても、ログの行はもう書かれていました。直せるのは openab-sb だけなので、PR #96 は修正がマージされ、デプロイされるまでマージを待ちました。</p>
+<p>修正は <a href="https://github.com/openabdev/openab-sb/releases/tag/v0.2.2">openab-sb 0.2.2</a>（<a href="https://github.com/openabdev/openab-sb/pull/16">PR #16</a>、<a href="https://github.com/openabdev/openab-sb/issues/14">issue #14</a>）です。監査ログの行で、秘密を含む引数を、オブジェクトや配列のどの深さにあっても伏せます。対象は <code>ui_action</code> の
+value、入力したテキスト、password、secret、token、credential のような語を名前に含むキー、そして env と
+headers のすべての値です。文字列は <code>&lt;redacted:N chars&gt;</code> に、それ以外の型は
+<code>&lt;redacted&gt;</code> になります。伏せるのは監査用の写しだけで、コンピューターには本当の引数が届きます。シェルのコマンド、スクリプト、URL のクエリ文字列のような自由形式の文字列は調べません。</p>
+<figure class="fig anim redact" data-steps="5" data-ms="1400" aria-label="アニメーション：openab-sb の監査ログの伏せ字。値を持った呼び出しがスイッチボードを通ります。スイッチボードは転送する前に呼び出しを監査ログに書くので、0.2.2 より前は値がそのまま audit.jsonl に残りました。0.2.2 ではその行が「&lt;redacted:8 chars&gt;」になり、コンピューターには本当の値が届きます。canary のテストでは exec 呼び出しの env に偽のトークンを入れ、ログの行は「&lt;redacted:31 chars&gt;」で、監査ファイルにトークンそのものは 0 回でした。">
+<div class="pair"><svg viewBox="0 0 360 150" role="img" aria-label="スイッチボード"><g data-hl="0"><rect class="box" x="6" y="14" width="80" height="40" rx="9"/><text class="fm" x="46" y="39" text-anchor="middle">エージェント</text></g><path class="arr" d="M86 34 h40"/><path class="arrh" d="M128 30 l7 4 l-7 4z"/><g data-hl="1 2"><rect class="box" x="136" y="8" width="96" height="52" rx="9"/><text class="fm" x="184" y="30" text-anchor="middle">openab-sb</text><text class="fs" x="184" y="47" text-anchor="middle">スイッチボード</text></g><g data-show="3"><path class="arr" d="M232 34 h34"/><path class="arrh" d="M268 30 l7 4 l-7 4z"/><text class="fs" x="236" y="26">2 転送</text></g><g data-hl="3"><rect class="box" x="276" y="14" width="78" height="40" rx="9"/><text class="fm" x="315" y="39" text-anchor="middle">コンピューター</text></g><g data-show="1"><path class="arr" d="M184 60 v30"/><path class="arrh" d="M180 92 l4 7 l4 -7z"/><text class="fs" x="192" y="80">1 ログを書く</text></g><g data-hl="1 2 4"><path class="filebox" d="M146 102 h64 l12 12 v30 h-76z"/><text class="fs2" x="184" y="130" text-anchor="middle">audit.jsonl</text></g></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_action { ref: &quot;e4&quot;, action: &quot;set_value&quot;, value: &quot;••••••••&quot; }</li><li class="err" data-show="1" data-hl="1" style="--lvl:0">0.2.2 より前 · audit.jsonl：&quot;value&quot;:&quot;••••••••&quot;（そのまま）</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">openab-sb 0.2.2 · audit.jsonl：&quot;value&quot;:&quot;&lt;redacted:8 chars&gt;&quot;</li><li data-show="3" data-hl="3" style="--lvl:0">→ コンピューターには本当の値が届く</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">canary · exec env API_TOKEN → &quot;&lt;redacted:31 chars&gt;&quot; · ファイル内の canary：0 回</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="再生" data-pause="一時停止">一時停止</button></div>
+<figcaption>アニメーション：openab-sb の監査ログの伏せ字。値を持った呼び出しがスイッチボードを通ります。スイッチボードは転送する前に呼び出しを監査ログに書くので、0.2.2 より前は値がそのまま audit.jsonl に残りました。0.2.2 ではその行が「&lt;redacted:8 chars&gt;」になり、コンピューターには本当の値が届きます。canary のテストでは exec 呼び出しの env に偽のトークンを入れ、ログの行は「&lt;redacted:31 chars&gt;」で、監査ファイルにトークンそのものは 0 回でした。</figcaption>
+</figure>
+<p>canary で確かめました。デプロイ済みのスイッチボードを通して <code>exec</code> を一回呼び、env の
+API_TOKEN に偽のトークンを入れました。監査ファイルに canary は一度も出ず（0 回）、その呼び出しの行ではトークンの位置に <code>&lt;redacted:31 chars&gt;</code> がありました。実機テストでの TextEdit の set_value も
+<code>"value":"&lt;redacted:27 chars&gt;"</code> と記録され、27 は "hello from ui_action 0.10.0" の長さと同じです。</p>
+<p>0.10.0 のリリースノートでも、スイッチボードを運用する人に、<code>ui_action</code> で機密を送る前に
+openab-sb 0.2.2 へ上げること、古い版が書いた監査ファイルの入れ替えを検討することを勧めています。</p>
+
+<h2>制限と、これから</h2>
+<ul>
+<li>set_value は値全体を置き換えます。確定するかフォーカスが移るまで反映しないアプリもあります。</li>
+<li>シートやメニューを開く press には、アプリの返事が遅れることがあります。そのときの結果は unconfirmed
+と報告されます。操作は起きたかもしれないので、もう一度押さず、スナップショットを撮り直してください。</li>
+<li>ドラッグや複数段のジェスチャーは今も <code>mouse</code> を使います。アクセシビリティのノードがない独自描画の内容は、今も <code>screenshot</code> と <code>mouse</code> です。</li>
+<li>Linux：macOS の部分が終わったので <a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> は閉じました。Linux で AT-SPI を使って
+<code>ui_snapshot</code> と <code>ui_action</code> を動かす作業は、p3 として <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>
+で後回しにしていて、Linux のマシンで必要になったら取りかかります。それまで Linux では
+<code>screenshot</code>、<code>mouse</code>、<code>key</code> を使ってください。</li>
+</ul>
+
+<p class="outro">試すには、<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> に更新してアクセシビリティ権限を与え、
+<code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、<code>ui_action</code>、もう一度 <code>ui_snapshot</code> の順に呼んでください。スイッチボードを使っているなら、先に
+openab-sb 0.2.2 に上げてください。前回のノート：
+<a href="../accessibility-tree/">OpenAB Computer が macOS のアクセシビリティツリーを読めるようになりました</a>。</p>
+<script>
+// Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
+// Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete
+// state held for HOLD ms, then again. Off-screen figures are paused (IntersectionObserver).
+// A small Pause/Play toggle stops the motion (WCAG 2.2.2); playing never depends on it.
+// No JS or prefers-reduced-motion: the complete static state, no autoplay (Play still works).
+// ?fig-step=N freezes every figure at step N (used for preview screenshots).
+(function () {
+  var HOLD = 1800;
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var freeze = new URLSearchParams(location.search).get("fig-step");
+  document.querySelectorAll("figure.anim").forEach(function (fig) {
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100;
+    var at = -1, timer = null, visible = false, paused = reduce;
+    var els = fig.querySelectorAll("[data-show],[data-hl]");
+    var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
+    function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
+    function render() {
+      fig.classList.toggle("playing", at >= 0);
+      els.forEach(function (e) {
+        var s = e.dataset.show, h = e.dataset.hl;
+        e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
+        e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
+      });
+      btn.textContent = btn.dataset[paused ? "play" : "pause"];
+      btn.setAttribute("aria-pressed", paused ? "true" : "false");
+    }
+    function stop() { clearTimeout(timer); timer = null; }
+    function next() {
+      at = at + 1 >= n ? -1 : at + 1;   // -1 is the complete state between loops
+      render();
+      timer = setTimeout(next, at < 0 ? HOLD : ms);
+    }
+    function sync() {
+      stop();
+      if (visible && !paused) timer = setTimeout(next, at < 0 ? 400 : ms);
+      render();
+    }
+    btn.addEventListener("click", function () {
+      paused = !paused;
+      if (paused) at = -1;   // stopping shows the complete diagram
+      sync();
+    });
+    ctl.hidden = false;
+    // Link a tree line with its frame on hover, focus or tap; works while the loop runs.
+    function link(id, on) {
+      fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
+        e.classList.toggle("link", on);
+      });
+    }
+    fig.querySelectorAll("li[data-node]").forEach(function (li) {
+      var id = li.dataset.node;
+      ["mouseenter", "focus"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, true); });
+      });
+      li.addEventListener("click", function () {
+        fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
+        link(id, true);
+      });
+      ["mouseleave", "blur"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, false); });
+      });
+    });
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); paused = true; render(); return; }
+    render();
+    if (!("IntersectionObserver" in window)) { visible = true; sync(); return; }
+    new IntersectionObserver(function (es) {
+      visible = es[es.length - 1].isIntersecting;
+      sync();
+    }, { threshold: 0.35 }).observe(fig);
+  });
+})();
+</script>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>

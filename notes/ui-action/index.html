@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB</title>
+<meta name="description" content="Once an agent can read a window&#x27;s accessibility tree, how does it press a button without taking your mouse, and how do you prove it didn&#x27;t? OpenAB Computer 0.10.0 adds ui_action. Here is what it does and how we tested it.">
+<link rel="canonical" href="https://openab.dev/notes/ui-action/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="OpenAB">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB">
+<meta property="og:description" content="Once an agent can read a window&#x27;s accessibility tree, how does it press a button without taking your mouse, and how do you prove it didn&#x27;t? OpenAB Computer 0.10.0 adds ui_action. Here is what it does and how we tested it.">
+<meta property="og:url" content="https://openab.dev/notes/ui-action/">
+<meta property="og:image" content="https://openab.dev/notes/ui-action/og-en.png?v=7a096a8f">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OpenAB dev note: how we tested ui_action in OpenAB Computer 0.10.0">
+<meta property="article:published_time" content="2026-11-10">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB">
+<meta name="twitter:description" content="Once an agent can read a window&#x27;s accessibility tree, how does it press a button without taking your mouse, and how do you prove it didn&#x27;t? OpenAB Computer 0.10.0 adds ui_action. Here is what it does and how we tested it.">
+<meta name="twitter:image" content="https://openab.dev/notes/ui-action/og-en.png?v=7a096a8f">
+<meta name="theme-color" content="#F7F4FC">
+<link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png?v=24eecb58">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
+<link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
+<link rel="stylesheet" href="../../style.css?v=6d102f5b">
+<link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
+<link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
+<link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
+<link rel="alternate" hreflang="ko" href="https://openab.dev/ko/notes/ui-action/">
+<link rel="alternate" hreflang="x-default" href="https://openab.dev/notes/ui-action/">
+</head>
+<body>
+<nav class="top">
+  <a class="brand" href="../../"><img src="../../assets/brand-64.png?v=99caab3e" srcset="../../assets/brand-128.png?v=03492c6b 2x" alt="" width="28" height="28">OpenAB</a>
+  <div class="links">
+    <a href="../../#projects">Projects</a>
+    <a href="../../#participate">Participate</a>
+    <a href="../../notes/">Dev notes</a>
+    <a href="https://github.com/openabdev">GitHub</a>
+    <span class="lang" aria-label="Language">
+    <a href="../../zh/notes/ui-action/" data-lang="zh" hreflang="zh-Hant">中文</a>|<a href="../../ja/notes/ui-action/" data-lang="ja" hreflang="ja">日本語</a>|<a href="../../ko/notes/ui-action/" data-lang="ko" hreflang="ko">한국어</a>|<a class="active" aria-current="page" href="../../notes/ui-action/" data-lang="en" hreflang="en">EN</a>
+    </span>
+  </div>
+</nav>
+<script>
+document.addEventListener("click", function (e) {
+  var a = e.target.closest && e.target.closest(".lang a");
+  if (!a) return;
+  try { localStorage.setItem("oab-lang", a.getAttribute("data-lang")); } catch (err) { /* no storage */ }
+});
+</script>
+
+<main class="note">
+<article>
+<p class="back"><a href="../">← Dev notes</a></p>
+<h1>How we tested ui_action in OpenAB Computer 0.10.0</h1>
+<p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
+<p class="hook">Once an agent can read a window's accessibility tree, how does it press a button
+in that window without taking over your mouse? And after it presses, how do you prove it never
+touched the mouse?</p>
+
+<p class="lede"><a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> adds <code>ui_action</code>. The
+<code>ui_snapshot</code> tool from the <a href="../accessibility-tree/">previous dev note</a> reads a window;
+<code>ui_action</code> acts on it. It takes a ref from a snapshot and presses a button or fills a
+field through the accessibility API, and the cursor stays where it is. This note covers what it
+does and how we tested it.</p>
+
+<h2>What ui_action does</h2>
+<p>The call is <code>ui_action {snapshot_id, ref, action}</code> (<a href="https://github.com/openabdev/openab-computer/pull/96">PR #96</a>). The
+actions are press, set_value, focus, show_menu, confirm and cancel, plus increment and decrement.
+Each one maps to an accessibility action: press is AXPress on the element, set_value sets its
+AXValue and replaces the whole value. If the element does not support the action, the tool refuses
+before doing anything and lists the actions it does support.</p>
+<p>The intended loop has three steps: <code>ui_snapshot</code>, then <code>ui_action</code> on one
+of its refs, then another <code>ui_snapshot</code> to check the result.</p>
+<figure class="fig anim press" data-steps="4" data-ms="1400" aria-label="Animation: a made-up dialog. The agent takes a snapshot and finds the Save button as ref e3. It reads the mouse location, calls ui_action with the snapshot id, ref e3 and press, and the button is pressed through the accessibility API. Then it reads the mouse location again: the same point, because the cursor never moved.">
+<div class="pair"><svg viewBox="0 0 360 206" role="img" aria-label="Save changes?"><rect class="screen" x="0" y="0" width="360" height="206"/><rect class="win" x="20" y="12" width="320" height="130" rx="10"/><path class="winbar" d="M20 22 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="24" r="4"/><circle class="dot" cx="46" cy="24" r="4"/><circle class="dot" cx="58" cy="24" r="4"/><text class="fs2" x="180.0" y="29" text-anchor="middle">Untitled</text><text class="fs2" x="40" y="80">Save changes?</text><g class="okbtn plain"><rect class="btn2" x="176" y="104" width="70" height="26" rx="6"/><text class="fbtn" x="211.0" y="121.0" text-anchor="middle">Cancel</text></g><g class="okbtn" data-hl="2"><rect class="btnok" x="256" y="104" width="70" height="26" rx="6"/><text class="fok fbtn" x="291.0" y="121.0" text-anchor="middle">Save</text></g><rect class="frx" data-show="0" x="252" y="100" width="78" height="34" rx="8"/><circle class="ring" data-hl="2" cx="291" cy="117" r="22"/><path class="cursor" d="M40 160 l0 16 l4.5 -4.5 l3.5 8 l2.7 -1.3 l-3.5 -8 l6.3 0z"/><text class="fs" x="30" y="190">cursor</text><text class="fs2" data-show="1" data-hl="1" x="96" y="170">mouse before: (40, 160)</text><text class="fs2 same" data-show="3" data-hl="3" x="96" y="190">mouse after: (40, 160), same point</text></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → [e3] AXButton &quot;Save&quot; (256,104 70×26)</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-…&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">→ AXPress on e3: ok</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
+<figcaption>Animation: a made-up dialog. The agent takes a snapshot and finds the Save button as ref e3. It reads the mouse location, calls ui_action with the snapshot id, ref e3 and press, and the button is pressed through the accessibility API. Then it reads the mouse location again: the same point, because the cursor never moved.</figcaption>
+</figure>
+<p>The tool never synthesizes input events and never moves the pointer; a test scans the source to
+keep it that way. By default it does not bring the app to the front or raise a window either. When
+that is needed, for example to open a menu in a background app, the caller passes
+<code>activate: true</code>.</p>
+
+<h3>A ref is only good in its own snapshot</h3>
+<p>The tool keeps the last four snapshots, for five minutes each. Before acting it checks the ref
+again: same process, same role and subrole, still under the window it was found in. For a menu
+item, the menu bar must still answer. If any check fails, the answer is <code>stale ref: … take a
+new ui_snapshot</code>. The tool never picks a lookalike element to stand in for the old one.</p>
+<figure class="fig anim stale" data-steps="5" data-ms="1300" aria-label="Animation: a stale ref is refused. The agent takes snapshot snap-1, in which the Save button is e3. The dialog is then closed and opened again, so its button is a new element. ui_action with the old ref is refused with “stale ref … take a new ui_snapshot”, and nothing is pressed. The agent takes a new snapshot, gets ref e4 for the new button, and the press succeeds.">
+<div class="pair"><svg viewBox="0 0 360 132" role="img" aria-label="Animation: a stale ref is refused. The agent takes snapshot "><rect class="win" x="4" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M4 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="18" cy="20" r="4"/><circle class="dot" cx="30" cy="20" r="4"/><circle class="dot" cx="42" cy="20" r="4"/><text class="fs2" x="84.0" y="25" text-anchor="middle">snap-1</text><rect class="bar" x="18" y="48" width="96" height="8" rx="4"/><rect class="bar" x="18" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="34" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="62.0" y="89.0" text-anchor="middle">Cancel</text></g><g class="okbtn"><rect class="btnok" x="98" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="126.0" y="89.0" text-anchor="middle">Save</text></g><rect class="frx" x="94" y="70" width="64" height="30" rx="7"/><text class="mono" x="100" y="120">e3</text><g data-show="2"><path class="xmark" d="M118 78 l16 16 M134 78 l-16 16"/></g><g data-show="1"><path class="arr" d="M168 56 h18"/><path class="arrh" d="M188 52 l7 4 l-7 4z"/><rect class="win" x="196" y="8" width="160" height="96" rx="10"/><path class="winbar" d="M196 18 a10 10 0 0 1 10 -10 h140 a10 10 0 0 1 10 10 v14 h-160z"/><circle class="dot" cx="210" cy="20" r="4"/><circle class="dot" cx="222" cy="20" r="4"/><circle class="dot" cx="234" cy="20" r="4"/><text class="fs2" x="276.0" y="25" text-anchor="middle">after the change</text><rect class="bar" x="210" y="48" width="96" height="8" rx="4"/><rect class="bar" x="210" y="62" width="64" height="8" rx="4"/><g class="okbtn plain"><rect class="btn2" x="226" y="74" width="56" height="22" rx="6"/><text class="fbtn" x="254.0" y="89.0" text-anchor="middle">Cancel</text></g><g class="okbtn"><rect class="btnok" x="290" y="74" width="56" height="22" rx="6"/><text class="fok fbtn" x="318.0" y="89.0" text-anchor="middle">Save</text></g><text class="fs" x="196" y="120">a new element</text></g><rect class="frx" data-show="3" x="286" y="70" width="64" height="30" rx="7"/><text class="mono" data-show="3" x="292" y="120">e4</text><circle class="ring" data-hl="4" cx="318" cy="85" r="20"/></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_snapshot → snap-1 · [e3] AXButton &quot;Save&quot;</li><li class="aside" data-show="1" data-hl="1" style="--lvl:0">the dialog is closed and opened again</li><li data-show="2" data-hl="2" style="--lvl:0">ui_action { snapshot_id: &quot;snap-1&quot;, ref: &quot;e3&quot;, action: &quot;press&quot; }</li><li class="err" data-show="2" data-hl="2" style="--lvl:0">✗ stale ref: e3 … take a new ui_snapshot</li><li data-show="3" data-hl="3" style="--lvl:0">ui_snapshot → snap-2 · [e4] AXButton &quot;Save&quot;</li><li data-show="4" data-hl="4" style="--lvl:0">ui_action { snapshot_id: &quot;snap-2&quot;, ref: &quot;e4&quot;, action: &quot;press&quot; }</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">✓ AXPress on e4</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
+<figcaption>Animation: a stale ref is refused. The agent takes snapshot snap-1, in which the Save button is e3. The dialog is then closed and opened again, so its button is a new element. ui_action with the old ref is refused with “stale ref … take a new ui_snapshot”, and nothing is pressed. The agent takes a new snapshot, gets ref e4 for the new button, and the press succeeds.</figcaption>
+</figure>
+
+<h3>Who can use it, and password fields</h3>
+<p><code>ui_action</code> is available only to the <code>owner</code> profile, in the same class as
+<code>mouse</code> and <code>key</code>, and it needs the macOS Accessibility permission. When it
+sets a password field, the value is never read back, logged or returned. For every field, the input
+value stays out of errors, log lines and response text. Through a switchboard, set_value on a
+password field is refused by default, unless the operator of that computer turns it on.</p>
+
+<h2>How we tested it</h2>
+
+<h3>1. Unit tests with a fake accessibility provider</h3>
+<p>CI machines have no GUI, so the tests do not touch real apps. <code>ui_snapshot</code> already
+had a fake accessibility provider, and the <code>ui_action</code> tests run on it too. PR #96 added
+52 tests in three suites: <code>UIActionToolTests</code> (40), <code>UISnapshotCacheTests</code>
+(5) and <code>UIActivateTests</code> (7).</p>
+<p>They cover: a snapshot that expired or was pushed out; an unknown ref; an element that vanished,
+changed role, belongs to another process or left its window; an unsupported action, with the list
+of supported ones; which accessibility call sits behind each action; a password value absent from
+the response and from every log line; password fields refused by default through a switchboard;
+<code>activate</code> false by default; and the profile rules.</p>
+<p>On an M4 Mac mini, <code>swift test</code> ran 256 tests with 0 failures, and every CI check on
+the PR passed.</p>
+<p>We also tried a live run before merging, but that test build had no Accessibility permission, so
+<code>ui_action</code> only returned the permission error and the TextEdit run did not happen. It
+waited for the released build, which has the permission.</p>
+
+<h3>2. A live run on an M4 Mac mini, through the switchboard</h3>
+<p>After 0.10.0 was released, a remote agent drove an M4 Mac mini through the switchboard. Each
+step was one MCP tool call, and the switchboard's audit log recorded the times:</p>
+<ol>
+<li>Read the mouse location (a short JXA script through <code>osascript</code>, reading
+<code>NSEvent.mouseLocation</code>).</li>
+<li>Open TextEdit with a new document.</li>
+<li><code>ui_snapshot</code> of TextEdit, 96 ms. The text area is <code>[e3] AXTextArea</code>.</li>
+<li><code>ui_action</code> focus on e3 (8 ms), then set_value with "hello from ui_action 0.10.0"
+(15 ms).</li>
+<li>Another snapshot to check: e3's value is "hello from ui_action 0.10.0".</li>
+<li>Read the mouse location again.</li>
+</ol>
+<p>Both readings gave the same point, (284, 88). The text went in and the cursor did not move.</p>
+
+<h3>3. What the live run caught: buttons inside a sheet</h3>
+<p>Next we quit TextEdit. The unsaved document brought up a save sheet, the kind of dialog that
+slides down from a window's title bar. <code>ui_action</code> press on the sheet's Delete button
+failed:</p>
+<pre><code>stale ref: e63 has left its window; take a new ui_snapshot and use its refs</code></pre>
+<p>It failed the same way three times, with a fresh snapshot each time. A read-only Swift probe
+showed why. Asked for its AXWindow, a control inside a sheet returns nil, not some other window.
+The 0.10.0 check treated "no AXWindow" as something only menu items do, so it refused the ref. The
+button's AXParent is the sheet, and it is the sheet whose AXWindow is the window.</p>
+<figure class="fig anim sheetfig" data-steps="5" data-ms="1400" aria-label="Animation: the sheet bug. A save sheet slides down from the window&#x27;s title bar. In the tree the sheet (e50) sits under the window (e1), and its Delete button is e63. Pressing e63: the 0.10.0 check asks the button for its AXWindow, gets nil, and refuses the ref as stale. The fix for 0.10.1 walks up AXParent from the button, finds the sheet, sees that the sheet is in the snapshot, and accepts it.">
+<p class="badge">0.10.1: fix merged in <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a>, release pending</p>
+<div class="pair"><svg viewBox="0 0 360 214" role="img" aria-label="Untitled"><rect class="screen" x="0" y="0" width="360" height="214"/><rect class="win" x="20" y="8" width="320" height="198" rx="10"/><path class="winbar" d="M20 18 a10 10 0 0 1 10 -10 h300 a10 10 0 0 1 10 10 v14 h-320z"/><circle class="dot" cx="34" cy="20" r="4"/><circle class="dot" cx="46" cy="20" r="4"/><circle class="dot" cx="58" cy="20" r="4"/><text class="fs2" x="180.0" y="25" text-anchor="middle">Untitled</text><rect class="bar" x="40" y="48" width="230" height="8" rx="4"/><rect class="bar" x="40" y="64" width="190" height="8" rx="4"/><rect class="bar" x="40" y="80" width="210" height="8" rx="4"/><g class="sheet" data-show="1"><rect class="sheetbox" x="60" y="32" width="240" height="112" rx="10"/><rect class="bar" x="80" y="50" width="160" height="9" rx="4"/><rect class="bar" x="80" y="66" width="120" height="7" rx="3"/><g class="okbtn plain" data-hl="2"><rect class="btn2" x="72" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="105.0" y="124.0" text-anchor="middle">Delete</text></g><g class="okbtn plain"><rect class="btn2" x="152" y="108" width="66" height="24" rx="6"/><text class="fbtn" x="185.0" y="124.0" text-anchor="middle">Cancel</text></g><g class="okbtn"><rect class="btnok" x="226" y="108" width="66" height="24" rx="6"/><text class="fok fbtn" x="259.0" y="124.0" text-anchor="middle">Save</text></g><circle class="ring" data-hl="2" cx="105" cy="120" r="22"/></g><g data-show="3"><path class="xmark" d="M62 158 l12 12 M74 158 l-12 12"/><text class="fmiss" x="82" y="169">0.10.0: refused</text></g><g data-show="4"><path class="vmark" d="M62 184 l5 6 l10 -12"/><text class="fhit" x="82" y="191">0.10.1: accepted</text></g></svg><div class="treebox"><p class="treehead">ui_snapshot, text form</p><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">[e1] AXWindow &quot;Untitled&quot;</li><li data-show="1" data-hl="1" style="--lvl:1">[e50] AXSheet desc=&quot;save&quot;</li><li data-show="2" data-hl="2" style="--lvl:2">[e63] AXButton &quot;Delete&quot;</li></ol><ol class="axtree axsteps calls"><li data-show="2" data-hl="2" style="--lvl:0">ui_action { ref: &quot;e63&quot;, action: &quot;press&quot; }</li><li class="err" data-show="3" data-hl="3" style="--lvl:0">0.10.0 · AXWindow(e63) → nil → ✗ stale ref: e63 has left its window</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">0.10.1 · AXParent(e63) → [e50] AXSheet, in the snapshot → ✓ accepted</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
+<figcaption>Animation: the sheet bug. A save sheet slides down from the window&#x27;s title bar. In the tree the sheet (e50) sits under the window (e1), and its Delete button is e63. Pressing e63: the 0.10.0 check asks the button for its AXWindow, gets nil, and refuses the ref as stale. The fix for 0.10.1 walks up AXParent from the button, finds the sheet, sees that the sheet is in the snapshot, and accepts it.</figcaption>
+</figure>
+<p>This became <a href="https://github.com/openabdev/openab-computer/issues/98">issue #98</a> (labels bug and p2), fixed by <a href="https://github.com/openabdev/openab-computer/pull/99">PR #99</a>. When an
+element has no AXWindow, or one that is not on the snapshot's recorded path, the check walks up
+AXParent to the nearest window, sheet, drawer or popover, and accepts the ref only if that container
+is on the recorded path. The walk stops after 50 steps, checks for cycles and runs under the same
+time budget. A change of process or role is still refused first, and no replacement is guessed.</p>
+<p>PR #99 added 8 tests, for 264 in total with 0 failures, and CI passed. Its live check was
+read-only: applied to TextEdit's real save sheet, the new rule accepted all 15 controls in the
+sheet, Delete included; the 0.10.0 rule accepted none of them. The fix is merged and ships in
+0.10.1. Pressing a button inside a sheet is covered by the unit tests; we have not yet re-run that
+press live through <code>ui_action</code>.</p>
+
+<h3>4. Two reviewers, and a leak in the audit log</h3>
+<p>Every change goes to two independent AI reviewers running different models. They review in
+parallel, and the change merges only when both approve the same commit. PR #96 went through five
+rounds and a confirming review.</p>
+<p>The first round found a real problem. Through a switchboard, a password value sent with
+set_value ended up in the switchboard's audit log. The switchboard (openab-sb) writes each tool
+call's arguments to audit.jsonl before it forwards the call. So even when the Mac refused the call,
+the log line was already written. Only openab-sb could fix that, so PR #96 waited until the fix was
+merged and deployed.</p>
+<p>The fix is <a href="https://github.com/openabdev/openab-sb/releases/tag/v0.2.2">openab-sb 0.2.2</a> (<a href="https://github.com/openabdev/openab-sb/pull/16">PR #16</a>, <a href="https://github.com/openabdev/openab-sb/issues/14">issue #14</a>). It
+redacts secret-bearing arguments in the audit line, at any depth in objects and arrays: the value
+of <code>ui_action</code>, typed text, keys whose names contain words such as password, secret,
+token or credential, and every value in env and headers. A string becomes
+<code>&lt;redacted:N chars&gt;</code>; any other type becomes <code>&lt;redacted&gt;</code>. Only the
+audit copy is redacted, and the computer still receives the real arguments. Free-form strings,
+such as a shell command, a script or a URL's query string, are not inspected.</p>
+<figure class="fig anim redact" data-steps="5" data-ms="1400" aria-label="Animation: audit redaction in openab-sb. A call carries a value through the switchboard. The switchboard writes the call to its audit log before it forwards it, so before 0.2.2 the value landed in audit.jsonl as typed. In 0.2.2 the log line holds “&lt;redacted:8 chars&gt;” instead, and the computer still receives the real value. The canary run sent a fake token in an exec call&#x27;s env; its log line shows “&lt;redacted:31 chars&gt;”, and the token itself appears 0 times in the audit file.">
+<div class="pair"><svg viewBox="0 0 360 150" role="img" aria-label="switchboard"><g data-hl="0"><rect class="box" x="6" y="14" width="80" height="40" rx="9"/><text class="fm" x="46" y="39" text-anchor="middle">agent</text></g><path class="arr" d="M86 34 h40"/><path class="arrh" d="M128 30 l7 4 l-7 4z"/><g data-hl="1 2"><rect class="box" x="136" y="8" width="96" height="52" rx="9"/><text class="fm" x="184" y="30" text-anchor="middle">openab-sb</text><text class="fs" x="184" y="47" text-anchor="middle">switchboard</text></g><g data-show="3"><path class="arr" d="M232 34 h34"/><path class="arrh" d="M268 30 l7 4 l-7 4z"/><text class="fs" x="236" y="26">2 forward</text></g><g data-hl="3"><rect class="box" x="276" y="14" width="78" height="40" rx="9"/><text class="fm" x="315" y="39" text-anchor="middle">computer</text></g><g data-show="1"><path class="arr" d="M184 60 v30"/><path class="arrh" d="M180 92 l4 7 l4 -7z"/><text class="fs" x="192" y="80">1 log line</text></g><g data-hl="1 2 4"><path class="filebox" d="M146 102 h64 l12 12 v30 h-76z"/><text class="fs2" x="184" y="130" text-anchor="middle">audit.jsonl</text></g></svg><div class="treebox"><ol class="axtree axsteps"><li data-show="0" data-hl="0" style="--lvl:0">ui_action { ref: &quot;e4&quot;, action: &quot;set_value&quot;, value: &quot;••••••••&quot; }</li><li class="err" data-show="1" data-hl="1" style="--lvl:0">before 0.2.2 · audit.jsonl: &quot;value&quot;:&quot;••••••••&quot; (as typed)</li><li class="okl" data-show="2" data-hl="2" style="--lvl:0">openab-sb 0.2.2 · audit.jsonl: &quot;value&quot;:&quot;&lt;redacted:8 chars&gt;&quot;</li><li data-show="3" data-hl="3" style="--lvl:0">→ the computer still gets the real value</li><li class="okl" data-show="4" data-hl="4" style="--lvl:0">canary · exec env API_TOKEN → &quot;&lt;redacted:31 chars&gt;&quot; · canary in the file: 0 times</li></ol></div></div>
+<div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
+<figcaption>Animation: audit redaction in openab-sb. A call carries a value through the switchboard. The switchboard writes the call to its audit log before it forwards it, so before 0.2.2 the value landed in audit.jsonl as typed. In 0.2.2 the log line holds “&lt;redacted:8 chars&gt;” instead, and the computer still receives the real value. The canary run sent a fake token in an exec call&#x27;s env; its log line shows “&lt;redacted:31 chars&gt;”, and the token itself appears 0 times in the audit file.</figcaption>
+</figure>
+<p>We checked it with a canary. Through the deployed switchboard we sent one <code>exec</code> call
+with a fake token in its env, as API_TOKEN. In the audit file the canary appeared 0 times, and the
+line for that call held <code>&lt;redacted:31 chars&gt;</code> where the token had been. The live
+TextEdit set_value was logged as <code>"value":"&lt;redacted:27 chars&gt;"</code> too, and 27 is
+the length of "hello from ui_action 0.10.0".</p>
+<p>The 0.10.0 release notes also ask switchboard operators to upgrade to openab-sb 0.2.2 before
+sending anything sensitive through <code>ui_action</code>, and to consider rotating audit files
+written by older versions.</p>
+
+<h2>Limits and next</h2>
+<ul>
+<li>set_value replaces the whole value. Some apps only commit it on confirm or when focus
+moves.</li>
+<li>A press that opens a sheet or a menu may get a late answer from the app. The result is then
+reported as unconfirmed: it may have happened, so take a new snapshot instead of pressing
+again.</li>
+<li>Drags and multi-step gestures stay on <code>mouse</code>. Custom-drawn content with no
+accessibility node stays on <code>screenshot</code> and <code>mouse</code>.</li>
+<li>Linux: <a href="https://github.com/openabdev/openab-computer/issues/67">issue #67</a> is closed, because the macOS part is done. AT-SPI support for
+<code>ui_snapshot</code> and <code>ui_action</code> on Linux is deferred as p3 in
+<a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>, to be picked up when a Linux machine needs it. Until then, use
+<code>screenshot</code>, <code>mouse</code> and <code>key</code> on Linux.</li>
+</ul>
+
+<p class="outro">To try it, update to <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a>, give it the
+Accessibility permission, and from an agent with the <code>owner</code> profile call
+<code>ui_snapshot</code>, then <code>ui_action</code>, then <code>ui_snapshot</code> again. If you
+use a switchboard, upgrade it to openab-sb 0.2.2 first. Previous note:
+<a href="../accessibility-tree/">OpenAB Computer can now read the macOS accessibility tree</a>.</p>
+<script>
+// Step player for dev-note figures (scripts/figures.py). Inlined into note pages by build.py.
+// Each figure autoplays when it scrolls into view and loops: steps 0..n-1, then the complete
+// state held for HOLD ms, then again. Off-screen figures are paused (IntersectionObserver).
+// A small Pause/Play toggle stops the motion (WCAG 2.2.2); playing never depends on it.
+// No JS or prefers-reduced-motion: the complete static state, no autoplay (Play still works).
+// ?fig-step=N freezes every figure at step N (used for preview screenshots).
+(function () {
+  var HOLD = 1800;
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var freeze = new URLSearchParams(location.search).get("fig-step");
+  document.querySelectorAll("figure.anim").forEach(function (fig) {
+    var n = +fig.dataset.steps, ms = +fig.dataset.ms || 1100;
+    var at = -1, timer = null, visible = false, paused = reduce;
+    var els = fig.querySelectorAll("[data-show],[data-hl]");
+    var ctl = fig.querySelector(".figctl"), btn = fig.querySelector(".figbtn");
+    function has(list, k) { return (" " + list + " ").indexOf(" " + k + " ") >= 0; }
+    function render() {
+      fig.classList.toggle("playing", at >= 0);
+      els.forEach(function (e) {
+        var s = e.dataset.show, h = e.dataset.hl;
+        e.classList.toggle("off", at >= 0 && s !== undefined && +s > at);
+        e.classList.toggle("hl", at >= 0 && h !== undefined && has(h, at));
+      });
+      btn.textContent = btn.dataset[paused ? "play" : "pause"];
+      btn.setAttribute("aria-pressed", paused ? "true" : "false");
+    }
+    function stop() { clearTimeout(timer); timer = null; }
+    function next() {
+      at = at + 1 >= n ? -1 : at + 1;   // -1 is the complete state between loops
+      render();
+      timer = setTimeout(next, at < 0 ? HOLD : ms);
+    }
+    function sync() {
+      stop();
+      if (visible && !paused) timer = setTimeout(next, at < 0 ? 400 : ms);
+      render();
+    }
+    btn.addEventListener("click", function () {
+      paused = !paused;
+      if (paused) at = -1;   // stopping shows the complete diagram
+      sync();
+    });
+    ctl.hidden = false;
+    // Link a tree line with its frame on hover, focus or tap; works while the loop runs.
+    function link(id, on) {
+      fig.querySelectorAll('[data-node="' + id + '"]').forEach(function (e) {
+        e.classList.toggle("link", on);
+      });
+    }
+    fig.querySelectorAll("li[data-node]").forEach(function (li) {
+      var id = li.dataset.node;
+      ["mouseenter", "focus"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, true); });
+      });
+      li.addEventListener("click", function () {
+        fig.querySelectorAll(".link").forEach(function (e) { e.classList.remove("link"); });
+        link(id, true);
+      });
+      ["mouseleave", "blur"].forEach(function (ev) {
+        li.addEventListener(ev, function () { link(id, false); });
+      });
+    });
+    if (freeze !== null) { at = Math.min(+freeze, n - 1); paused = true; render(); return; }
+    render();
+    if (!("IntersectionObserver" in window)) { visible = true; sync(); return; }
+    new IntersectionObserver(function (es) {
+      visible = es[es.length - 1].isIntersecting;
+      sync();
+    }, { threshold: 0.35 }).observe(fig);
+  });
+})();
+</script>
+</article>
+</main>
+
+<footer>
+  <a href="https://github.com/openabdev">GitHub</a>
+  <a href="https://openab.dev/discord">Discord</a>
+  <span class="dim">© 2026 openabdev</span>
+</footer>
+</body>
+</html>

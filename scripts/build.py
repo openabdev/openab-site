@@ -16,8 +16,11 @@ import os
 import pathlib
 import re
 
-from figures import FIGS
+from figures import FIGS as NOTE1_FIGS
+from figures_ui_action import FIGS as UI_ACTION_FIGS
 from notes import INDEX, NOTES
+
+FIGS = {**NOTE1_FIGS, **UI_ACTION_FIGS}
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = os.environ.get("SITE", "https://openab.dev").rstrip("/")

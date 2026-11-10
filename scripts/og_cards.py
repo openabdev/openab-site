@@ -177,7 +177,48 @@ def art_notes(layer):
             d.rounded_rectangle([(x1 + 28) * s, y * s, (x1 + 28 + w) * s, (y + 10) * s], 5 * s, fill=LINE)
 
 
-ARTS = {"ax-tree": art_ax_tree, "notes": art_notes}
+def art_ui_action(layer):
+    """ui_action: a window whose button is pressed by ref e3 (rings around it, a dashed line to
+    the call), and a cursor below that stays put, with "(x, y) = (x, y)" beside it."""
+    s = SS
+    d = ImageDraw.Draw(layer)
+    window(d, 820, 100, 1135, 320)
+    for i, w in enumerate((210, 160)):           # two lines of text in the window
+        y = 168 + i * 34
+        d.rounded_rectangle([848 * s, y * s, (848 + w) * s, (y + 12) * s], 6 * s, fill=LINE)
+    d.rounded_rectangle([930 * s, 258 * s, 1010 * s, 292 * s], 9 * s, fill=(0xF7, 0xF4, 0xFC),
+                        outline=LINE, width=2 * s)
+    bx1, by1, bx2, by2 = 1025, 258, 1112, 292     # the pressed button
+    cx, cy = (bx1 + bx2) / 2, (by1 + by2) / 2
+    for r, a in ((70, 70), (56, 120)):           # press rings
+        d.ellipse([(cx - r) * s, (cy - r * 0.62) * s, (cx + r) * s, (cy + r * 0.62) * s],
+                  outline=ACCENT + (a,), width=3 * s)
+    d.rounded_rectangle([bx1 * s, by1 * s, bx2 * s, by2 * s], 9 * s, fill=DEEP)
+    d.rounded_rectangle([(bx1 + 4) * s, (by1 + 4) * s, (bx2 - 4) * s, (by2 - 4) * s], 7 * s,
+                        fill=ACCENT)
+
+    mono = font(MONO, 25 * s)
+    # the call, in a pill under the window, joined to the button by a dashed line
+    px, py = 846, 368
+    label = "ui_action e3 press"
+    tw = d.textbbox((0, 0), label, font=mono)[2] / s
+    d.rounded_rectangle([(px - 14) * s, (py - 10) * s, (px + tw + 14) * s, (py + 38) * s], 12 * s,
+                        fill=TINT, outline=ACCENT, width=2 * s)
+    d.text((px * s, py * s), "ui_action", font=mono, fill=INK)
+    d.text(((px + d.textbbox((0, 0), "ui_action ", font=mono)[2] / s) * s, py * s), "e3 press",
+           font=mono, fill=ACCENT)
+    dashed(d, [(cx * s, (py - 10) * s), (cx * s, (by2 + 22) * s)], ACCENT, 3 * s)
+    d.polygon([(cx * s, (by2 + 8) * s), ((cx - 8) * s, (by2 + 22) * s), ((cx + 8) * s, (by2 + 22) * s)],
+              fill=ACCENT)
+
+    # the cursor, untouched, and its reading before = after
+    x, y = 852, 440
+    pts = [(0, 0), (0, 44), (12, 32), (21, 52), (29, 48), (20, 29), (37, 29)]
+    d.polygon([((x + a) * s, (y + b) * s) for a, b in pts], fill=INK, outline=CARD)
+    d.text(((x + 60) * s, (y + 8) * s), "(x, y) = (x, y)", font=mono, fill=DEEP)
+
+
+ARTS = {"ax-tree": art_ax_tree, "ui-action": art_ui_action, "notes": art_notes}
 
 
 def build(lang, text=None, dest=None, art=None):

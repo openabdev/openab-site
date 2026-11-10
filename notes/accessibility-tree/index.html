@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=24b07247">
+<link rel="stylesheet" href="../../style.css?v=6d102f5b">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -323,8 +323,10 @@ a switchboard, setting a value on a password field is refused unless the owner o
 <div class="figctl" hidden><button type="button" class="figbtn" data-play="Play" data-pause="Pause">Pause</button></div>
 <figcaption>Animation: phase 2, ui_action, shipped in OpenAB Computer 0.10.0. After a snapshot, the agent calls ui_action with the snapshot id, ref e7 and the action press. OpenAB Computer presses the OK button through the accessibility API and the cursor stays where it was. The agent then takes a new snapshot to check.</figcaption>
 </figure>
-<p>Next is a Linux version based on AT-SPI. It has no date yet. Issue #67 stays open to track
-it.</p>
+<p>Linux (AT-SPI) is deferred as p3 in <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>, to be picked up when a Linux
+machine needs it; #67 is closed now that the macOS part is done. How we tested
+<code>ui_action</code>, and what the tests caught, is in the next note:
+<a href="../ui-action/">How we tested ui_action in OpenAB Computer 0.10.0</a>.</p>
 
 <p class="outro">To try it, update to <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a>, give it the
 Accessibility permission, and call <code>ui_snapshot</code> and then <code>ui_action</code> from an
