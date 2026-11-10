@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -241,7 +241,7 @@ macOS、Windows 和 Linux。</li>
 </figure>
 <p>Linux（AT-SPI）先延後，列為 p3，記在 <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a>，等有 Linux 機器真的需要時再做；
 macOS 的部分做完了，#67 已經關閉。我們怎麼測 <code>ui_action</code>，以及它比截圖迴圈快多少，寫在下一篇：
-<a href="../ui-action/">我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action</a>。</p>
+<a href="../ui-action/">OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55%</a>。</p>
 
 <p class="outro">想試試看的話：更新到 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a>，給它「輔助使用」權限，再從使用 <code>owner</code> profile 的 agent 先呼叫 <code>ui_snapshot</code>，再呼叫
 <code>ui_action</code>。</p>

@@ -748,11 +748,12 @@ def note_page(code, n):
     if figs:
         js = (ROOT / "scripts" / "figs.js").read_text(encoding="utf-8")
         body += f"\n<script>\n{js}</script>"
+    dek = f'<p class="dek">{esc(m["dek"])}</p>\n' if m.get("dek") else ""
     main = f"""<main class="note">
 <article>
 <p class="back"><a href="../">← {esc(ix['h1'])}</a></p>
 <h1>{esc(m['title'])}</h1>
-<p class="byline"><time datetime="{n['date']}">{esc(m['byline'])}</time></p>
+{dek}<p class="byline"><time datetime="{n['date']}">{esc(m['byline'])}</time></p>
 {body}
 </article>
 </main>"""

@@ -349,7 +349,7 @@ a switchboard, setting a value on a password field is refused unless the owner o
 <p>Linux (AT-SPI) is deferred as p3 in {a(ISSUE102, "issue #102")}, to be picked up when a Linux
 machine needs it; #67 is closed now that the macOS part is done. How we test
 <code>ui_action</code>, and how much faster it is than a screenshot loop, is in the next note:
-{a(NOTE2, "How we tested ui_action in OpenAB Computer 0.10.0")}.</p>
+{a(NOTE2, "OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster and 55% fewer tokens in our test")}.</p>
 
 <p class="outro">To try it, update to {a(REL10, "OpenAB Computer 0.10.0")}, give it the
 Accessibility permission, and call <code>ui_snapshot</code> and then <code>ui_action</code> from an
@@ -533,7 +533,7 @@ macOS、Windows 和 Linux。</li>
 {{fig_action}}
 <p>Linux（AT-SPI）先延後，列為 p3，記在 {a(ISSUE102, "issue #102")}，等有 Linux 機器真的需要時再做；
 macOS 的部分做完了，#67 已經關閉。我們怎麼測 <code>ui_action</code>，以及它比截圖迴圈快多少，寫在下一篇：
-{a(NOTE2, "我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action")}。</p>
+{a(NOTE2, "OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55%")}。</p>
 
 <p class="outro">想試試看的話：更新到 {a(REL10, "OpenAB Computer 0.10.0")}，給它「輔助使用」權限，
 再從使用 <code>owner</code> profile 的 agent 先呼叫 <code>ui_snapshot</code>，再呼叫
@@ -765,7 +765,7 @@ stdio の MCP サーバーとして動きます。</li>
 <p>Linux（AT-SPI）は p3 として {a(ISSUE102, "issue #102")} で後回しにし、Linux のマシンで必要に
 なったら取りかかります。macOS の部分が終わったので #67 は閉じました。<code>ui_action</code> をどう試し、
 スクリーンショットの繰り返しと比べてどれだけ速いかは次のノートにあります：
-{a(NOTE2, "OpenAB Computer 0.10.0 の ui_action をどう試したか")}。</p>
+{a(NOTE2, "OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減")}。</p>
 
 <p class="outro">試すには、{a(REL10, "OpenAB Computer 0.10.0")} に更新してアクセシビリティ権限を与え、
 <code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、続けて
@@ -985,7 +985,7 @@ Desktop은 macOS, Windows, Linux를 지원합니다.</li>
 {{fig_action}}
 <p>Linux(AT-SPI)는 p3로 {a(ISSUE102, "issue #102")}에 미뤄 두었고, Linux 기기에서 필요해지면
 시작합니다. macOS 부분이 끝나서 #67은 닫혔습니다. <code>ui_action</code>을 어떻게 시험했고 스크린샷
-반복보다 얼마나 빠른지는 다음 노트에 있습니다: {a(NOTE2, "OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나")}.</p>
+반복보다 얼마나 빠른지는 다음 노트에 있습니다: {a(NOTE2, "OpenAB Computer 0.10.0, 접근성 트리 조작 완전 지원: 실측 4.7배 빠르고 토큰 55% 절약")}.</p>
 
 <p class="outro">써 보려면 {a(REL10, "OpenAB Computer 0.10.0")}으로 업데이트하고 손쉬운 사용 권한을 준 뒤,
 <code>owner</code> 프로필의 에이전트에서 <code>ui_snapshot</code>을 호출하고 이어서

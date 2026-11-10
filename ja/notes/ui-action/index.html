@@ -3,30 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB</title>
-<meta name="description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで、入力トークンは 3,165 から 1,435 に、時間は 1.70 秒から 0.36 秒になりました。">
+<title>OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減 — OpenAB</title>
+<meta name="description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで 4.7 倍速く（0.36 秒対 1.70 秒）、入力トークンは 55% 少なくなりました（1,435 対 3,165）。">
 <link rel="canonical" href="https://openab.dev/ja/notes/ui-action/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:title" content="OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB">
-<meta property="og:description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで、入力トークンは 3,165 から 1,435 に、時間は 1.70 秒から 0.36 秒になりました。">
+<meta property="og:title" content="OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減 — OpenAB">
+<meta property="og:description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで 4.7 倍速く（0.36 秒対 1.70 秒）、入力トークンは 55% 少なくなりました（1,435 対 3,165）。">
 <meta property="og:url" content="https://openab.dev/ja/notes/ui-action/">
-<meta property="og:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=5183fa54">
+<meta property="og:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=db577590">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="OpenAB 開発ノート：OpenAB Computer 0.10.0 の ui_action をどう試したか">
+<meta property="og:image:alt" content="OpenAB 開発ノート：OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応、実測で 4.7 倍速く、トークンは 55% 削減">
 <meta property="article:published_time" content="2026-11-10">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OpenAB Computer 0.10.0 の ui_action をどう試したか — OpenAB">
-<meta name="twitter:description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで、入力トークンは 3,165 から 1,435 に、時間は 1.70 秒から 0.36 秒になりました。">
-<meta name="twitter:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=5183fa54">
+<meta name="twitter:title" content="OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減 — OpenAB">
+<meta name="twitter:description" content="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの繰り返しと比べた差です。TextEdit の作業一つで 4.7 倍速く（0.36 秒対 1.70 秒）、入力トークンは 55% 少なくなりました（1,435 対 3,165）。">
+<meta name="twitter:image" content="https://openab.dev/ja/notes/ui-action/og-ja.png?v=db577590">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
@@ -57,7 +57,8 @@ document.addEventListener("click", function (e) {
 <main class="note">
 <article>
 <p class="back"><a href="../">← 開発ノート</a></p>
-<h1>OpenAB Computer 0.10.0 の ui_action をどう試したか</h1>
+<h1>OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減</h1>
+<p class="dek">M4 Mac mini 1 台で、同じ TextEdit の作業を二つのやり方で 10 回ずつ実行した結果です。</p>
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
 <p class="lede"><a href="../accessibility-tree/">前回の開発ノート</a>では <code>ui_snapshot</code> を紹介しました。これが第 1 段階（OpenAB Computer 0.9.0）で、エージェントは Mac アプリのアクセシビリティツリーを読めるようになりましたが、操作はまだできませんでした。<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> で加わった <code>ui_action</code> は、このツリーを操作します。スナップショットの <code>snapshot_id</code> と <code>ref</code> を渡せば、press、set_value、focus、show_menu、confirm、cancel ができ、カーソルは動きません。</p>
 <figure class="fig anim press" data-steps="4" data-ms="1400" aria-label="アニメーション：説明用のダイアログ。エージェントはスナップショットを撮り、「保存」ボタンが ref e3 だと見つけます。マウス位置を読み、スナップショット ID、ref e3、press を渡して ui_action を呼ぶと、ボタンはアクセシビリティ API で押されます。そのあともう一度マウス位置を読むと同じ点です。カーソルは一度も動いていません。">
@@ -106,7 +107,7 @@ document.addEventListener("click", function (e) {
 <figcaption>アニメーション：同じ作業を二つのやり方で行います。新しい TextEdit の書類に一文を入力して確かめる作業です。どちらもツール呼び出しは四回で、カウンターは呼び出しごとに増えます。A のスクリーンショットの繰り返しは 1.70 秒、画像 1.0 MB、入力トークン約 3,165（高解像度モデルでは約 5,427）で終わり、ポインターが動きます。B のツリーを使うやり方は 0.36 秒、テキスト 5.8 KB、約 1,435 トークンで終わり、ポインターは動きません。M4 Mac mini でスイッチボード経由、各 10 回の中央値です。</figcaption>
 </figure>
 <div class="cmp-wrap"><table class="cmp perf"><caption>実測：やり方ごとに 10 回、同じ TextEdit の作業</caption><thead><tr><th scope="col"></th><th scope="col">A) スクリーンショットの繰り返し</th><th scope="col">B) ツリーを使う</th></tr></thead><tbody><tr><th scope="row">作業あたりのツール呼び出し</th><td data-label="A) スクリーンショットの繰り返し">4</td><td data-label="B) ツリーを使う">4</td></tr><tr><th scope="row">作業あたりの時間（中央値 / p90）</th><td data-label="A) スクリーンショットの繰り返し">1.70 s / 1.83 s</td><td data-label="B) ツリーを使う">0.36 s / 0.42 s</td></tr><tr><th scope="row">呼び出しあたりの時間（中央値）</th><td data-label="A) スクリーンショットの繰り返し">333 ms</td><td data-label="B) ツリーを使う">101 ms</td></tr><tr><th scope="row">返ってきた画像</th><td data-label="A) スクリーンショットの繰り返し">1,001,879 B（1920×1080 の JPEG 2 枚）</td><td data-label="B) ツリーを使う">0</td></tr><tr><th scope="row">返ってきたテキスト</th><td data-label="A) スクリーンショットの繰り返し">188 B</td><td data-label="B) ツリーを使う">5,846 B（スナップショット 2 回、各約 2.8 KB）</td></tr><tr><th scope="row">推定入力トークン（標準モデル）</th><td data-label="A) スクリーンショットの繰り返し">3,165</td><td data-label="B) ツリーを使う">1,435</td></tr><tr><th scope="row">推定入力トークン（高解像度モデル）</th><td data-label="A) スクリーンショットの繰り返し">5,427</td><td data-label="B) ツリーを使う">1,435</td></tr><tr><th scope="row">ポインターが動いた</th><td data-label="A) スクリーンショットの繰り返し">10 回中 10 回</td><td data-label="B) ツリーを使う">10 回中 0 回</td></tr><tr><th scope="row">文字が書類に入った</th><td data-label="A) スクリーンショットの繰り返し">10 回中 10 回</td><td data-label="B) ツリーを使う">10 回中 10 回</td></tr></tbody></table></div>
-<p>この作業では、A が使った入力トークンは標準モデルで B の約 2.2 倍（3,165 対 1,435）、高解像度モデルで約 3.8 倍（5,427 対 1,435）でした。B は 0.36 秒、A は 1.70 秒で終わり、B のほうが約 4.7 倍速く、ポインターも一度も動きませんでした。</p>
+<p>この作業では、B が使った入力トークンは標準モデルで A より約 55% 少なく（1,435 対 3,165）、高解像度モデルでは約 74% 少なくなりました（1,435 対 5,427）。B は 0.36 秒、A は 1.70 秒で終わり、B のほうが約 4.7 倍速く、ポインターも一度も動きませんでした。</p>
 <p>A の時間の多くは、44 回のキー入力（877 ms）と、スイッチボードを通って返ってくる約 500 KB のスクリーンショット 2 枚にかかっています。B の <code>ui_action</code> は一回あたり端から端まで約 67 ms で、その大半はネットワークの往復です。</p>
 <p class="cmp-note">トークンの数え方：画像は <a href="https://platform.claude.com/docs/en/build-with-claude/vision">Anthropic のビジョンのガイド</a>の式を使いました。画像をモデルの上限まで縮めてから ⌈幅/28⌉ × ⌈高さ/28⌉ です。標準モデル（長辺 1,568 px まで）では 1920×1080 のスクリーンショットが 1456×819 に縮み、約 1,560 トークン。高解像度モデル（長辺 2,576 px まで）では縮まず、約 2,691 トークンです。テキストは約 4 文字で 1 トークンとし、トークナイザーは使っていません。数えたのはモデルが実際に見る内容だけで、ツールの定義やモデル自身の出力は含みません。</p>
 <p class="cmp-note">条件：M4 Mac mini（16 GB、macOS 15.7）、1920×1080 のディスプレイ 1 枚、OpenAB Computer 0.10.0。エージェントは tailnet 上の HTTPS でスイッチボードにつなぎ、そこから Mac mini に届くので、毎回の呼び出しにこの往復がかかります。やり方ごとに 10 回、A と B を交互に実行し、最初のウォームアップ 1 組は捨てました。計ったのは四回のツール呼び出しだけです。A のクリック位置は既知のウィンドウ位置から決めました。実際のモデルなら最初のスクリーンショットから読み取ります。数字は 1 台のマシンと 1 つの作業から得たもので、モデルがスクリーンショットやスナップショットを見て考える時間は含みません。</p>

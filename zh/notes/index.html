@@ -25,7 +25,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/">
@@ -60,8 +60,8 @@ document.addEventListener("click", function (e) {
   <li>
     <a class="card note-item" href="ui-action/">
       <time class="when" datetime="2026-11-10">2026-11-10</time>
-      <h2 class="note-title">我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action</h2>
-      <p class="card-desc">第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。</p>
+      <h2 class="note-title">OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55%</h2>
+      <p class="card-desc">第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，快了 4.7 倍（0.36 秒對 1.70 秒），輸入 token 省了 55%（1,435 對 3,165）。</p>
       <span class="card-link">閱讀筆記</span>
     </a>
   </li>

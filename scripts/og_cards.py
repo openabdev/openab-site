@@ -244,8 +244,16 @@ def build(lang, text=None, dest=None, art=None):
     lines, sub = text or TEXT[lang]
     hpath = HEAD_FACE.get(lang, FACE[lang])
     hf, hsize = fit(d, lines, hpath, 58 if lang == "en" else 54, 34, TEXT_R)
-    d.text((MARGIN, HEAD_Y1), lines[0], font=hf, fill=INK)
-    d.text((MARGIN, HEAD_Y2 if hsize > 44 else HEAD_Y1 + hsize + 22), lines[1], font=hf, fill=INK)
+    if len(lines) == 2:
+        d.text((MARGIN, HEAD_Y1), lines[0], font=hf, fill=INK)
+        d.text((MARGIN, HEAD_Y2 if hsize > 44 else HEAD_Y1 + hsize + 22), lines[1], font=hf, fill=INK)
+    else:
+        # A longer headline (3-4 lines): same leading ratio as the 2-line case (73/54), the block
+        # ending where the 2-line block ends, so the subtitle and domain stay where they are.
+        step = round(hsize * 1.32)
+        top = HEAD_Y2 - (len(lines) - 1) * step
+        for i, line in enumerate(lines):
+            d.text((MARGIN, top + i * step), line, font=hf, fill=INK)
 
     sf_size = 27 if lang == "en" else 25
     sf = font(FACE[lang], sf_size)

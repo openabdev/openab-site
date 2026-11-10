@@ -225,6 +225,7 @@ html[data-lang="zh"] .note h1, html[data-lang="zh"] .note-title { word-break: ke
 .note .back a { color: var(--muted); text-decoration: none; }
 .note .back a:hover { color: var(--ink); }
 .note .byline { margin: 0 0 1.6rem; }
+.note .dek { margin: 0 0 0.5rem; color: var(--muted); font-size: 1.05rem; line-height: 1.6; text-wrap: pretty; }
 .note .lede { font-size: 1.12rem; line-height: 1.75; }
 .note .hook { font-size: 1.16rem; line-height: 1.75; font-weight: 600; color: var(--accent-deep); }
 .note h2 { text-align: left; font-size: 1.3rem; margin: 2.2rem 0 0.4rem; line-height: 1.4; }

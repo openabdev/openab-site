@@ -3,30 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB</title>
-<meta name="description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task, input tokens went from 3,165 to 1,435 and time from 1.70 s to 0.36 s.">
+<title>OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster and 55% fewer tokens in our test — OpenAB</title>
+<meta name="description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task it was 4.7× faster (0.36 s vs 1.70 s) and used 55% fewer input tokens (1,435 vs 3,165).">
 <link rel="canonical" href="https://openab.dev/notes/ui-action/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="en_US">
-<meta property="og:title" content="How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB">
-<meta property="og:description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task, input tokens went from 3,165 to 1,435 and time from 1.70 s to 0.36 s.">
+<meta property="og:title" content="OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster and 55% fewer tokens in our test — OpenAB">
+<meta property="og:description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task it was 4.7× faster (0.36 s vs 1.70 s) and used 55% fewer input tokens (1,435 vs 3,165).">
 <meta property="og:url" content="https://openab.dev/notes/ui-action/">
-<meta property="og:image" content="https://openab.dev/notes/ui-action/og-en.png?v=8c0e7140">
+<meta property="og:image" content="https://openab.dev/notes/ui-action/og-en.png?v=d5e2c399">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="OpenAB dev note: how we tested ui_action in OpenAB Computer 0.10.0">
+<meta property="og:image:alt" content="OpenAB dev note: OpenAB Computer 0.10.0 now supports full accessibility-tree actions, 4.7× faster and 55% fewer tokens in our test">
 <meta property="article:published_time" content="2026-11-10">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="How we tested ui_action in OpenAB Computer 0.10.0 — OpenAB">
-<meta name="twitter:description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task, input tokens went from 3,165 to 1,435 and time from 1.70 s to 0.36 s.">
-<meta name="twitter:image" content="https://openab.dev/notes/ui-action/og-en.png?v=8c0e7140">
+<meta name="twitter:title" content="OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster and 55% fewer tokens in our test — OpenAB">
+<meta name="twitter:description" content="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds ui_action to act on it. How we test the whole operation, and what it saves against a screenshot loop: on one TextEdit task it was 4.7× faster (0.36 s vs 1.70 s) and used 55% fewer input tokens (1,435 vs 3,165).">
+<meta name="twitter:image" content="https://openab.dev/notes/ui-action/og-en.png?v=d5e2c399">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
@@ -57,7 +57,8 @@ document.addEventListener("click", function (e) {
 <main class="note">
 <article>
 <p class="back"><a href="../">← Dev notes</a></p>
-<h1>How we tested ui_action in OpenAB Computer 0.10.0</h1>
+<h1>OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster and 55% fewer tokens in our test</h1>
+<p class="dek">Results from one TextEdit task done two ways, 10 runs each, on an M4 Mac mini.</p>
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
 <p class="lede">The <a href="../accessibility-tree/">previous dev note</a> introduced <code>ui_snapshot</code>. That was
 phase 1, in OpenAB Computer 0.9.0: an agent could read a Mac app's accessibility tree, but it could
@@ -127,8 +128,8 @@ text area → <code>key</code> type → <code>screenshot</code> to check.</li>
 <figcaption>Animation: the same task done two ways, typing a sentence into a new TextEdit document and checking it. Both sides make four tool calls; the counters add up each call. A, the screenshot loop, ends at 1.70 s, 1.0 MB of images and about 3,165 input tokens (5,427 on a high-resolution model), and the pointer moves. B, the tree path, ends at 0.36 s, 5.8 KB of text and about 1,435 tokens, and the pointer stays put. Medians of 10 runs each on an M4 Mac mini through the switchboard.</figcaption>
 </figure>
 <div class="cmp-wrap"><table class="cmp perf"><caption>Measured: 10 runs per approach, one TextEdit task</caption><thead><tr><th scope="col"></th><th scope="col">A) Screenshot loop</th><th scope="col">B) Tree path</th></tr></thead><tbody><tr><th scope="row">Tool calls per task</th><td data-label="A) Screenshot loop">4</td><td data-label="B) Tree path">4</td></tr><tr><th scope="row">Time per task, median / p90</th><td data-label="A) Screenshot loop">1.70 s / 1.83 s</td><td data-label="B) Tree path">0.36 s / 0.42 s</td></tr><tr><th scope="row">Time per call, median</th><td data-label="A) Screenshot loop">333 ms</td><td data-label="B) Tree path">101 ms</td></tr><tr><th scope="row">Images returned</th><td data-label="A) Screenshot loop">1,001,879 B (2 JPEGs, 1920×1080)</td><td data-label="B) Tree path">0</td></tr><tr><th scope="row">Text returned</th><td data-label="A) Screenshot loop">188 B</td><td data-label="B) Tree path">5,846 B (2 snapshots, ~2.8 KB each)</td></tr><tr><th scope="row">Est. input tokens, standard model</th><td data-label="A) Screenshot loop">3,165</td><td data-label="B) Tree path">1,435</td></tr><tr><th scope="row">Est. input tokens, high-res model</th><td data-label="A) Screenshot loop">5,427</td><td data-label="B) Tree path">1,435</td></tr><tr><th scope="row">Pointer moved</th><td data-label="A) Screenshot loop">10 of 10 runs</td><td data-label="B) Tree path">0 of 10 runs</td></tr><tr><th scope="row">Text landed in the document</th><td data-label="A) Screenshot loop">10 of 10</td><td data-label="B) Tree path">10 of 10</td></tr></tbody></table></div>
-<p>On this task, B used about 2.2× fewer input tokens than A on a standard model (1,435 vs 3,165)
-and about 3.8× fewer on a high-resolution model (1,435 vs 5,427). It finished in 0.36 s against
+<p>On this task, B used about 55% fewer input tokens than A on a standard model (1,435 vs 3,165)
+and about 74% fewer on a high-resolution model (1,435 vs 5,427). It finished in 0.36 s against
 1.70 s, about 4.7× faster, and the pointer never moved.</p>
 <p>Most of A's time goes to typing 44 keystrokes (877 ms) and to the two screenshots, about 500 KB
 each, coming back through the switchboard. Each <code>ui_action</code> call took about 67 ms end to

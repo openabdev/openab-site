@@ -3,30 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB</title>
-<meta name="description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
+<title>OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55% — OpenAB</title>
+<meta name="description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，快了 4.7 倍（0.36 秒對 1.70 秒），輸入 token 省了 55%（1,435 對 3,165）。">
 <link rel="canonical" href="https://openab.dev/zh/notes/ui-action/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="OpenAB">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:title" content="我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB">
-<meta property="og:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
+<meta property="og:title" content="OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55% — OpenAB">
+<meta property="og:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，快了 4.7 倍（0.36 秒對 1.70 秒），輸入 token 省了 55%（1,435 對 3,165）。">
 <meta property="og:url" content="https://openab.dev/zh/notes/ui-action/">
-<meta property="og:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=b0647a72">
+<meta property="og:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=dd73f63e">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="OpenAB 開發筆記：我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action">
+<meta property="og:image:alt" content="OpenAB 開發筆記：OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作，實測快 4.7 倍，token 省 55%">
 <meta property="article:published_time" content="2026-11-10">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action — OpenAB">
-<meta name="twitter:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。">
-<meta name="twitter:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=b0647a72">
+<meta name="twitter:title" content="OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55% — OpenAB">
+<meta name="twitter:description" content="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action 讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少：在一個 TextEdit 任務上，快了 4.7 倍（0.36 秒對 1.70 秒），輸入 token 省了 55%（1,435 對 3,165）。">
+<meta name="twitter:image" content="https://openab.dev/zh/notes/ui-action/og-zh.png?v=dd73f63e">
 <meta name="theme-color" content="#F7F4FC">
 <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/favicon-16.png?v=24eecb58">
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/ui-action/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/ui-action/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/ui-action/">
@@ -57,7 +57,8 @@ document.addEventListener("click", function (e) {
 <main class="note">
 <article>
 <p class="back"><a href="../">← 開發筆記</a></p>
-<h1>我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action</h1>
+<h1>OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55%</h1>
+<p class="dek">在一台 M4 Mac mini 上，用同一個 TextEdit 任務兩種做法各跑 10 次的結果。</p>
 <p class="byline"><time datetime="2026-11-10">2026-11-10 · OpenAB Computer 0.10.0</time></p>
 <p class="lede"><a href="../accessibility-tree/">上一篇開發筆記</a>介紹了 <code>ui_snapshot</code>。那是第一階段（OpenAB Computer 0.9.0）：agent 讀得到 Mac app 的 accessibility tree，但還不能操作。這篇搭配 <a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> 的發布，新增的 <code>ui_action</code> 讓 agent 可以直接操作這棵樹：帶著快照的 <code>snapshot_id</code> 和 <code>ref</code>，做 press、set_value、focus、show_menu、confirm 或 cancel，游標不會移動。</p>
 <figure class="fig anim press" data-steps="4" data-ms="1400" aria-label="動畫：一個示意用的對話框。agent 拍快照，找到「儲存」按鈕是 ref e3。它先讀一次滑鼠位置，再帶著快照 id、ref e3 和 press 呼叫 ui_action，按鈕透過 accessibility API 被按下。接著再讀一次滑鼠位置：同一個點，因為游標從頭到尾沒有動。">
@@ -106,7 +107,7 @@ document.addEventListener("click", function (e) {
 <figcaption>動畫：同一件事用兩種方式做，在新的 TextEdit 文件裡輸入一句話並確認。兩邊都是四次工具呼叫，計數器隨每次呼叫累加。A 截圖迴圈最後是 1.70 秒、1.0 MB 的圖片、約 3,165 個輸入 token（高解析度模型約 5,427），游標移動了。B tree 路徑最後是 0.36 秒、5.8 KB 的文字、約 1,435 個 token，游標沒動。數字是一台 M4 Mac mini 經過 switchboard、各跑 10 次的中位數。</figcaption>
 </figure>
 <div class="cmp-wrap"><table class="cmp perf"><caption>實測：每種方式 10 次，同一個 TextEdit 任務</caption><thead><tr><th scope="col"></th><th scope="col">A) 截圖迴圈</th><th scope="col">B) tree 路徑</th></tr></thead><tbody><tr><th scope="row">每個任務的工具呼叫</th><td data-label="A) 截圖迴圈">4</td><td data-label="B) tree 路徑">4</td></tr><tr><th scope="row">每個任務的時間（中位數 / p90）</th><td data-label="A) 截圖迴圈">1.70 s / 1.83 s</td><td data-label="B) tree 路徑">0.36 s / 0.42 s</td></tr><tr><th scope="row">每次呼叫的時間（中位數）</th><td data-label="A) 截圖迴圈">333 ms</td><td data-label="B) tree 路徑">101 ms</td></tr><tr><th scope="row">回傳的圖片</th><td data-label="A) 截圖迴圈">1,001,879 B（2 張 1920×1080 JPEG）</td><td data-label="B) tree 路徑">0</td></tr><tr><th scope="row">回傳的文字</th><td data-label="A) 截圖迴圈">188 B</td><td data-label="B) tree 路徑">5,846 B（2 次快照，各約 2.8 KB）</td></tr><tr><th scope="row">估計輸入 token（一般模型）</th><td data-label="A) 截圖迴圈">3,165</td><td data-label="B) tree 路徑">1,435</td></tr><tr><th scope="row">估計輸入 token（高解析度模型）</th><td data-label="A) 截圖迴圈">5,427</td><td data-label="B) tree 路徑">1,435</td></tr><tr><th scope="row">游標移動</th><td data-label="A) 截圖迴圈">10 次中 10 次</td><td data-label="B) tree 路徑">10 次中 0 次</td></tr><tr><th scope="row">文字寫進文件</th><td data-label="A) 截圖迴圈">10 次中 10 次</td><td data-label="B) tree 路徑">10 次中 10 次</td></tr></tbody></table></div>
-<p>在這個任務上，A 用掉的輸入 token 在一般模型上約是 B 的 2.2 倍（3,165 對 1,435），在高解析度模型上約是 3.8 倍（5,427 對 1,435）。B 花 0.36 秒做完，A 要 1.70 秒，B 約快 4.7 倍，而且游標從頭到尾沒動。</p>
+<p>在這個任務上，B 用掉的輸入 token 在一般模型上比 A 少約 55%（1,435 對 3,165），在高解析度模型上少約 74%（1,435 對 5,427）。B 花 0.36 秒做完，A 要 1.70 秒，B 約快 4.7 倍，而且游標從頭到尾沒動。</p>
 <p>A 的時間主要花在用鍵盤送出 44 個按鍵（877 ms），以及兩張各約 500 KB 的截圖經過 switchboard 傳回來。B 的每次 <code>ui_action</code> 呼叫端到端約 67 ms，大部分是網路往返。</p>
 <p class="cmp-note">token 怎麼算：圖片用 <a href="https://platform.claude.com/docs/en/build-with-claude/vision">Anthropic vision 指南</a>的公式，先把圖縮到模型的上限內，再算 ⌈寬/28⌉ × ⌈高/28⌉。一般模型（長邊上限 1,568 px）會把 1920×1080 的截圖縮成 1456×819，約 1,560 個 token；高解析度模型（長邊上限 2,576 px）不縮，約 2,691 個 token。文字以約 4 個字元算 1 個 token，沒有跑 tokenizer。只算模型實際會看到的內容，不含工具定義和模型自己的輸出。</p>
 <p class="cmp-note">測試條件：一台 M4 Mac mini（16 GB、macOS 15.7），一個 1920×1080 的螢幕，裝的是 OpenAB Computer 0.10.0。agent 經 tailnet 用 HTTPS 連到 switchboard，再轉到這台 Mac mini，每次呼叫都要付這段往返。A、B 各跑 10 次，交錯進行，最前面一組暖身不計。只計四次工具呼叫的時間。A 點擊的座標取自已知的視窗位置，真的模型得先從第一張截圖裡找出來。這些數字來自一台機器、一個任務，也不包含模型看截圖或快照、思考下一步的時間。</p>

@@ -26,14 +26,18 @@ NOTE = dict(
     json="",
     langs={
         "en": dict(
-            title="How we tested ui_action in OpenAB Computer 0.10.0",
+            title="OpenAB Computer 0.10.0 now supports full accessibility-tree actions: 4.7× faster "
+                  "and 55% fewer tokens in our test",
+            dek="Results from one TextEdit task done two ways, 10 runs each, on an M4 Mac mini.",
             desc="Phase 1 could read the macOS accessibility tree; OpenAB Computer 0.10.0 adds "
                  "ui_action to act on it. How we test the whole operation, and what it saves "
-                 "against a screenshot loop: on one TextEdit task, input tokens went from 3,165 to "
-                 "1,435 and time from 1.70 s to 0.36 s.",
-            og=(["ui_action in 0.10.0:", "press by ref, cursor stays."],
-                "How we test it, and how much faster it is"),
-            og_alt="OpenAB dev note: how we tested ui_action in OpenAB Computer 0.10.0",
+                 "against a screenshot loop: on one TextEdit task it was 4.7× faster (0.36 s vs 1.70 s) "
+                 "and used 55% fewer input tokens (1,435 vs 3,165).",
+            og=(["OpenAB Computer 0.10.0 now supports", "full accessibility-tree actions:",
+                 "4.7× faster, 55% fewer tokens"],
+                "One TextEdit task, two ways, 10 runs each, on an M4 Mac mini"),
+            og_alt="OpenAB dev note: OpenAB Computer 0.10.0 now supports full accessibility-tree actions, "
+                   "4.7× faster and 55% fewer tokens in our test",
             byline="2026-11-10 · OpenAB Computer 0.10.0",
             body=f"""
 <p class="lede">The {a(NOTE1, "previous dev note")} introduced <code>ui_snapshot</code>. That was
@@ -96,8 +100,8 @@ text area → <code>key</code> type → <code>screenshot</code> to check.</li>
 </ul>
 {{fig_cmp}}
 {{perf_table}}
-<p>On this task, B used about 2.2× fewer input tokens than A on a standard model (1,435 vs 3,165)
-and about 3.8× fewer on a high-resolution model (1,435 vs 5,427). It finished in 0.36 s against
+<p>On this task, B used about 55% fewer input tokens than A on a standard model (1,435 vs 3,165)
+and about 74% fewer on a high-resolution model (1,435 vs 5,427). It finished in 0.36 s against
 1.70 s, about 4.7× faster, and the pointer never moved.</p>
 <p>Most of A's time goes to typing 44 keystrokes (877 ms) and to the two screenshots, about 500 KB
 each, coming back through the switchboard. Each <code>ui_action</code> call took about 67 ms end to
@@ -126,13 +130,14 @@ in {a(ISSUE102, "issue #102")}. For custom-drawn UI with no accessibility node,
 """,
         ),
         "zh": dict(
-            title="我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action",
+            title="OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作：實測快 4.7 倍，token 省 55%",
+            dek="在一台 M4 Mac mini 上，用同一個 TextEdit 任務兩種做法各跑 10 次的結果。",
             desc="第一階段只能讀 macOS 的 accessibility tree，OpenAB Computer 0.10.0 的 ui_action "
                  "讓 agent 可以直接操作它。這篇說明我們怎麼測整個操作過程，以及它比截圖迴圈省多少："
-                 "在一個 TextEdit 任務上，輸入 token 從 3,165 降到 1,435，時間從 1.70 秒降到 0.36 秒。",
-            og=(["0.10.0 的 ui_action：", "用 ref 按下，游標不動。"],
-                "我們怎麼測，以及快了多少"),
-            og_alt="OpenAB 開發筆記：我們怎麼測試 OpenAB Computer 0.10.0 的 ui_action",
+                 "在一個 TextEdit 任務上，快了 4.7 倍（0.36 秒對 1.70 秒），輸入 token 省了 55%（1,435 對 3,165）。",
+            og=(["OpenAB Computer 0.10.0 開始支援", "完整的 accessibility tree 操作：", "實測快 4.7 倍，token 省 55%"],
+                "一台 M4 Mac mini、同一個 TextEdit 任務，兩種做法各跑 10 次"),
+            og_alt="OpenAB 開發筆記：OpenAB Computer 0.10.0 開始支援完整的 accessibility tree 操作，實測快 4.7 倍，token 省 55%",
             byline="2026-11-10 · OpenAB Computer 0.10.0",
             body=f"""
 <p class="lede">{a(NOTE1, "上一篇開發筆記")}介紹了 <code>ui_snapshot</code>。那是第一階段（OpenAB Computer 0.9.0）：agent 讀得到 Mac app 的 accessibility tree，但還不能操作。這篇搭配 {a(REL10, "OpenAB Computer 0.10.0")} 的發布，新增的 <code>ui_action</code> 讓 agent 可以直接操作這棵樹：帶著快照的 <code>snapshot_id</code> 和 <code>ref</code>，做 press、set_value、focus、show_menu、confirm 或 cancel，游標不會移動。</p>
@@ -174,7 +179,7 @@ in {a(ISSUE102, "issue #102")}. For custom-drawn UI with no accessibility node,
 </ul>
 {{fig_cmp}}
 {{perf_table}}
-<p>在這個任務上，A 用掉的輸入 token 在一般模型上約是 B 的 2.2 倍（3,165 對 1,435），在高解析度模型上約是 3.8 倍（5,427 對 1,435）。B 花 0.36 秒做完，A 要 1.70 秒，B 約快 4.7 倍，而且游標從頭到尾沒動。</p>
+<p>在這個任務上，B 用掉的輸入 token 在一般模型上比 A 少約 55%（1,435 對 3,165），在高解析度模型上少約 74%（1,435 對 5,427）。B 花 0.36 秒做完，A 要 1.70 秒，B 約快 4.7 倍，而且游標從頭到尾沒動。</p>
 <p>A 的時間主要花在用鍵盤送出 44 個按鍵（877 ms），以及兩張各約 500 KB 的截圖經過 switchboard 傳回來。B 的每次 <code>ui_action</code> 呼叫端到端約 67 ms，大部分是網路往返。</p>
 <p class="cmp-note">token 怎麼算：圖片用 {a(VISION, "Anthropic vision 指南")}的公式，先把圖縮到模型的上限內，再算 ⌈寬/28⌉ × ⌈高/28⌉。一般模型（長邊上限 1,568 px）會把 1920×1080 的截圖縮成 1456×819，約 1,560 個 token；高解析度模型（長邊上限 2,576 px）不縮，約 2,691 個 token。文字以約 4 個字元算 1 個 token，沒有跑 tokenizer。只算模型實際會看到的內容，不含工具定義和模型自己的輸出。</p>
 <p class="cmp-note">測試條件：一台 M4 Mac mini（16 GB、macOS 15.7），一個 1920×1080 的螢幕，裝的是 OpenAB Computer 0.10.0。agent 經 tailnet 用 HTTPS 連到 switchboard，再轉到這台 Mac mini，每次呼叫都要付這段往返。A、B 各跑 10 次，交錯進行，最前面一組暖身不計。只計四次工具呼叫的時間。A 點擊的座標取自已知的視窗位置，真的模型得先從第一張截圖裡找出來。這些數字來自一台機器、一個任務，也不包含模型看截圖或快照、思考下一步的時間。</p>
@@ -186,14 +191,15 @@ in {a(ISSUE102, "issue #102")}. For custom-drawn UI with no accessibility node,
 """,
         ),
         "ja": dict(
-            title="OpenAB Computer 0.10.0 の ui_action をどう試したか",
+            title="OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減",
+            dek="M4 Mac mini 1 台で、同じ TextEdit の作業を二つのやり方で 10 回ずつ実行した結果です。",
             desc="第 1 段階は macOS のアクセシビリティツリーを読むだけでした。OpenAB Computer 0.10.0 の "
                  "ui_action でツリーを操作できます。一連の操作をどう試しているか、そしてスクリーンショットの"
-                 "繰り返しと比べた差です。TextEdit の作業一つで、入力トークンは 3,165 から 1,435 に、時間は "
-                 "1.70 秒から 0.36 秒になりました。",
-            og=(["0.10.0 の ui_action：", "ref で押し、カーソルはそのまま。"],
-                "どう試したか、どれだけ速くなったか"),
-            og_alt="OpenAB 開発ノート：OpenAB Computer 0.10.0 の ui_action をどう試したか",
+                 "繰り返しと比べた差です。TextEdit の作業一つで 4.7 倍速く（0.36 秒対 1.70 秒）、入力トークンは "
+                 "55% 少なくなりました（1,435 対 3,165）。",
+            og=(["OpenAB Computer 0.10.0 で", "アクセシビリティツリーの", "操作に完全対応：", "実測で 4.7 倍速く、トークン 55% 削減"],
+                "M4 Mac mini 1 台、同じ TextEdit の作業を二通りで 10 回ずつ"),
+            og_alt="OpenAB 開発ノート：OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応、実測で 4.7 倍速く、トークンは 55% 削減",
             byline="2026-11-10 · OpenAB Computer 0.10.0",
             body=f"""
 <p class="lede">{a(NOTE1, "前回の開発ノート")}では <code>ui_snapshot</code> を紹介しました。これが第 1 段階（OpenAB Computer 0.9.0）で、エージェントは Mac アプリのアクセシビリティツリーを読めるようになりましたが、操作はまだできませんでした。{a(REL10, "OpenAB Computer 0.10.0")} で加わった <code>ui_action</code> は、このツリーを操作します。スナップショットの <code>snapshot_id</code> と <code>ref</code> を渡せば、press、set_value、focus、show_menu、confirm、cancel ができ、カーソルは動きません。</p>
@@ -235,7 +241,7 @@ in {a(ISSUE102, "issue #102")}. For custom-drawn UI with no accessibility node,
 </ul>
 {{fig_cmp}}
 {{perf_table}}
-<p>この作業では、A が使った入力トークンは標準モデルで B の約 2.2 倍（3,165 対 1,435）、高解像度モデルで約 3.8 倍（5,427 対 1,435）でした。B は 0.36 秒、A は 1.70 秒で終わり、B のほうが約 4.7 倍速く、ポインターも一度も動きませんでした。</p>
+<p>この作業では、B が使った入力トークンは標準モデルで A より約 55% 少なく（1,435 対 3,165）、高解像度モデルでは約 74% 少なくなりました（1,435 対 5,427）。B は 0.36 秒、A は 1.70 秒で終わり、B のほうが約 4.7 倍速く、ポインターも一度も動きませんでした。</p>
 <p>A の時間の多くは、44 回のキー入力（877 ms）と、スイッチボードを通って返ってくる約 500 KB のスクリーンショット 2 枚にかかっています。B の <code>ui_action</code> は一回あたり端から端まで約 67 ms で、その大半はネットワークの往復です。</p>
 <p class="cmp-note">トークンの数え方：画像は {a(VISION, "Anthropic のビジョンのガイド")}の式を使いました。画像をモデルの上限まで縮めてから ⌈幅/28⌉ × ⌈高さ/28⌉ です。標準モデル（長辺 1,568 px まで）では 1920×1080 のスクリーンショットが 1456×819 に縮み、約 1,560 トークン。高解像度モデル（長辺 2,576 px まで）では縮まず、約 2,691 トークンです。テキストは約 4 文字で 1 トークンとし、トークナイザーは使っていません。数えたのはモデルが実際に見る内容だけで、ツールの定義やモデル自身の出力は含みません。</p>
 <p class="cmp-note">条件：M4 Mac mini（16 GB、macOS 15.7）、1920×1080 のディスプレイ 1 枚、OpenAB Computer 0.10.0。エージェントは tailnet 上の HTTPS でスイッチボードにつなぎ、そこから Mac mini に届くので、毎回の呼び出しにこの往復がかかります。やり方ごとに 10 回、A と B を交互に実行し、最初のウォームアップ 1 組は捨てました。計ったのは四回のツール呼び出しだけです。A のクリック位置は既知のウィンドウ位置から決めました。実際のモデルなら最初のスクリーンショットから読み取ります。数字は 1 台のマシンと 1 つの作業から得たもので、モデルがスクリーンショットやスナップショットを見て考える時間は含みません。</p>
@@ -247,14 +253,15 @@ in {a(ISSUE102, "issue #102")}. For custom-drawn UI with no accessibility node,
 """,
         ),
         "ko": dict(
-            title="OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나",
+            title="OpenAB Computer 0.10.0, 접근성 트리 조작 완전 지원: 실측 4.7배 빠르고 토큰 55% 절약",
+            dek="M4 Mac mini 한 대에서 같은 TextEdit 작업을 두 가지 방식으로 10번씩 돌린 결과입니다.",
             desc="1단계는 macOS 접근성 트리를 읽기만 했습니다. OpenAB Computer 0.10.0의 ui_action으로 "
                  "트리를 조작할 수 있습니다. 전체 과정을 어떻게 시험하는지, 그리고 스크린샷 반복과 비교한 "
-                 "차이를 정리했습니다. TextEdit 작업 하나에서 입력 토큰은 3,165개에서 1,435개로, 시간은 "
-                 "1.70초에서 0.36초로 줄었습니다.",
-            og=(["0.10.0의 ui_action:", "ref로 누르고 커서는 그대로."],
-                "어떻게 시험했고, 얼마나 빨라졌는지"),
-            og_alt="OpenAB 개발 노트: OpenAB Computer 0.10.0의 ui_action을 어떻게 시험했나",
+                 "차이를 정리했습니다. TextEdit 작업 하나에서 4.7배 빨랐고(0.36초 대 1.70초), 입력 토큰은 "
+                 "55% 적었습니다(1,435 대 3,165).",
+            og=(["OpenAB Computer 0.10.0,", "접근성 트리 조작 완전 지원:", "실측 4.7배 빠르고 토큰 55% 절약"],
+                "M4 Mac mini 한 대, 같은 TextEdit 작업을 두 방식으로 10번씩"),
+            og_alt="OpenAB 개발 노트: OpenAB Computer 0.10.0, 접근성 트리 조작 완전 지원, 실측 4.7배 빠르고 토큰 55% 절약",
             byline="2026-11-10 · OpenAB Computer 0.10.0",
             body=f"""
 <p class="lede">{a(NOTE1, "지난 개발 노트")}에서는 <code>ui_snapshot</code>을 소개했습니다. 그것이
@@ -312,8 +319,8 @@ set_value, focus, show_menu, confirm, cancel을 할 수 있고, 커서는 움직
 </ul>
 {{fig_cmp}}
 {{perf_table}}
-<p>이 작업에서 A가 쓴 입력 토큰은 표준 모델에서 B의 약 2.2배(3,165 대 1,435), 고해상도 모델에서 약
-3.8배(5,427 대 1,435)였습니다. B는 0.36초, A는 1.70초 만에 끝나 B가 약 4.7배 빨랐고, 포인터도 한 번도
+<p>이 작업에서 B가 쓴 입력 토큰은 표준 모델에서 A보다 약 55% 적었고(1,435 대 3,165), 고해상도 모델에서는 약
+74% 적었습니다(1,435 대 5,427). B는 0.36초, A는 1.70초 만에 끝나 B가 약 4.7배 빨랐고, 포인터도 한 번도
 움직이지 않았습니다.</p>
 <p>A의 시간은 대부분 키 44개 입력(877 ms)과, 스위치보드를 거쳐 돌아오는 약 500 KB짜리 스크린샷 두 장에
 들어갑니다. B의 <code>ui_action</code>은 호출마다 처음부터 끝까지 약 67 ms였고, 대부분은 네트워크

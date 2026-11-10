@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/favicon-32.png?v=54b7c8d2">
 <link rel="icon" type="image/png" sizes="64x64" href="../../../assets/favicon-64.png?v=99caab3e">
 <link rel="apple-touch-icon" href="../../../assets/apple-touch-icon.png?v=71a274e9">
-<link rel="stylesheet" href="../../../style.css?v=63e2e405">
+<link rel="stylesheet" href="../../../style.css?v=da458293">
 <link rel="alternate" hreflang="en" href="https://openab.dev/notes/accessibility-tree/">
 <link rel="alternate" hreflang="zh-Hant" href="https://openab.dev/zh/notes/accessibility-tree/">
 <link rel="alternate" hreflang="ja" href="https://openab.dev/ja/notes/accessibility-tree/">
@@ -237,7 +237,7 @@ stdio の MCP サーバーとして動きます。</li>
 <figcaption>アニメーション：第 2 段階の ui_action で、OpenAB Computer 0.10.0 でリリースしました。スナップショットのあと、エージェントはスナップショット ID、ref e7、press という操作を渡して ui_action を呼びます。OpenAB Computer はアクセシビリティ API で OK ボタンを押し、カーソルは元の位置のままです。そのあとエージェントは新しいスナップショットで確かめます。</figcaption>
 </figure>
 <p>Linux（AT-SPI）は p3 として <a href="https://github.com/openabdev/openab-computer/issues/102">issue #102</a> で後回しにし、Linux のマシンで必要になったら取りかかります。macOS の部分が終わったので #67 は閉じました。<code>ui_action</code> をどう試し、スクリーンショットの繰り返しと比べてどれだけ速いかは次のノートにあります：
-<a href="../ui-action/">OpenAB Computer 0.10.0 の ui_action をどう試したか</a>。</p>
+<a href="../ui-action/">OpenAB Computer 0.10.0 でアクセシビリティツリーの操作に完全対応：実測で 4.7 倍速く、トークンは 55% 削減</a>。</p>
 
 <p class="outro">試すには、<a href="https://github.com/openabdev/openab-computer/releases/tag/v0.10.0">OpenAB Computer 0.10.0</a> に更新してアクセシビリティ権限を与え、
 <code>owner</code> プロファイルのエージェントから <code>ui_snapshot</code>、続けて
